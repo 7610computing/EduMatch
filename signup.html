@@ -1,47 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>EduMatch - Sign Up</title>
+
     <link rel="stylesheet" href="css/auth.css">
 </head>
+
 <body>
 
     <main class="login-container">
+
         <section class="login-box">
+
             <h1>EduMatch</h1>
+
             <h2>Create an Account</h2>
-            <p>Join to find the school that's right for you.</p>
+
+            <p class="login-description">
+                Join to find the school that's right for you.
+            </p>
+
 
             <form id="signup-form">
+
+                <!-- Full Name -->
                 <div class="form-group">
-                    <label for="fullname">Full Name</label>
-                    <input type="text" id="fullname" name="fullname" placeholder="Enter your full name" required>
+
+                    <label for="fullname">
+                        Full Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="fullname"
+                        name="fullname"
+                        placeholder="Enter your full name"
+                        required
+                    >
+
                 </div>
 
+
+                <!-- Email -->
                 <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" placeholder="Enter your email" required>
+
+                    <label for="signup-email">
+                        Email
+                    </label>
+
+                    <input
+                        type="email"
+                        id="signup-email"
+                        name="email"
+                        placeholder="Enter your email"
+                        required
+                    >
+
                 </div>
 
+
+                <!-- Account Type -->
                 <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" placeholder="Create a password" required>
+
+                    <label for="account-type">
+                        Account Type
+                    </label>
+
+                    <select
+                        id="account-type"
+                        name="account-type"
+                        required
+                    >
+
+                        <option value="" disabled selected>
+                            Select account type
+                        </option>
+
+                        <option value="student">
+                            Student
+                        </option>
+
+                        <option value="parent">
+                            Parent
+                        </option>
+
+                    </select>
+
                 </div>
 
+
+                <!-- Password -->
                 <div class="form-group">
-                    <label for="confirm-password">Confirm Password</label>
-                    <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
+
+                    <label for="signup-password">
+                        Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="signup-password"
+                        name="password"
+                        placeholder="Create a password"
+                        minlength="6"
+                        required
+                    >
+
                 </div>
 
-                <button type="submit">Sign Up</button>
+
+                <!-- Confirm Password -->
+                <div class="form-group">
+
+                    <label for="confirm-password">
+                        Confirm Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="confirm-password"
+                        name="confirm-password"
+                        placeholder="Confirm your password"
+                        minlength="6"
+                        required
+                    >
+
+                </div>
+
+
+                <button type="submit" id="signup-button">
+                    Sign Up
+                </button>
+
+
+                <p id="signup-message"></p>
+
             </form>
 
-            <p>Already have an account? <a href="login.html">Log in</a></p>
+
+            <p class="signup-text">
+                Already have an account?
+                <a href="login.html">Log in</a>
+            </p>
+
         </section>
+
     </main>
 
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- EduMatch authentication -->
     <script src="js/auth.js"></script>
+
 </body>
+
 </html>
