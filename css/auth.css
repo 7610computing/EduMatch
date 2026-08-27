@@ -1,0 +1,232 @@
+/* =========================
+   RESET
+   ========================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+/* =========================
+   PAGE
+   ========================= */
+
+body {
+    font-family: Arial, sans-serif;
+
+    background-color: #f5f5f5;
+
+    color: #222222;
+
+    min-height: 100vh;
+}
+
+
+/* =========================
+   LOGIN CONTAINER
+   ========================= */
+
+.login-container {
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 20px;
+}
+
+
+/* =========================
+   LOGIN BOX
+   ========================= */
+
+.login-box {
+    width: 100%;
+    max-width: 420px;
+
+    background-color: #ffffff;
+
+    padding: 40px;
+
+    border-radius: 12px;
+
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+
+/* =========================
+   BRAND
+   ========================= */
+
+.login-box h1 {
+    text-align: center;
+
+    color: #FF7B00;
+
+    font-size: 36px;
+
+    margin-bottom: 30px;
+}
+
+
+/* =========================
+   HEADINGS
+   ========================= */
+
+.login-box h2 {
+    font-size: 26px;
+
+    margin-bottom: 8px;
+}
+
+
+.login-description {
+    color: #666666;
+
+    margin-bottom: 25px;
+}
+
+
+/* =========================
+   FORM
+   ========================= */
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+
+.form-group label {
+    display: block;
+
+    font-weight: bold;
+
+    margin-bottom: 7px;
+}
+
+
+.form-group input {
+    width: 100%;
+
+    padding: 12px;
+
+    border: 1px solid #cccccc;
+
+    border-radius: 6px;
+
+    font-size: 16px;
+
+    outline: none;
+
+    transition: border-color 0.2s;
+}
+
+
+.form-group input:focus {
+    border-color: #FF7B00;
+}
+
+
+/* =========================
+   LOGIN BUTTON
+   ========================= */
+
+.login-box button {
+    width: 100%;
+
+    padding: 13px;
+
+    border: none;
+
+    border-radius: 6px;
+
+    background-color: #FF7B00;
+
+    color: #ffffff;
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: background-color 0.2s;
+}
+
+
+.login-box button:hover {
+    background-color: #e66f00;
+}
+
+
+.login-box button:disabled {
+    background-color: #cccccc;
+
+    cursor: not-allowed;
+}
+
+
+/* =========================
+   LOGIN MESSAGE
+   ========================= */
+
+#login-message {
+    margin-top: 15px;
+
+    text-align: center;
+
+    font-size: 14px;
+}
+
+
+/* =========================
+   SIGN UP
+   ========================= */
+
+.signup-text {
+    text-align: center;
+
+    margin-top: 20px;
+
+    color: #666666;
+}
+
+
+.signup-text a {
+    color: #FF7B00;
+
+    text-decoration: none;
+
+    font-weight: bold;
+}
+
+
+.signup-text a:hover {
+    text-decoration: underline;
+}
+
+
+/* =========================
+   MOBILE
+   ========================= */
+
+@media (max-width: 480px) {
+
+    .login-box {
+        padding: 25px;
+    }
+
+
+    .login-box h1 {
+        font-size: 30px;
+    }
+
+
+    .login-box h2 {
+        font-size: 23px;
+    }
+
+}
