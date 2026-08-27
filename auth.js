@@ -1,10 +1,34 @@
+// ==========================================
+// SUPABASE CONFIGURATION
+// ==========================================
+
+const SUPABASE_URL = "YOUR_PROJECT_URL";
+const SUPABASE_KEY = "YOUR_PUBLISHABLE_KEY";
+
+const supabaseClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+
+// ==========================================
+// PAGE LOADED
+// ==========================================
+
 document.addEventListener("DOMContentLoaded", () => {
+
     const signupForm = document.getElementById("signup-form");
     const loginForm = document.getElementById("login-form");
 
-    // 1. Handle Sign-Up Submission
+
+    // ==========================================
+    // SIGN UP
+    // ==========================================
+
     if (signupForm) {
-        signupForm.addEventListener("submit", (e) => {
+
+        signupForm.addEventListener("submit", async (e) => {
+
             e.preventDefault();
 
             const fullname = document.getElementById("fullname").value;
@@ -12,47 +36,75 @@ document.addEventListener("DOMContentLoaded", () => {
             const password = document.getElementById("password").value;
             const confirmPassword = document.getElementById("confirm-password").value;
 
-            // Password check
+
+            // Check passwords
             if (password !== confirmPassword) {
                 alert("Passwords do not match!");
                 return;
             }
 
-            // Save user to LocalStorage (Simple Client-Side Demo)
-            const user = { fullname, email, password };
-            localStorage.setItem(email, JSON.stringify(user));
+
+            // Create account in Supabase Auth
+            const { data, error } = await supabaseClient.auth.signUp({
+                email: email,
+                password: password
+            });
+
+
+            // Check for errors
+            if (error) {
+                alert(error.message);
+                return;
+            }
+
+
+            // Account created
+            console.log("Account created:", data.user);
 
             alert("Account created successfully! Redirecting to login...");
-            window.location.href = "login.html"; // Redirect to login
+
+            window.location.href = "login.html";
         });
     }
 
-    // 2. Handle Login Submission
+
+    // ==========================================
+    // LOGIN
+    // ==========================================
+
     if (loginForm) {
-        loginForm.addEventListener("submit", (e) => {
+
+        loginForm.addEventListener("submit", async (e) => {
+
             e.preventDefault();
 
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
 
-            // Retrieve stored user data
-            const storedUser = localStorage.getItem(email);
 
-            if (!storedUser) {
-                alert("No account found with this email. Please sign up first.");
+            // Log in with Supabase
+            const { data, error } =
+                await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+
+            // Login failed
+            if (error) {
+                alert(error.message);
                 return;
             }
 
-            const parsedUser = JSON.parse(storedUser);
 
-            // Verify password
-            if (parsedUser.password === password) {
-                alert(`Welcome back, ${parsedUser.fullname}!`);
-                // Redirect to main page/dashboard
-                // window.location.href = "dashboard.html";
-            } else {
-                alert("Incorrect password. Please try again.");
-            }
+            // Login successful
+            console.log("Logged in user:", data.user);
+
+            alert("Login successful!");
+
+            // Go to dashboard
+            window.location.href = "index.html";
         });
     }
+
 });
