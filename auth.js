@@ -2,8 +2,9 @@
 // SUPABASE CONFIGURATION
 // ==========================================
 
-const SUPABASE_URL = "YOUR_PROJECT_URL";
-const SUPABASE_KEY = "YOUR_PUBLISHABLE_KEY";
+const SUPABASE_URL = "https://lwamtnocbxgostdrqhhz.supabase.co";
+
+const SUPABASE_KEY = "sb_publishable_toapbpc7C63yz1cCfg2jFQ_THIzGsJj";
 
 const supabaseClient = supabase.createClient(
     SUPABASE_URL,
@@ -37,14 +38,14 @@ document.addEventListener("DOMContentLoaded", () => {
             const confirmPassword = document.getElementById("confirm-password").value;
 
 
-            // Check passwords
+            // Check that passwords match
             if (password !== confirmPassword) {
                 alert("Passwords do not match!");
                 return;
             }
 
 
-            // Create account in Supabase Auth
+            // Create account using Supabase Auth
             const { data, error } = await supabaseClient.auth.signUp({
                 email: email,
                 password: password
@@ -53,12 +54,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Check for errors
             if (error) {
+                console.error("Sign-up error:", error);
                 alert(error.message);
                 return;
             }
 
 
-            // Account created
+            // Account created successfully
             console.log("Account created:", data.user);
 
             alert("Account created successfully! Redirecting to login...");
@@ -82,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const password = document.getElementById("password").value;
 
 
-            // Log in with Supabase
+            // Log in using Supabase Auth
             const { data, error } =
                 await supabaseClient.auth.signInWithPassword({
                     email: email,
@@ -92,6 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Login failed
             if (error) {
+                console.error("Login error:", error);
                 alert(error.message);
                 return;
             }
@@ -102,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             alert("Login successful!");
 
-            // Go to dashboard
+            // Redirect to dashboard
             window.location.href = "index.html";
         });
     }
