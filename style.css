@@ -1,8 +1,17 @@
+/* =========================
+   RESET
+   ========================= */
+
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
+
+
+/* =========================
+   GENERAL
+   ========================= */
 
 body {
     font-family: Arial, sans-serif;
@@ -18,20 +27,22 @@ body {
 .navbar {
     height: 70px;
     background-color: white;
-    border-bottom: 1px solid #ddd;
 
     display: flex;
     align-items: center;
 
     padding: 0 50px;
+
+    border-bottom: 1px solid #ddd;
 }
 
 .logo {
     font-size: 24px;
     font-weight: bold;
-    margin-right: auto;
 
     color: #ff7b00;
+
+    margin-right: auto;
 }
 
 .navbar nav {
@@ -51,11 +62,15 @@ body {
     color: #e04806;
 }
 
+
+/* Login button */
+
 .login-button {
     background-color: #ff7b00;
     color: white !important;
 
     padding: 10px 20px;
+
     border-radius: 7px;
 
     transition: background-color 0.2s ease;
@@ -67,12 +82,14 @@ body {
 
 
 /* =========================
-   MAIN CONTENT
+   MAIN
    ========================= */
 
 main {
     max-width: 1400px;
+
     margin: 0 auto;
+
     padding: 40px;
 }
 
@@ -102,7 +119,9 @@ main {
 
 .search-bar {
     display: flex;
+
     gap: 10px;
+
     margin-bottom: 30px;
 }
 
@@ -112,6 +131,7 @@ main {
     padding: 15px;
 
     border: 1px solid #ccc;
+
     border-radius: 8px;
 
     font-size: 16px;
@@ -119,6 +139,7 @@ main {
 
 button {
     border: none;
+
     border-radius: 8px;
 
     padding: 0 25px;
@@ -127,19 +148,17 @@ button {
 
     font-size: 15px;
 
-    background: #ff7b00;
+    background: #222;
     color: white;
-
-    transition: background-color 0.2s ease;
 }
 
 button:hover {
-    background: #e04806;
+    background: #444;
 }
 
 
 /* =========================
-   DASHBOARD LAYOUT
+   DASHBOARD
    ========================= */
 
 .dashboard {
@@ -161,6 +180,7 @@ button:hover {
     padding: 25px;
 
     border-radius: 12px;
+
     border: 1px solid #ddd;
 
     height: fit-content;
@@ -190,9 +210,8 @@ button:hover {
     padding: 10px;
 
     border: 1px solid #ccc;
-    border-radius: 6px;
 
-    font-size: 14px;
+    border-radius: 6px;
 }
 
 .checkbox {
@@ -224,6 +243,7 @@ button:hover {
     display: flex;
 
     justify-content: space-between;
+
     align-items: center;
 
     margin-bottom: 20px;
@@ -241,9 +261,8 @@ button:hover {
     padding: 10px;
 
     border: 1px solid #ccc;
-    border-radius: 6px;
 
-    background: white;
+    border-radius: 6px;
 }
 
 
@@ -263,6 +282,7 @@ button:hover {
     background: white;
 
     border: 1px solid #ddd;
+
     border-radius: 12px;
 
     padding: 22px;
@@ -310,6 +330,7 @@ button:hover {
     display: flex;
 
     justify-content: space-between;
+
     align-items: center;
 }
 
@@ -365,19 +386,5 @@ footer {
 
     .welcome h1 {
         font-size: 28px;
-    }
-
-    .search-bar {
-        flex-direction: column;
-    }
-
-    .search-bar button {
-        height: 45px;
-    }
-
-    .results-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
     }
 }
