@@ -1,17 +1,8 @@
-/* =========================
-   RESET
-   ========================= */
-
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
-
-
-/* =========================
-   GENERAL
-   ========================= */
 
 body {
     font-family: Arial, sans-serif;
@@ -20,83 +11,60 @@ body {
 }
 
 
-/* =========================
-   NAVIGATION
-   ========================= */
+/* Navigation */
 
 .navbar {
     height: 70px;
-    background-color: white;
-
+    background: white;
     display: flex;
     align-items: center;
-
-    padding: 0 50px;
-
+    padding: 0 40px;
     border-bottom: 1px solid #ddd;
+    gap: 40px;
 }
 
 .logo {
     font-size: 24px;
     font-weight: bold;
-
-    color: #ff7b00;
-
-    margin-right: auto;
 }
 
 .navbar nav {
     display: flex;
-    align-items: center;
-    gap: 30px;
+    gap: 25px;
+    flex: 1;
 }
 
 .navbar a {
     text-decoration: none;
-    color: #ff7b00;
-
-    transition: color 0.2s ease;
+    color: #555;
 }
 
 .navbar a:hover {
-    color: #e04806;
+    color: #000;
+}
+
+.navbar .active {
+    color: #000;
+    font-weight: bold;
+}
+
+.account {
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
 
-/* Login button */
-
-.login-button {
-    background-color: #ff7b00;
-    color: white !important;
-
-    padding: 10px 20px;
-
-    border-radius: 7px;
-
-    transition: background-color 0.2s ease;
-}
-
-.login-button:hover {
-    background-color: #e04806;
-}
-
-
-/* =========================
-   MAIN
-   ========================= */
+/* Main */
 
 main {
     max-width: 1400px;
-
-    margin: 0 auto;
-
+    margin: auto;
     padding: 40px;
 }
 
 
-/* =========================
-   WELCOME
-   ========================= */
+/* Welcome */
 
 .welcome {
     margin-bottom: 25px;
@@ -113,41 +81,28 @@ main {
 }
 
 
-/* =========================
-   SEARCH
-   ========================= */
+/* Search */
 
 .search-bar {
     display: flex;
-
     gap: 10px;
-
     margin-bottom: 30px;
 }
 
 .search-bar input {
     flex: 1;
-
     padding: 15px;
-
     border: 1px solid #ccc;
-
     border-radius: 8px;
-
     font-size: 16px;
 }
 
 button {
     border: none;
-
     border-radius: 8px;
-
     padding: 0 25px;
-
     cursor: pointer;
-
     font-size: 15px;
-
     background: #222;
     color: white;
 }
@@ -157,32 +112,22 @@ button:hover {
 }
 
 
-/* =========================
-   DASHBOARD
-   ========================= */
+/* Dashboard layout */
 
 .dashboard {
     display: grid;
-
     grid-template-columns: 260px 1fr;
-
     gap: 30px;
 }
 
 
-/* =========================
-   FILTERS
-   ========================= */
+/* Filters */
 
 .filters {
     background: white;
-
     padding: 25px;
-
     border-radius: 12px;
-
     border: 1px solid #ddd;
-
     height: fit-content;
 }
 
@@ -197,28 +142,21 @@ button:hover {
 
 .filters label {
     display: block;
-
     margin-bottom: 8px;
-
     font-size: 14px;
 }
 
 .filters input[type="text"],
 .filters select {
     width: 100%;
-
     padding: 10px;
-
     border: 1px solid #ccc;
-
     border-radius: 6px;
 }
 
 .checkbox {
     display: flex !important;
-
     align-items: center;
-
     gap: 8px;
 }
 
@@ -228,24 +166,17 @@ button:hover {
 
 .filter-button {
     width: 100%;
-
     height: 42px;
-
     margin-top: 25px;
 }
 
 
-/* =========================
-   RESULTS
-   ========================= */
+/* Results */
 
 .results-header {
     display: flex;
-
     justify-content: space-between;
-
     align-items: center;
-
     margin-bottom: 20px;
 }
 
@@ -259,32 +190,23 @@ button:hover {
 
 .results-header select {
     padding: 10px;
-
     border: 1px solid #ccc;
-
     border-radius: 6px;
 }
 
 
-/* =========================
-   SCHOOL CARDS
-   ========================= */
+/* School cards */
 
 .school-results {
     display: grid;
-
     grid-template-columns: repeat(2, 1fr);
-
     gap: 20px;
 }
 
 .school-card {
     background: white;
-
     border: 1px solid #ddd;
-
     border-radius: 12px;
-
     padding: 22px;
 }
 
@@ -294,31 +216,22 @@ button:hover {
 
 .school-location {
     color: #777;
-
     margin-bottom: 15px;
 }
 
 .school-type {
     display: inline-block;
-
     padding: 5px 9px;
-
     background: #eee;
-
     border-radius: 5px;
-
     font-size: 12px;
-
     margin-bottom: 15px;
 }
 
 .ratings {
     display: grid;
-
     grid-template-columns: 1fr 1fr;
-
     gap: 8px;
-
     margin-bottom: 18px;
 }
 
@@ -328,15 +241,12 @@ button:hover {
 
 .card-bottom {
     display: flex;
-
     justify-content: space-between;
-
     align-items: center;
 }
 
 .distance {
     color: #777;
-
     font-size: 14px;
 }
 
@@ -345,22 +255,16 @@ button:hover {
 }
 
 
-/* =========================
-   FOOTER
-   ========================= */
+/* Footer */
 
 footer {
     text-align: center;
-
     padding: 30px;
-
     color: #777;
 }
 
 
-/* =========================
-   MOBILE
-   ========================= */
+/* Mobile */
 
 @media (max-width: 800px) {
 
