@@ -11,56 +11,54 @@ body {
 }
 
 
-/* Navigation */
+/* =========================
+   NAVIGATION
+   ========================= */
 
 .navbar {
     height: 70px;
-    background: white;
+    background-color: white;
+    border-bottom: 1px solid #ddd;
+
     display: flex;
     align-items: center;
-    padding: 0 40px;
-    border-bottom: 1px solid #ddd;
-    gap: 40px;
+
+    padding: 0 50px;
 }
 
 .logo {
     font-size: 24px;
     font-weight: bold;
+    margin-right: auto;
+
+    color: #ff7b00;
 }
 
 .navbar nav {
     display: flex;
-    gap: 25px;
-    flex: 1;
+    align-items: center;
+    gap: 30px;
 }
 
 .navbar a {
     text-decoration: none;
-    color: #555;
+    color: #ff7b00;
 }
 
 .navbar a:hover {
-    color: #000;
+    color: #e04806;
 }
 
-.navbar .active {
-    color: #000;
-    font-weight: bold;
+.login-button {
+    background-color: #ff7b00;
+    color: white !important;
+
+    padding: 10px 20px;
+    border-radius: 7px;
 }
 
-.account {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-
-/* Main */
-
-main {
-    max-width: 1400px;
-    margin: auto;
-    padding: 40px;
+.login-button:hover {
+    background-color: #e04806;
 }
 
 
