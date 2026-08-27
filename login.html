@@ -23,6 +23,7 @@
 
             <form id="login-form">
 
+                <!-- Email -->
                 <div class="form-group">
                     <label for="email">Email</label>
 
@@ -31,10 +32,13 @@
                         id="email"
                         name="email"
                         placeholder="Enter your email"
+                        autocomplete="email"
                         required
                     >
                 </div>
 
+
+                <!-- Password -->
                 <div class="form-group">
                     <label for="password">Password</label>
 
@@ -43,16 +47,21 @@
                         id="password"
                         name="password"
                         placeholder="Enter your password"
+                        autocomplete="current-password"
                         required
                     >
                 </div>
 
+
+                <!-- Login button -->
                 <button type="submit">
                     Log In
                 </button>
 
             </form>
 
+
+            <!-- Sign up -->
             <p>
                 Don't have an account?
                 <a href="signup.html">Sign up</a>
@@ -62,7 +71,8 @@
 
     </main>
 
-    <!-- Supabase -->
+
+    <!-- Supabase JavaScript library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- EduMatch authentication -->
