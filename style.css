@@ -43,6 +43,8 @@ body {
 .navbar a {
     text-decoration: none;
     color: #ff7b00;
+
+    transition: color 0.2s ease;
 }
 
 .navbar a:hover {
@@ -55,6 +57,8 @@ body {
 
     padding: 10px 20px;
     border-radius: 7px;
+
+    transition: background-color 0.2s ease;
 }
 
 .login-button:hover {
@@ -62,7 +66,20 @@ body {
 }
 
 
-/* Welcome */
+/* =========================
+   MAIN CONTENT
+   ========================= */
+
+main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px;
+}
+
+
+/* =========================
+   WELCOME
+   ========================= */
 
 .welcome {
     margin-bottom: 25px;
@@ -79,7 +96,9 @@ body {
 }
 
 
-/* Search */
+/* =========================
+   SEARCH
+   ========================= */
 
 .search-bar {
     display: flex;
@@ -89,43 +108,61 @@ body {
 
 .search-bar input {
     flex: 1;
+
     padding: 15px;
+
     border: 1px solid #ccc;
     border-radius: 8px;
+
     font-size: 16px;
 }
 
 button {
     border: none;
     border-radius: 8px;
+
     padding: 0 25px;
+
     cursor: pointer;
+
     font-size: 15px;
-    background: #222;
+
+    background: #ff7b00;
     color: white;
+
+    transition: background-color 0.2s ease;
 }
 
 button:hover {
-    background: #444;
+    background: #e04806;
 }
 
 
-/* Dashboard layout */
+/* =========================
+   DASHBOARD LAYOUT
+   ========================= */
 
 .dashboard {
     display: grid;
+
     grid-template-columns: 260px 1fr;
+
     gap: 30px;
 }
 
 
-/* Filters */
+/* =========================
+   FILTERS
+   ========================= */
 
 .filters {
     background: white;
+
     padding: 25px;
+
     border-radius: 12px;
     border: 1px solid #ddd;
+
     height: fit-content;
 }
 
@@ -140,21 +177,29 @@ button:hover {
 
 .filters label {
     display: block;
+
     margin-bottom: 8px;
+
     font-size: 14px;
 }
 
 .filters input[type="text"],
 .filters select {
     width: 100%;
+
     padding: 10px;
+
     border: 1px solid #ccc;
     border-radius: 6px;
+
+    font-size: 14px;
 }
 
 .checkbox {
     display: flex !important;
+
     align-items: center;
+
     gap: 8px;
 }
 
@@ -164,17 +209,23 @@ button:hover {
 
 .filter-button {
     width: 100%;
+
     height: 42px;
+
     margin-top: 25px;
 }
 
 
-/* Results */
+/* =========================
+   RESULTS
+   ========================= */
 
 .results-header {
     display: flex;
+
     justify-content: space-between;
     align-items: center;
+
     margin-bottom: 20px;
 }
 
@@ -188,23 +239,32 @@ button:hover {
 
 .results-header select {
     padding: 10px;
+
     border: 1px solid #ccc;
     border-radius: 6px;
+
+    background: white;
 }
 
 
-/* School cards */
+/* =========================
+   SCHOOL CARDS
+   ========================= */
 
 .school-results {
     display: grid;
+
     grid-template-columns: repeat(2, 1fr);
+
     gap: 20px;
 }
 
 .school-card {
     background: white;
+
     border: 1px solid #ddd;
     border-radius: 12px;
+
     padding: 22px;
 }
 
@@ -214,22 +274,31 @@ button:hover {
 
 .school-location {
     color: #777;
+
     margin-bottom: 15px;
 }
 
 .school-type {
     display: inline-block;
+
     padding: 5px 9px;
+
     background: #eee;
+
     border-radius: 5px;
+
     font-size: 12px;
+
     margin-bottom: 15px;
 }
 
 .ratings {
     display: grid;
+
     grid-template-columns: 1fr 1fr;
+
     gap: 8px;
+
     margin-bottom: 18px;
 }
 
@@ -239,12 +308,14 @@ button:hover {
 
 .card-bottom {
     display: flex;
+
     justify-content: space-between;
     align-items: center;
 }
 
 .distance {
     color: #777;
+
     font-size: 14px;
 }
 
@@ -253,16 +324,22 @@ button:hover {
 }
 
 
-/* Footer */
+/* =========================
+   FOOTER
+   ========================= */
 
 footer {
     text-align: center;
+
     padding: 30px;
+
     color: #777;
 }
 
 
-/* Mobile */
+/* =========================
+   MOBILE
+   ========================= */
 
 @media (max-width: 800px) {
 
@@ -288,5 +365,19 @@ footer {
 
     .welcome h1 {
         font-size: 28px;
+    }
+
+    .search-bar {
+        flex-direction: column;
+    }
+
+    .search-bar button {
+        height: 45px;
+    }
+
+    .results-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
     }
 }
