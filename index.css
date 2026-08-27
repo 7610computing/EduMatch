@@ -15,7 +15,7 @@
 
 body {
     font-family: Arial, sans-serif;
-    background: #292929;
+    background: #f4f6f8;
     color: #222;
     min-height: 100vh;
 
@@ -30,7 +30,8 @@ body {
 
 .navbar {
     height: 70px;
-    background-color: rgb(255, 183, 167);
+
+    background-color: white;
     border-bottom: 1px solid #ddd;
 
     display: flex;
@@ -46,7 +47,9 @@ body {
     font-size: 24px;
     font-weight: bold;
 
-    color: #f7f7ff;
+    color: #ff7b00;
+
+    text-decoration: none;
 
     margin-right: auto;
 }
@@ -60,20 +63,22 @@ body {
     gap: 30px;
 }
 
-.navbar a {
+.navbar nav a {
     text-decoration: none;
 
-    color: #000000;
+    color: #ff7b00;
 
     transition: color 0.2s ease;
 }
 
-.navbar a:hover {
+.navbar nav a:hover {
     color: #e04806;
 }
 
 
-/* Login button */
+/* =========================
+   LOGIN BUTTON
+   ========================= */
 
 .login-button {
     background-color: #ff7b00;
@@ -83,9 +88,7 @@ body {
 
     border-radius: 7px;
 
-    transition:
-        background-color 0.2s ease,
-        color 0.2s ease;
+    transition: background-color 0.2s ease;
 }
 
 .login-button:hover {
@@ -126,6 +129,8 @@ main {
     font-size: 48px;
     line-height: 1.15;
 
+    color: #222;
+
     margin-bottom: 20px;
 }
 
@@ -133,7 +138,7 @@ main {
     font-size: 18px;
     line-height: 1.6;
 
-    color: #ff7b00;
+    color: #666;
 
     margin-bottom: 35px;
 }
@@ -148,7 +153,6 @@ main {
     justify-content: center;
     gap: 15px;
 }
-
 
 .primary-button,
 .secondary-button {
