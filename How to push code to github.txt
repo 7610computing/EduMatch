@@ -3,4 +3,5 @@ How to push code to github
 using website
 1) go to the code tab
 2) click add file (left of the green 'code' button)
+
 3) upload the vs file of your code
