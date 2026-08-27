@@ -1,13 +1,26 @@
+/* =========================
+   RESET
+   ========================= */
+
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
+
+/* =========================
+   GENERAL
+   ========================= */
+
 body {
     font-family: Arial, sans-serif;
-    background-color: #f5f7fa;
+    background: #f4f6f8;
     color: #222;
+    min-height: 100vh;
+
+    display: flex;
+    flex-direction: column;
 }
 
 
@@ -17,6 +30,7 @@ body {
 
 .navbar {
     height: 70px;
+
     background-color: white;
     border-bottom: 1px solid #ddd;
 
@@ -26,11 +40,22 @@ body {
     padding: 0 50px;
 }
 
+
+/* Logo */
+
 .logo {
     font-size: 24px;
     font-weight: bold;
+
+    color: #ff7b00;
+
+    text-decoration: none;
+
     margin-right: auto;
 }
+
+
+/* Navigation links */
 
 .navbar nav {
     display: flex;
@@ -38,60 +63,84 @@ body {
     gap: 30px;
 }
 
-.navbar a {
+.navbar nav a {
     text-decoration: none;
-    color: #333;
+
+    color: #ff7b00;
+
+    transition: color 0.2s ease;
 }
 
-.navbar a:hover {
-    color: #666;
-}
-
-.login-button {
-    background-color: #222;
-    color: white !important;
-
-    padding: 10px 20px;
-    border-radius: 7px;
+.navbar nav a:hover {
+    color: #e04806;
 }
 
 
 /* =========================
-   HERO SECTION
+   LOGIN BUTTON
+   ========================= */
+
+.login-button {
+    background-color: #ff7b00;
+    color: white !important;
+
+    padding: 10px 20px;
+
+    border-radius: 7px;
+
+    transition: background-color 0.2s ease;
+}
+
+.login-button:hover {
+    background-color: #e04806;
+    color: white !important;
+}
+
+
+/* =========================
+   MAIN
+   ========================= */
+
+main {
+    flex: 1;
+
+    max-width: 1200px;
+    width: 100%;
+
+    margin: 0 auto;
+
+    padding: 80px 40px;
+}
+
+
+/* =========================
+   HERO
    ========================= */
 
 .hero {
-    min-height: 550px;
-
-    display: flex;
-    flex-direction: column;
-
-    justify-content: center;
-    align-items: center;
-
     text-align: center;
 
-    padding: 40px;
+    max-width: 800px;
+
+    margin: 0 auto 80px;
 }
 
 .hero h1 {
-    max-width: 750px;
+    font-size: 48px;
+    line-height: 1.15;
 
-    font-size: 52px;
-    line-height: 1.1;
+    color: #222;
 
     margin-bottom: 20px;
 }
 
 .hero p {
-    max-width: 600px;
-
     font-size: 18px;
     line-height: 1.6;
 
     color: #666;
 
-    margin-bottom: 30px;
+    margin-bottom: 35px;
 }
 
 
@@ -101,38 +150,58 @@ body {
 
 .hero-buttons {
     display: flex;
+    justify-content: center;
     gap: 15px;
 }
 
 .primary-button,
 .secondary-button {
-    text-decoration: none;
+    display: inline-block;
 
     padding: 13px 25px;
 
     border-radius: 7px;
 
+    text-decoration: none;
+
     font-size: 16px;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
 }
+
+
+/* Primary button */
 
 .primary-button {
-    background-color: #222;
+    background-color: #ff7b00;
     color: white;
-}
 
-.secondary-button {
-    background-color: white;
-    color: #222;
-
-    border: 1px solid #ccc;
+    border: 1px solid #ff7b00;
 }
 
 .primary-button:hover {
-    background-color: #444;
+    background-color: #e04806;
+    border-color: #e04806;
+
+    color: white;
+}
+
+
+/* Secondary button */
+
+.secondary-button {
+    background-color: white;
+    color: #ff7b00;
+
+    border: 1px solid #ff7b00;
 }
 
 .secondary-button:hover {
-    background-color: #eee;
+    background-color: #ff7b00;
+    color: white;
 }
 
 
@@ -141,23 +210,23 @@ body {
    ========================= */
 
 .features {
-    max-width: 1000px;
-
-    margin: 0 auto 80px;
-
     display: grid;
+
     grid-template-columns: repeat(3, 1fr);
 
-    gap: 20px;
+    gap: 25px;
 
-    padding: 0 30px;
+    max-width: 1000px;
+
+    margin: 0 auto;
 }
 
 .feature {
     background-color: white;
 
     border: 1px solid #ddd;
-    border-radius: 10px;
+
+    border-radius: 12px;
 
     padding: 30px;
 
@@ -165,11 +234,16 @@ body {
 }
 
 .feature h2 {
-    margin-bottom: 10px;
+    color: #ff7b00;
+
+    font-size: 24px;
+
+    margin-bottom: 12px;
 }
 
 .feature p {
     color: #666;
+
     line-height: 1.5;
 }
 
@@ -179,15 +253,15 @@ body {
    ========================= */
 
 footer {
-    background-color: white;
+    text-align: center;
+
+    padding: 30px;
+
+    color: #777;
 
     border-top: 1px solid #ddd;
 
-    text-align: center;
-
-    padding: 25px;
-
-    color: #777;
+    background-color: white;
 }
 
 
@@ -195,25 +269,54 @@ footer {
    MOBILE
    ========================= */
 
-@media (max-width: 700px) {
+@media (max-width: 800px) {
 
     .navbar {
         padding: 0 20px;
     }
 
     .navbar nav {
-        gap: 12px;
-    }
-
-    .navbar nav a:not(.login-button) {
-        display: none;
+        gap: 15px;
     }
 
     .hero h1 {
-        font-size: 38px;
+        font-size: 36px;
+    }
+
+    .hero p {
+        font-size: 16px;
     }
 
     .features {
         grid-template-columns: 1fr;
+    }
+
+    main {
+        padding: 50px 20px;
+    }
+}
+
+
+@media (max-width: 550px) {
+
+    .navbar {
+        height: auto;
+        min-height: 70px;
+    }
+
+    .navbar nav {
+        display: none;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+
+        max-width: 250px;
+
+        margin: 0 auto;
+    }
+
+    .hero h1 {
+        font-size: 30px;
     }
 }
