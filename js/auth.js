@@ -2,7 +2,8 @@
 // SUPABASE CONFIGURATION
 // =========================
 
-const SUPABASE_URL = "https://lwamtnocbxgostdrqhhz.supabase.co";
+const SUPABASE_URL =
+    "https://lwamtnocbxgostdrqhhz.supabase.co";
 
 const SUPABASE_KEY =
     "sb_publishable_toapbpc7C63yz1cCfg2jFQ_THIzGsJj";
@@ -21,58 +22,96 @@ const loginForm = document.getElementById("login-form");
 
 if (loginForm) {
 
-    const loginButton = document.getElementById("login-button");
-    const loginMessage = document.getElementById("login-message");
+    const loginButton =
+        document.getElementById("login-button");
 
-    loginForm.addEventListener("submit", async function (event) {
-
-        event.preventDefault();
-
-        const email =
-            document.getElementById("email").value.trim();
-
-        const password =
-            document.getElementById("password").value;
-
-        loginButton.disabled = true;
-        loginButton.textContent = "Logging in...";
-        loginMessage.textContent = "";
+    const loginMessage =
+        document.getElementById("login-message");
 
 
-        const { data, error } =
-            await supabaseClient.auth.signInWithPassword({
-                email: email,
-                password: password
-            });
+    loginForm.addEventListener(
+        "submit",
+        async function (event) {
+
+            event.preventDefault();
 
 
-        if (error) {
+            // Get form values
+            const email =
+                document.getElementById("email").value.trim();
 
-            console.error("Login error:", error);
+            const password =
+                document.getElementById("password").value;
+
+
+            // Disable button
+            loginButton.disabled = true;
+
+            loginButton.textContent =
+                "Logging in...";
+
+            loginMessage.textContent = "";
+
+
+            // =========================
+            // LOGIN WITH SUPABASE AUTH
+            // =========================
+
+            const { data, error } =
+                await supabaseClient.auth.signInWithPassword({
+
+                    email: email,
+
+                    password: password
+
+                });
+
+
+            // =========================
+            // LOGIN FAILED
+            // =========================
+
+            if (error) {
+
+                console.error(
+                    "Login error:",
+                    error
+                );
+
+                loginMessage.textContent =
+                    "Incorrect email or password.";
+
+                loginButton.disabled = false;
+
+                loginButton.textContent =
+                    "Log In";
+
+                return;
+            }
+
+
+            // =========================
+            // LOGIN SUCCESSFUL
+            // =========================
+
+            console.log(
+                "Login successful:",
+                data
+            );
 
             loginMessage.textContent =
-                "Incorrect email or password.";
+                "Login successful!";
 
-            loginButton.disabled = false;
-            loginButton.textContent = "Log In";
 
-            return;
+            setTimeout(function () {
+
+                window.location.href =
+                    "index.html";
+
+            }, 500);
+
         }
-
-
-        console.log("Login successful:", data);
-
-        loginMessage.textContent =
-            "Login successful!";
-
-
-        setTimeout(function () {
-
-            window.location.href = "index.html";
-
-        }, 500);
-
-    });
+    );
 }
 
 
@@ -80,7 +119,8 @@ if (loginForm) {
 // SIGN UP
 // =========================
 
-const signupForm = document.getElementById("signup-form");
+const signupForm =
+    document.getElementById("signup-form");
 
 if (signupForm) {
 
@@ -91,160 +131,193 @@ if (signupForm) {
         document.getElementById("signup-message");
 
 
-    signupForm.addEventListener("submit", async function (event) {
+    signupForm.addEventListener(
+        "submit",
+        async function (event) {
 
-        event.preventDefault();
-
-
-        // Get form values
-        const fullName =
-            document.getElementById("fullname").value.trim();
-
-        const email =
-            document.getElementById("signup-email").value.trim();
-
-        const accountType =
-            document.getElementById("account-type").value;
-
-        const password =
-            document.getElementById("signup-password").value;
-
-        const confirmPassword =
-            document.getElementById("confirm-password").value;
+            event.preventDefault();
 
 
-        // Check passwords match
-        if (password !== confirmPassword) {
+            // =========================
+            // GET FORM VALUES
+            // =========================
 
-            signupMessage.textContent =
-                "Passwords do not match.";
+            const fullName =
+                document
+                    .getElementById("fullname")
+                    .value
+                    .trim();
 
-            return;
-        }
+            const email =
+                document
+                    .getElementById("signup-email")
+                    .value
+                    .trim();
 
+            const accountType =
+                document
+                    .getElementById("account-type")
+                    .value;
 
-        // Split full name
-        const nameParts = fullName.split(/\s+/);
+            const password =
+                document
+                    .getElementById("signup-password")
+                    .value;
 
-        const firstName = nameParts[0];
-
-        const lastName =
-            nameParts.slice(1).join(" ");
-
-
-        // Disable button
-        signupButton.disabled = true;
-
-        signupButton.textContent =
-            "Creating account...";
-
-        signupMessage.textContent = "";
-
-
-        // =========================
-        // CREATE AUTH ACCOUNT
-        // =========================
-
-        const { data, error } =
-            await supabaseClient.auth.signUp({
-
-                email: email,
-
-                password: password
-
-            });
+            const confirmPassword =
+                document
+                    .getElementById("confirm-password")
+                    .value;
 
 
-        // Auth signup failed
-        if (error) {
+            // =========================
+            // CHECK PASSWORDS
+            // =========================
 
-            console.error("Signup error:", error);
+            if (password !== confirmPassword) {
 
-            signupMessage.textContent =
-                error.message;
+                signupMessage.textContent =
+                    "Passwords do not match.";
 
-            signupButton.disabled = false;
-
-            signupButton.textContent =
-                "Sign Up";
-
-            return;
-        }
+                return;
+            }
 
 
-        const user = data.user;
+            // =========================
+            // CHECK NAME
+            // =========================
+
+            if (!fullName) {
+
+                signupMessage.textContent =
+                    "Please enter your full name.";
+
+                return;
+            }
 
 
-        if (!user) {
+            // =========================
+            // SPLIT NAME
+            // =========================
 
-            signupMessage.textContent =
-                "Account could not be created.";
+            const nameParts =
+                fullName.split(/\s+/);
 
-            signupButton.disabled = false;
+            const firstName =
+                nameParts[0];
+
+            const lastName =
+                nameParts
+                    .slice(1)
+                    .join(" ");
+
+
+            // =========================
+            // DISABLE BUTTON
+            // =========================
+
+            signupButton.disabled = true;
 
             signupButton.textContent =
-                "Sign Up";
+                "Creating account...";
 
-            return;
-        }
+            signupMessage.textContent = "";
 
 
-        // =========================
-        // CREATE USER PROFILE
-        // =========================
+            // =========================
+            // CREATE SUPABASE AUTH USER
+            // =========================
 
-        const { error: profileError } =
-            await supabaseClient
-                .from("users")
-                .insert({
-
-                    id: user.id,
-
-                    first_name: firstName,
-
-                    last_name: lastName,
+            const { data, error } =
+                await supabaseClient.auth.signUp({
 
                     email: email,
 
-                    account_type: accountType
+                    password: password,
+
+                    options: {
+
+                        data: {
+
+                            first_name: firstName,
+
+                            last_name: lastName,
+
+                            account_type: accountType
+
+                        }
+
+                    }
 
                 });
 
 
-        // Profile creation failed
-        if (profileError) {
+            // =========================
+            // SIGNUP FAILED
+            // =========================
 
-            console.error(
-                "Profile creation error:",
-                profileError
+            if (error) {
+
+                console.error(
+                    "Signup error:",
+                    error
+                );
+
+                signupMessage.textContent =
+                    error.message;
+
+                signupButton.disabled = false;
+
+                signupButton.textContent =
+                    "Sign Up";
+
+                return;
+            }
+
+
+            // =========================
+            // CHECK USER
+            // =========================
+
+            if (!data.user) {
+
+                signupMessage.textContent =
+                    "Account could not be created.";
+
+                signupButton.disabled = false;
+
+                signupButton.textContent =
+                    "Sign Up";
+
+                return;
+            }
+
+
+            // =========================
+            // SUCCESS
+            // =========================
+
+            console.log(
+                "Account created:",
+                data.user
             );
 
+
             signupMessage.textContent =
-                "Account was created, but the profile could not be saved.";
+                "Account created successfully!";
 
-            signupButton.disabled = false;
 
-            signupButton.textContent =
-                "Sign Up";
+            // =========================
+            // REDIRECT
+            // =========================
 
-            return;
+            setTimeout(function () {
+
+                window.location.href =
+                    "index.html";
+
+            }, 1000);
+
         }
-
-
-        // =========================
-        // SUCCESS
-        // =========================
-
-        signupMessage.textContent =
-            "Account created successfully!";
-
-
-        setTimeout(function () {
-
-            window.location.href =
-                "index.html";
-
-        }, 1000);
-
-    });
+    );
 }
