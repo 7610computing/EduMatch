@@ -15,7 +15,7 @@
 
 body {
     font-family: Arial, sans-serif;
-    background: #666fff;
+    background: #ffffff;
     color: #222;
     min-height: 100vh;
 
@@ -30,7 +30,7 @@ body {
 
 .navbar {
     height: 70px;
-    background-color: white;
+    background-color: rgb(255, 183, 167);
     border-bottom: 1px solid #ddd;
 
     display: flex;
@@ -46,7 +46,7 @@ body {
     font-size: 24px;
     font-weight: bold;
 
-    color: #666fff;
+    color: #f7f7ff;
 
     margin-right: auto;
 }
@@ -63,7 +63,7 @@ body {
 .navbar a {
     text-decoration: none;
 
-    color: #666fff;
+    color: #000000;
 
     transition: color 0.2s ease;
 }
@@ -76,7 +76,7 @@ body {
 /* Login button */
 
 .login-button {
-    background-color: #666fff;
+    background-color: #ff7b00;
     color: white !important;
 
     padding: 10px 20px;
