@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EduMatch Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <header class="navbar">
+        <div class="logo">EduMatch</div>
+
+        <nav>
+            <a href="index.html" class="active">Dashboard</a>
+            <a href="#">Find Schools</a>
+            <a href="#">Saved Schools</a>
+        </nav>
+
+        <div class="account">
+            <span id="username">Guest</span>
+            <a href="login.html">Login</a>
+        </div>
+    </header>
+
+
+    <!-- Main dashboard -->
+    <main>
+
+        <!-- Welcome -->
+        <section class="welcome">
+            <h1>Find the right school for you.</h1>
+            <p>
+                Search and compare schools based on the things that matter to you.
+            </p>
+        </section>
+
+
+        <!-- Search -->
+        <section class="search-bar">
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search for a school..."
+            >
+
+            <button id="searchButton">
+                Search
+            </button>
+        </section>
+
+
+        <div class="dashboard">
+
+            <!-- Filters -->
+            <aside class="filters">
+
+                <h2>Filters</h2>
+
+                <label for="location">Location</label>
+                <input
+                    type="text"
+                    id="location"
+                    placeholder="e.g. Melbourne"
+                >
+
+                <label for="distance">Distance</label>
+                <select id="distance">
+                    <option value="any">Any distance</option>
+                    <option value="5">Within 5 km</option>
+                    <option value="10">Within 10 km</option>
+                    <option value="20">Within 20 km</option>
+                </select>
+
+
+                <h3>School Type</h3>
+
+                <label class="checkbox">
+                    <input type="checkbox" value="Government" class="typeFilter">
+                    Government
+                </label>
+
+                <label class="checkbox">
+                    <input type="checkbox" value="Catholic" class="typeFilter">
+                    Catholic
+                </label>
+
+                <label class="checkbox">
+                    <input type="checkbox" value="Independent" class="typeFilter">
+                    Independent
+                </label>
+
+
+                <h3>Priorities</h3>
+
+                <label class="checkbox">
+                    <input type="checkbox" value="results" class="priorityFilter">
+                    Academic Results
+                </label>
+
+                <label class="checkbox">
+                    <input type="checkbox" value="technology" class="priorityFilter">
+                    Technology
+                </label>
+
+                <label class="checkbox">
+                    <input type="checkbox" value="facilities" class="priorityFilter">
+                    Facilities
+                </label>
+
+                <label class="checkbox">
+                    <input type="checkbox" value="wellbeing" class="priorityFilter">
+                    Wellbeing
+                </label>
+
+                <label class="checkbox">
+                    <input type="checkbox" value="sports" class="priorityFilter">
+                    Sports
+                </label>
+
+                <label class="checkbox">
+                    <input type="checkbox" value="clubs" class="priorityFilter">
+                    Clubs
+                </label>
+
+                <button id="filterButton" class="filter-button">
+                    Apply Filters
+                </button>
+
+            </aside>
+
+
+            <!-- Results -->
+            <section class="results-section">
+
+                <div class="results-header">
+                    <div>
+                        <h2>Schools</h2>
+                        <p id="resultCount">Showing schools</p>
+                    </div>
+
+                    <select id="sortSelect">
+                        <option value="match">Best Match</option>
+                        <option value="distance">Distance</option>
+                        <option value="name">Name</option>
+                    </select>
+                </div>
+
+
+                <!-- School cards -->
+                <div id="schoolResults" class="school-results">
+                    <!-- JavaScript will add schools here -->
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+
+    <footer>
+        <p>EduMatch</p>
+    </footer>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>
