@@ -1,458 +1,488 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-```
-<title>EduMatch - Schools</title>
+    <title>EduMatch - Schools</title>
 
-<link
-    rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
->
+    <!-- Google Font -->
+    <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    >
 
-<link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
->
+    <!-- Leaflet CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
 
-<link rel="stylesheet" href="css/map.css">
-```
-
+    <!-- EduMatch CSS -->
+    <link rel="stylesheet" href="css/map.css">
 </head>
 
 <body>
 
-```
-<header class="navbar">
+    <!-- =========================
+         NAVIGATION
+         ========================= -->
 
-    <a href="index.html" class="brand-logo">
-        EduMatch
-    </a>
+    <header class="navbar">
 
-    <nav class="nav-links">
-        <a href="index.html">Home</a>
-        <a href="map.html">Schools</a>
-        <a href="about.html">About</a>
-        <a href="login.html" class="btn-login">Login</a>
-    </nav>
+        <a href="index.html" class="brand-logo">
+            EduMatch
+        </a>
 
-</header>
+        <nav class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="map.html">Schools</a>
+            <a href="about.html">About</a>
+            <a href="login.html" class="btn-login">Login</a>
+        </nav>
 
-
-<section class="page-header">
-
-    <h1>Find Your School</h1>
-
-    <p>
-        Explore schools around you and find one that matches your preferences.
-    </p>
-
-</section>
+    </header>
 
 
-<section class="controls">
+    <!-- =========================
+         PAGE HEADER
+         ========================= -->
 
-    <div class="search-box">
+    <section class="page-header">
 
-        <input
-            type="text"
-            id="searchInput"
-            placeholder="Search for a school..."
-        >
+        <h1>Find Your School</h1>
 
-        <button
-            class="search-button"
-            onclick="searchSchools()"
-        >
-            Search
-        </button>
+        <p>
+            Explore schools around you and find one that matches your preferences.
+        </p>
 
-    </div>
+    </section>
 
 
-    <div class="filters">
+    <!-- =========================
+         SEARCH AND FILTERS
+         ========================= -->
 
-        <button
-            class="filter active"
-            onclick="filterSchools('all')"
-        >
-            All
-        </button>
+    <section class="controls">
 
-        <button
-            class="filter"
-            onclick="filterSchools('Public')"
-        >
-            Public
-        </button>
+        <div class="search-box">
 
-        <button
-            class="filter"
-            onclick="filterSchools('Independent')"
-        >
-            Independent
-        </button>
-
-        <button
-            class="filter"
-            onclick="filterSchools('STEM')"
-        >
-            STEM
-        </button>
-
-        <button
-            class="filter"
-            onclick="filterSchools('Sports')"
-        >
-            Sports
-        </button>
-
-        <button
-            class="filter"
-            onclick="filterSchools('Arts')"
-        >
-            Arts
-        </button>
-
-    </div>
-
-</section>
-
-
-<main class="content">
-
-    <h2 class="content-title">
-        Schools in the Area
-    </h2>
-
-
-    <div class="app-layout">
-
-
-        <div class="schools-list" id="schoolsList">
-
-
-            <div
-                class="school-card"
-                data-type="Public STEM"
-                data-name="Blackburn High School"
-                onclick="showSchool(0)"
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search for a school..."
             >
 
-                <img
-                    src="https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=700&q=80"
-                    alt="Blackburn High School"
-                >
-
-                <div class="school-card-body">
-
-                    <h3>Blackburn High School</h3>
-
-                    <p class="school-location">
-                        Public • Years 7–12 • Blackburn North
-                    </p>
-
-                    <p class="school-description">
-                        A public secondary school offering a range of
-                        academic, technology and extracurricular opportunities.
-                    </p>
-
-                    <div class="tag-group">
-                        <span class="tag">STEM</span>
-                        <span class="tag">Public</span>
-                        <span class="tag">Years 7–12</span>
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div
-                class="school-card"
-                data-type="Public Sports"
-                data-name="Koonung Secondary College"
-                onclick="showSchool(1)"
+            <button
+                class="search-button"
+                onclick="searchSchools()"
             >
-
-                <img
-                    src="https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=700&q=80"
-                    alt="Koonung Secondary College"
-                >
-
-                <div class="school-card-body">
-
-                    <h3>Koonung Secondary College</h3>
-
-                    <p class="school-location">
-                        Public • Years 7–12 • Mont Albert North
-                    </p>
-
-                    <p class="school-description">
-                        A secondary college providing academic programs,
-                        sports and a wide range of student activities.
-                    </p>
-
-                    <div class="tag-group">
-                        <span class="tag">Sports</span>
-                        <span class="tag">Public</span>
-                        <span class="tag">Years 7–12</span>
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div
-                class="school-card"
-                data-type="Independent Arts"
-                data-name="Premier College"
-                onclick="showSchool(2)"
-            >
-
-                <img
-                    src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=700&q=80"
-                    alt="Premier College"
-                >
-
-                <div class="school-card-body">
-
-                    <h3>Premier College</h3>
-
-                    <p class="school-location">
-                        Independent • Prep–12 • Box Hill
-                    </p>
-
-                    <p class="school-description">
-                        An independent school with a focus on student
-                        development, arts and academic learning.
-                    </p>
-
-                    <div class="tag-group">
-                        <span class="tag">Arts</span>
-                        <span class="tag">Independent</span>
-                        <span class="tag">Prep–12</span>
-                    </div>
-
-                </div>
-
-            </div>
+                Search
+            </button>
 
         </div>
 
 
-        <div class="map-container">
-            <div id="map"></div>
+        <div class="filters">
+
+            <button
+                class="filter active"
+                onclick="filterSchools('all')"
+            >
+                All
+            </button>
+
+            <button
+                class="filter"
+                onclick="filterSchools('Public')"
+            >
+                Public
+            </button>
+
+            <button
+                class="filter"
+                onclick="filterSchools('Independent')"
+            >
+                Independent
+            </button>
+
+            <button
+                class="filter"
+                onclick="filterSchools('STEM')"
+            >
+                STEM
+            </button>
+
+            <button
+                class="filter"
+                onclick="filterSchools('Sports')"
+            >
+                Sports
+            </button>
+
+            <button
+                class="filter"
+                onclick="filterSchools('Arts')"
+            >
+                Arts
+            </button>
+
         </div>
 
-    </div>
-
-</main>
+    </section>
 
 
-<footer>
+    <!-- =========================
+         SCHOOL CONTENT
+         ========================= -->
 
-    © 2026 EduMatch. Helping students find the right school.
+    <main class="content">
 
-</footer>
-
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-
-<script>
-
-    const schools = [
-
-        {
-            title: "Blackburn High School",
-            lat: -37.8152,
-            lng: 145.1481,
-            type: "Public",
-            category: "STEM"
-        },
-
-        {
-            title: "Koonung Secondary College",
-            lat: -37.8080,
-            lng: 145.1320,
-            type: "Public",
-            category: "Sports"
-        },
-
-        {
-            title: "Premier College",
-            lat: -37.8190,
-            lng: 145.1380,
-            type: "Independent",
-            category: "Arts"
-        }
-
-    ];
+        <h2 class="content-title">
+            Schools in the Area
+        </h2>
 
 
-    const map = L.map("map").setView(
-        [-37.8130, 145.1400],
-        13
-    );
+        <div class="app-layout">
+
+            <!-- School List -->
+
+            <div class="schools-list" id="schoolsList">
+
+                <!-- Blackburn High School -->
+
+                <div
+                    class="school-card"
+                    data-type="Public STEM"
+                    data-name="Blackburn High School"
+                    onclick="showSchool(0)"
+                >
+
+                    <img
+                        src="https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=700&q=80"
+                        alt="Blackburn High School"
+                    >
+
+                    <div class="school-card-body">
+
+                        <h3>Blackburn High School</h3>
+
+                        <p class="school-location">
+                            Public • Years 7–12 • Blackburn North
+                        </p>
+
+                        <p class="school-description">
+                            A public secondary school offering a range of
+                            academic, technology and extracurricular opportunities.
+                        </p>
+
+                        <div class="tag-group">
+                            <span class="tag">STEM</span>
+                            <span class="tag">Public</span>
+                            <span class="tag">Years 7–12</span>
+                        </div>
+
+                    </div>
+
+                </div>
 
 
-    L.tileLayer(
-        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        {
-            maxZoom: 19,
-            attribution: "&copy; OpenStreetMap contributors"
-        }
-    ).addTo(map);
+                <!-- Koonung Secondary College -->
+
+                <div
+                    class="school-card"
+                    data-type="Public Sports"
+                    data-name="Koonung Secondary College"
+                    onclick="showSchool(1)"
+                >
+
+                    <img
+                        src="https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=700&q=80"
+                        alt="Koonung Secondary College"
+                    >
+
+                    <div class="school-card-body">
+
+                        <h3>Koonung Secondary College</h3>
+
+                        <p class="school-location">
+                            Public • Years 7–12 • Mont Albert North
+                        </p>
+
+                        <p class="school-description">
+                            A secondary college providing academic programs,
+                            sports and a wide range of student activities.
+                        </p>
+
+                        <div class="tag-group">
+                            <span class="tag">Sports</span>
+                            <span class="tag">Public</span>
+                            <span class="tag">Years 7–12</span>
+                        </div>
+
+                    </div>
+
+                </div>
 
 
-    const markers = [];
+                <!-- Premier College -->
+
+                <div
+                    class="school-card"
+                    data-type="Independent Arts"
+                    data-name="Premier College"
+                    onclick="showSchool(2)"
+                >
+
+                    <img
+                        src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=700&q=80"
+                        alt="Premier College"
+                    >
+
+                    <div class="school-card-body">
+
+                        <h3>Premier College</h3>
+
+                        <p class="school-location">
+                            Independent • Prep–12 • Box Hill
+                        </p>
+
+                        <p class="school-description">
+                            An independent school with a focus on student
+                            development, arts and academic learning.
+                        </p>
+
+                        <div class="tag-group">
+                            <span class="tag">Arts</span>
+                            <span class="tag">Independent</span>
+                            <span class="tag">Prep–12</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
 
 
-    schools.forEach((school, index) => {
+            <!-- Map -->
 
-        const marker = L.marker([
-            school.lat,
-            school.lng
-        ])
-        .addTo(map)
-        .bindPopup(
-            "<strong>" + school.title + "</strong>" +
-            "<br>" +
-            school.type + " School" +
-            "<br>" +
-            "Focus: " + school.category +
-            "<br><br>" +
-            "<button onclick=\"showSchool(" + index + ")\">" +
-            "View School" +
-            "</button>"
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- =========================
+         FOOTER
+         ========================= -->
+
+    <footer>
+        © 2026 EduMatch. Helping students find the right school.
+    </footer>
+
+
+    <!-- Leaflet JavaScript -->
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+    <!-- =========================
+         MAP JAVASCRIPT
+         ========================= -->
+
+    <script>
+
+        const schools = [
+
+            {
+                title: "Blackburn High School",
+                lat: -37.8152,
+                lng: 145.1481,
+                type: "Public",
+                category: "STEM"
+            },
+
+            {
+                title: "Koonung Secondary College",
+                lat: -37.8080,
+                lng: 145.1320,
+                type: "Public",
+                category: "Sports"
+            },
+
+            {
+                title: "Premier College",
+                lat: -37.8190,
+                lng: 145.1380,
+                type: "Independent",
+                category: "Arts"
+            }
+
+        ];
+
+
+        // Create map
+
+        const map = L.map("map").setView(
+            [-37.8130, 145.1400],
+            13
         );
 
-        markers.push(marker);
 
-    });
+        // Add OpenStreetMap tiles
 
-
-    function showSchool(index) {
-
-        const school = schools[index];
-
-        map.setView(
-            [school.lat, school.lng],
-            15
-        );
-
-        markers[index].openPopup();
-
-    }
+        L.tileLayer(
+            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                maxZoom: 19,
+                attribution: "&copy; OpenStreetMap contributors"
+            }
+        ).addTo(map);
 
 
-    function searchSchools() {
+        // Store markers
 
-        const search =
-            document
+        const markers = [];
+
+
+        // Create school markers
+
+        schools.forEach((school, index) => {
+
+            const marker = L.marker([
+                school.lat,
+                school.lng
+            ])
+            .addTo(map)
+            .bindPopup(
+                "<strong>" + school.title + "</strong>" +
+                "<br>" +
+                school.type + " School" +
+                "<br>" +
+                "Focus: " + school.category +
+                "<br><br>" +
+                "<button onclick=\"showSchool(" + index + ")\">" +
+                "View School" +
+                "</button>"
+            );
+
+            markers.push(marker);
+
+        });
+
+
+        // Show a school on the map
+
+        function showSchool(index) {
+
+            const school = schools[index];
+
+            map.setView(
+                [school.lat, school.lng],
+                15
+            );
+
+            markers[index].openPopup();
+
+        }
+
+
+        // Search schools
+
+        function searchSchools() {
+
+            const search = document
                 .getElementById("searchInput")
                 .value
-                .toLowerCase();
+                .toLowerCase()
+                .trim();
 
-        const cards =
-            document.querySelectorAll(".school-card");
+            const cards = document.querySelectorAll(".school-card");
 
+            cards.forEach(card => {
 
-        cards.forEach(card => {
-
-            const name =
-                card
+                const name = card
                     .getAttribute("data-name")
                     .toLowerCase();
 
+                if (name.includes(search)) {
+                    card.style.display = "block";
+                } else {
+                    card.style.display = "none";
+                }
 
-            if (name.includes(search)) {
+            });
 
-                card.style.display = "block";
-
-            } else {
-
-                card.style.display = "none";
-
-            }
-
-        });
-
-    }
-
-
-    function filterSchools(filter) {
-
-        const cards =
-            document.querySelectorAll(".school-card");
-
-        const buttons =
-            document.querySelectorAll(".filter");
-
-
-        buttons.forEach(button => {
-            button.classList.remove("active");
-        });
-
-
-        const clickedButton =
-            Array.from(buttons).find(
-                button =>
-                    button.getAttribute("onclick") ===
-                    "filterSchools('" + filter + "')"
-            );
-
-
-        if (clickedButton) {
-            clickedButton.classList.add("active");
         }
 
 
-        cards.forEach(card => {
+        // Filter schools
 
-            const type =
-                card.getAttribute("data-type");
+        function filterSchools(filter) {
 
-
-            if (
-                filter === "all" ||
-                type.includes(filter)
-            ) {
-
-                card.style.display = "block";
-
-            } else {
-
-                card.style.display = "none";
-
-            }
-
-        });
-
-    }
+            const cards = document.querySelectorAll(".school-card");
+            const buttons = document.querySelectorAll(".filter");
 
 
-    document
-        .getElementById("searchInput")
-        .addEventListener(
-            "keydown",
-            function(event) {
+            // Remove active state
+
+            buttons.forEach(button => {
+                button.classList.remove("active");
+            });
+
+
+            // Add active state to clicked button
+
+            buttons.forEach(button => {
+
+                if (
+                    button.getAttribute("onclick") ===
+                    "filterSchools('" + filter + "')"
+                ) {
+                    button.classList.add("active");
+                }
+
+            });
+
+
+            // Show/hide schools
+
+            cards.forEach(card => {
+
+                const type = card.getAttribute("data-type");
+
+                if (
+                    filter === "all" ||
+                    type.includes(filter)
+                ) {
+                    card.style.display = "block";
+                } else {
+                    card.style.display = "none";
+                }
+
+            });
+
+        }
+
+
+        // Search when pressing Enter
+
+        document
+            .getElementById("searchInput")
+            .addEventListener("keydown", function(event) {
 
                 if (event.key === "Enter") {
                     searchSchools();
                 }
 
-            }
-        );
+            });
 
-</script>
-```
+    </script>
 
 </body>
 
