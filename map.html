@@ -9,19 +9,16 @@
 ```
 <title>EduMatch - Schools</title>
 
-<!-- Google Font -->
 <link
     rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
 >
 
-<!-- Leaflet Map -->
 <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 >
 
-<!-- EduMatch CSS -->
 <link rel="stylesheet" href="css/map.css">
 ```
 
@@ -30,10 +27,6 @@
 <body>
 
 ```
-<!-- =========================
-     NAVIGATION
-========================= -->
-
 <header class="navbar">
 
     <a href="index.html" class="brand-logo">
@@ -42,17 +35,13 @@
 
     <nav class="nav-links">
         <a href="index.html">Home</a>
-        <a href="schools.html">Schools</a>
+        <a href="map.html">Schools</a>
         <a href="about.html">About</a>
         <a href="login.html" class="btn-login">Login</a>
     </nav>
 
 </header>
 
-
-<!-- =========================
-     PAGE HEADER
-========================= -->
 
 <section class="page-header">
 
@@ -64,10 +53,6 @@
 
 </section>
 
-
-<!-- =========================
-     SEARCH + FILTERS
-========================= -->
 
 <section class="controls">
 
@@ -138,10 +123,6 @@
 </section>
 
 
-<!-- =========================
-     SCHOOL CONTENT
-========================= -->
-
 <main class="content">
 
     <h2 class="content-title">
@@ -151,12 +132,9 @@
 
     <div class="app-layout">
 
-        <!-- SCHOOL LIST -->
 
         <div class="schools-list" id="schoolsList">
 
-
-            <!-- BLACKBURN HIGH SCHOOL -->
 
             <div
                 class="school-card"
@@ -194,8 +172,6 @@
             </div>
 
 
-            <!-- KOONUNG SECONDARY COLLEGE -->
-
             <div
                 class="school-card"
                 data-type="Public Sports"
@@ -231,8 +207,6 @@
 
             </div>
 
-
-            <!-- PREMIER COLLEGE -->
 
             <div
                 class="school-card"
@@ -272,8 +246,6 @@
         </div>
 
 
-        <!-- MAP -->
-
         <div class="map-container">
             <div id="map"></div>
         </div>
@@ -283,10 +255,6 @@
 </main>
 
 
-<!-- =========================
-     FOOTER
-========================= -->
-
 <footer>
 
     © 2026 EduMatch. Helping students find the right school.
@@ -294,12 +262,8 @@
 </footer>
 
 
-<!-- Leaflet JavaScript -->
-
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-
-<!-- Map + Search JavaScript -->
 
 <script>
 
@@ -332,15 +296,11 @@
     ];
 
 
-    /* CREATE MAP */
-
     const map = L.map("map").setView(
         [-37.8130, 145.1400],
         13
     );
 
-
-    /* OPENSTREETMAP */
 
     L.tileLayer(
         "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -350,8 +310,6 @@
         }
     ).addTo(map);
 
-
-    /* CREATE MARKERS */
 
     const markers = [];
 
@@ -363,24 +321,22 @@
             school.lng
         ])
         .addTo(map)
-        .bindPopup(`
-            <strong>${school.title}</strong>
-            <br>
-            ${school.type} School
-            <br>
-            Focus: ${school.category}
-            <br><br>
-            <button onclick="showSchool(${index})">
-                View School
-            </button>
-        `);
+        .bindPopup(
+            "<strong>" + school.title + "</strong>" +
+            "<br>" +
+            school.type + " School" +
+            "<br>" +
+            "Focus: " + school.category +
+            "<br><br>" +
+            "<button onclick=\"showSchool(" + index + ")\">" +
+            "View School" +
+            "</button>"
+        );
 
         markers.push(marker);
 
     });
 
-
-    /* SHOW SCHOOL ON MAP */
 
     function showSchool(index) {
 
@@ -395,8 +351,6 @@
 
     }
 
-
-    /* SEARCH */
 
     function searchSchools() {
 
@@ -433,8 +387,6 @@
     }
 
 
-    /* FILTER */
-
     function filterSchools(filter) {
 
         const cards =
@@ -449,7 +401,17 @@
         });
 
 
-        event.target.classList.add("active");
+        const clickedButton =
+            Array.from(buttons).find(
+                button =>
+                    button.getAttribute("onclick") ===
+                    "filterSchools('" + filter + "')"
+            );
+
+
+        if (clickedButton) {
+            clickedButton.classList.add("active");
+        }
 
 
         cards.forEach(card => {
@@ -476,17 +438,18 @@
     }
 
 
-    /* ENTER TO SEARCH */
-
     document
         .getElementById("searchInput")
-        .addEventListener("keydown", function(event) {
+        .addEventListener(
+            "keydown",
+            function(event) {
 
-            if (event.key === "Enter") {
-                searchSchools();
+                if (event.key === "Enter") {
+                    searchSchools();
+                }
+
             }
-
-        });
+        );
 
 </script>
 ```
