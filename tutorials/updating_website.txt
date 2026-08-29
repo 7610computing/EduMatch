@@ -1,0 +1,7 @@
+push all code you want updated to main (wait 20 secs).
+go actions.
+go 'deploy static content to pages'.
+go 'run workflow'-> 'run workflow'.
+once the tab saying 'deploy' has circle, click it.
+It will then run through the deploy procedure.
+once finished website is updated.
