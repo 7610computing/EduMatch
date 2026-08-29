@@ -52,6 +52,12 @@ body {
     text-decoration: none;
 
     margin-right: auto;
+
+    transition: color 0.2s ease;
+}
+
+.logo:hover {
+    color: #e04806;
 }
 
 
@@ -65,7 +71,6 @@ body {
 
 .navbar nav a {
     text-decoration: none;
-
     color: #ff7b00;
 
     transition: color 0.2s ease;
@@ -104,12 +109,11 @@ body {
 main {
     flex: 1;
 
-    max-width: 1200px;
     width: 100%;
 
     margin: 0 auto;
 
-    padding: 80px 40px;
+    padding: 80px 40px 100px;
 }
 
 
@@ -122,7 +126,7 @@ main {
 
     max-width: 800px;
 
-    margin: 0 auto 80px;
+    margin: 0 auto 60px;
 }
 
 .hero h1 {
@@ -201,50 +205,103 @@ main {
 
 .secondary-button:hover {
     background-color: #ff7b00;
+    border-color: #ff7b00;
+
     color: white;
 }
 
 
 /* =========================
-   FEATURES
+   OPTIONS PANEL
    ========================= */
 
-.features {
-    display: grid;
-
-    grid-template-columns: repeat(3, 1fr);
-
-    gap: 25px;
-
-    max-width: 1000px;
+.options-panel {
+    width: 400px;
+    max-width: 90%;
 
     margin: 0 auto;
-}
 
-.feature {
+    padding: 30px;
+
     background-color: white;
 
     border: 1px solid #ddd;
+    border-radius: 16px;
 
-    border-radius: 12px;
-
-    padding: 30px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
 
     text-align: center;
 }
 
-.feature h2 {
-    color: #ff7b00;
+.options-panel h2 {
+    color: #222;
 
     font-size: 24px;
 
-    margin-bottom: 12px;
+    margin-bottom: 25px;
 }
 
-.feature p {
+
+/* =========================
+   OPTIONS
+   ========================= */
+
+.options {
+    display: flex;
+    flex-direction: column;
+
+    gap: 12px;
+}
+
+.option {
+    display: block;
+
+    padding: 18px;
+
+    background-color: #f8f9fa;
+
+    border: 1px solid #ddd;
+    border-radius: 10px;
+
+    text-decoration: none;
+
+    text-align: left;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.option h3 {
+    color: #ff7b00;
+
+    font-size: 20px;
+
+    margin-bottom: 6px;
+}
+
+.option p {
     color: #666;
 
+    font-size: 14px;
+
     line-height: 1.5;
+}
+
+
+/* Option hover */
+
+.option:hover {
+    background-color: #fff4e8;
+
+    border-color: #ff7b00;
+
+    transform: translateY(-2px);
+}
+
+.option:hover h3 {
+    color: #e04806;
 }
 
 
@@ -287,12 +344,8 @@ footer {
         font-size: 16px;
     }
 
-    .features {
-        grid-template-columns: 1fr;
-    }
-
     main {
-        padding: 50px 20px;
+        padding: 50px 20px 100px;
     }
 }
 
@@ -318,5 +371,10 @@ footer {
 
     .hero h1 {
         font-size: 30px;
+    }
+
+    .options-panel {
+        width: 100%;
+        max-width: 400px;
     }
 }
