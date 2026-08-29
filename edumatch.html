@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,319 +19,10 @@
 <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
+>
 
-<style>
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        font-family: 'Inter', sans-serif;
-    }
-
-    body {
-        background: #fafafa;
-        color: #333;
-    }
-
-    /* =========================
-       NAVIGATION
-    ========================= */
-
-    .navbar {
-        background: #ffbba7;
-        padding: 16px 40px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .brand-logo {
-        font-size: 24px;
-        font-weight: 800;
-        color: #000;
-        text-decoration: none;
-    }
-
-    .nav-links {
-        display: flex;
-        align-items: center;
-        gap: 30px;
-    }
-
-    .nav-links a {
-        text-decoration: none;
-        color: #222;
-        font-weight: 500;
-        font-size: 15px;
-    }
-
-    .btn-login {
-        background: #ff7700;
-        color: white !important;
-        padding: 9px 22px;
-        border-radius: 8px;
-        font-weight: 600 !important;
-    }
-
-    .btn-login:hover {
-        background: #e06800;
-    }
-
-    /* =========================
-       PAGE HEADER
-    ========================= */
-
-    .page-header {
-        text-align: center;
-        padding: 45px 20px 30px;
-    }
-
-    .page-header h1 {
-        font-size: 38px;
-        font-weight: 800;
-        color: #111;
-        margin-bottom: 12px;
-    }
-
-    .page-header p {
-        color: #666;
-        font-size: 17px;
-    }
-
-    /* =========================
-       SEARCH + FILTERS
-    ========================= */
-
-    .controls {
-        max-width: 1100px;
-        margin: 0 auto 30px;
-        padding: 0 20px;
-    }
-
-    .search-box {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 15px;
-    }
-
-    .search-box input {
-        flex: 1;
-        padding: 14px 16px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        font-size: 15px;
-        outline: none;
-        background: white;
-    }
-
-    .search-box input:focus {
-        border-color: #ff7700;
-    }
-
-    .search-button {
-        background: #ff7700;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 0 25px;
-        font-weight: 600;
-        cursor: pointer;
-    }
-
-    .search-button:hover {
-        background: #e06800;
-    }
-
-    .filters {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .filter {
-        background: white;
-        border: 1px solid #ddd;
-        border-radius: 7px;
-        padding: 9px 14px;
-        cursor: pointer;
-        font-size: 13px;
-    }
-
-    .filter:hover,
-    .filter.active {
-        border-color: #ff7700;
-        color: #ff7700;
-    }
-
-    /* =========================
-       MAIN CONTENT
-    ========================= */
-
-    .content {
-        max-width: 1200px;
-        margin: 0 auto 60px;
-        padding: 0 20px;
-    }
-
-    .content-title {
-        font-size: 25px;
-        margin-bottom: 18px;
-        color: #111;
-    }
-
-    .app-layout {
-        display: flex;
-        height: 600px;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        background: white;
-    }
-
-    /* =========================
-       SCHOOL LIST
-    ========================= */
-
-    .schools-list {
-        width: 410px;
-        background: #f4f4f5;
-        padding: 15px;
-        overflow-y: auto;
-    }
-
-    .school-card {
-        background: white;
-        border: 1px solid #e1e1e1;
-        border-radius: 9px;
-        margin-bottom: 15px;
-        overflow: hidden;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-
-    .school-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-        border-color: #ff7700;
-    }
-
-    .school-card img {
-        width: 100%;
-        height: 135px;
-        object-fit: cover;
-    }
-
-    .school-card-body {
-        padding: 14px;
-    }
-
-    .school-card-body h3 {
-        font-size: 17px;
-        margin-bottom: 5px;
-        color: #111;
-    }
-
-    .school-location {
-        font-size: 13px;
-        color: #666;
-        margin-bottom: 10px;
-    }
-
-    .school-description {
-        font-size: 13px;
-        color: #555;
-        line-height: 1.4;
-        margin-bottom: 12px;
-    }
-
-    .tag-group {
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-    }
-
-    .tag {
-        background: #fff1eb;
-        color: #e56800;
-        border: 1px solid #ffd5c5;
-        padding: 4px 9px;
-        border-radius: 5px;
-        font-size: 11px;
-        font-weight: 500;
-    }
-
-    /* =========================
-       MAP
-    ========================= */
-
-    .map-container {
-        flex: 1;
-        min-width: 0;
-    }
-
-    #map {
-        width: 100%;
-        height: 100%;
-    }
-
-    /* =========================
-       FOOTER
-    ========================= */
-
-    footer {
-        background: #222;
-        color: white;
-        text-align: center;
-        padding: 25px;
-        font-size: 13px;
-    }
-
-    /* =========================
-       MOBILE
-    ========================= */
-
-    @media (max-width: 800px) {
-
-        .navbar {
-            padding: 15px 20px;
-        }
-
-        .nav-links {
-            gap: 12px;
-        }
-
-        .nav-links a:not(.btn-login) {
-            display: none;
-        }
-
-        .page-header h1 {
-            font-size: 30px;
-        }
-
-        .app-layout {
-            flex-direction: column;
-            height: auto;
-        }
-
-        .schools-list {
-            width: 100%;
-            max-height: 500px;
-        }
-
-        .map-container {
-            height: 400px;
-        }
-
-        .search-box {
-            flex-direction: column;
-        }
-
-        .search-button {
-            padding: 12px;
-        }
-    }
-</style>
+<!-- EduMatch CSS -->
+<link rel="stylesheet" href="css/schools.css">
 ```
 
 </head>
@@ -387,7 +79,10 @@
             placeholder="Search for a school..."
         >
 
-        <button class="search-button" onclick="searchSchools()">
+        <button
+            class="search-button"
+            onclick="searchSchools()"
+        >
             Search
         </button>
 
@@ -396,27 +91,45 @@
 
     <div class="filters">
 
-        <button class="filter active" onclick="filterSchools('all')">
+        <button
+            class="filter active"
+            onclick="filterSchools('all')"
+        >
             All
         </button>
 
-        <button class="filter" onclick="filterSchools('Public')">
+        <button
+            class="filter"
+            onclick="filterSchools('Public')"
+        >
             Public
         </button>
 
-        <button class="filter" onclick="filterSchools('Independent')">
+        <button
+            class="filter"
+            onclick="filterSchools('Independent')"
+        >
             Independent
         </button>
 
-        <button class="filter" onclick="filterSchools('STEM')">
+        <button
+            class="filter"
+            onclick="filterSchools('STEM')"
+        >
             STEM
         </button>
 
-        <button class="filter" onclick="filterSchools('Sports')">
+        <button
+            class="filter"
+            onclick="filterSchools('Sports')"
+        >
             Sports
         </button>
 
-        <button class="filter" onclick="filterSchools('Arts')">
+        <button
+            class="filter"
+            onclick="filterSchools('Arts')"
+        >
             Arts
         </button>
 
@@ -435,13 +148,15 @@
         Schools in the Area
     </h2>
 
+
     <div class="app-layout">
 
         <!-- SCHOOL LIST -->
 
         <div class="schools-list" id="schoolsList">
 
-            <!-- Blackburn -->
+
+            <!-- BLACKBURN HIGH SCHOOL -->
 
             <div
                 class="school-card"
@@ -464,8 +179,8 @@
                     </p>
 
                     <p class="school-description">
-                        A public secondary school offering a range of academic,
-                        technology and extracurricular opportunities.
+                        A public secondary school offering a range of
+                        academic, technology and extracurricular opportunities.
                     </p>
 
                     <div class="tag-group">
@@ -479,7 +194,7 @@
             </div>
 
 
-            <!-- Koonung -->
+            <!-- KOONUNG SECONDARY COLLEGE -->
 
             <div
                 class="school-card"
@@ -517,7 +232,7 @@
             </div>
 
 
-            <!-- Premier -->
+            <!-- PREMIER COLLEGE -->
 
             <div
                 class="school-card"
@@ -560,9 +275,7 @@
         <!-- MAP -->
 
         <div class="map-container">
-
             <div id="map"></div>
-
         </div>
 
     </div>
@@ -586,11 +299,9 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 
-<script>
+<!-- Map + Search JavaScript -->
 
-    /* =========================
-       SCHOOL DATA
-    ========================= */
+<script>
 
     const schools = [
 
@@ -621,9 +332,7 @@
     ];
 
 
-    /* =========================
-       CREATE MAP
-    ========================= */
+    /* CREATE MAP */
 
     const map = L.map("map").setView(
         [-37.8130, 145.1400],
@@ -631,9 +340,7 @@
     );
 
 
-    /* =========================
-       OPENSTREETMAP
-    ========================= */
+    /* OPENSTREETMAP */
 
     L.tileLayer(
         "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -644,9 +351,7 @@
     ).addTo(map);
 
 
-    /* =========================
-       CREATE MARKERS
-    ========================= */
+    /* CREATE MARKERS */
 
     const markers = [];
 
@@ -675,9 +380,7 @@
     });
 
 
-    /* =========================
-       CLICK SCHOOL CARD
-    ========================= */
+    /* SHOW SCHOOL ON MAP */
 
     function showSchool(index) {
 
@@ -693,9 +396,7 @@
     }
 
 
-    /* =========================
-       SEARCH SCHOOLS
-    ========================= */
+    /* SEARCH */
 
     function searchSchools() {
 
@@ -708,12 +409,14 @@
         const cards =
             document.querySelectorAll(".school-card");
 
+
         cards.forEach(card => {
 
             const name =
                 card
                     .getAttribute("data-name")
                     .toLowerCase();
+
 
             if (name.includes(search)) {
 
@@ -730,9 +433,7 @@
     }
 
 
-    /* =========================
-       FILTER SCHOOLS
-    ========================= */
+    /* FILTER */
 
     function filterSchools(filter) {
 
@@ -775,18 +476,14 @@
     }
 
 
-    /* =========================
-       SEARCH WITH ENTER
-    ========================= */
+    /* ENTER TO SEARCH */
 
     document
         .getElementById("searchInput")
         .addEventListener("keydown", function(event) {
 
             if (event.key === "Enter") {
-
                 searchSchools();
-
             }
 
         });
@@ -795,4 +492,5 @@
 ```
 
 </body>
+
 </html>
