@@ -27,19 +27,57 @@ body {
 .navbar {
     height: 70px;
 
-    background-color: white;
+    background-color: #FFB7A7;
     border-bottom: 1px solid #ddd;
 
     display: flex;
     align-items: center;
+    justify-content: space-between;
 
     padding: 0 50px;
 }
 
+
+/* Logo */
+
+.logo {
+    color: #111111;
+
+    font-size: 24px;
+    font-weight: 800;
+
+    text-decoration: none;
+}
+
+
+/* Navigation links */
+
+.navbar nav {
+    display: flex;
+    align-items: center;
+
+    gap: 30px;
+}
+
+.navbar nav a {
+    color: #333333;
+
+    text-decoration: none;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.navbar nav a:hover {
+    color: #e56800;
+}
+
+
 /* Login button */
 
-.btn-login {
+.login-button {
     background-color: #ff7700;
+
     color: #ffffff !important;
 
     padding: 9px 22px;
@@ -49,7 +87,7 @@ body {
     font-weight: 600 !important;
 }
 
-.btn-login:hover {
+.login-button:hover {
     background-color: #e06800;
 }
 
@@ -378,7 +416,9 @@ body {
 }
 
 
-/* Leaflet popup button */
+/* =========================
+   LEAFLET POPUP
+   ========================= */
 
 .leaflet-popup-content button {
     margin-top: 5px;
@@ -424,18 +464,22 @@ footer {
 
 @media screen and (max-width: 800px) {
 
+    /* Navigation */
+
     .navbar {
         padding: 15px 20px;
     }
 
-    .nav-links {
+    .navbar nav {
         gap: 10px;
     }
 
-    .nav-links a:not(.btn-login) {
+    .navbar nav a:not(.login-button) {
         display: none;
     }
 
+
+    /* Page header */
 
     .page-header {
         padding-top: 35px;
@@ -450,6 +494,8 @@ footer {
     }
 
 
+    /* Search */
+
     .search-box {
         flex-direction: column;
     }
@@ -458,6 +504,8 @@ footer {
         padding: 12px;
     }
 
+
+    /* Map layout */
 
     .app-layout {
         flex-direction: column;
@@ -476,5 +524,4 @@ footer {
 
         height: 400px;
     }
-
 }
