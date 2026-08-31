@@ -23,12 +23,19 @@ body {
 
 .navbar {
     height: 70px;
-    background-color: rgb(255, 183, 167);
+
+    background-color: #FFB7A7;
     border-bottom: 1px solid #ddd;
+
     display: flex;
     align-items: center;
+    justify-content: space-between;
+
     padding: 0 50px;
 }
+
+
+/* Logo */
 
 .logo {
     color: #111111;
@@ -37,38 +44,50 @@ body {
     font-weight: 800;
 
     text-decoration: none;
-
-    transition: color 0.2s ease;
 }
+
+
+/* Navigation links */
 
 .navbar nav {
     display: flex;
     align-items: center;
+
     gap: 30px;
 }
 
-.navbar a {
+.navbar nav a {
+    color: #333333;
+
     text-decoration: none;
-    color: #black;
-    transition: color 0.2s ease;
+
+    font-size: 14px;
+    font-weight: 600;
 }
 
-.navbar a:hover {
-    color: #e04806;
+.navbar nav a:hover {
+    color: #e56800;
 }
+
+
+/* Login button */
 
 .login-button {
-    background-color: #ff7b00;
-    color: white !important;
-    padding: 10px 20px;
-    border-radius: 7px;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    background-color: #ff7700;
+
+    color: #ffffff !important;
+
+    padding: 9px 22px;
+
+    border-radius: 8px;
+
+    font-weight: 600 !important;
 }
 
 .login-button:hover {
-    background-color: #e04806;
-    color: white !important;
+    background-color: #e06800;
 }
+
 
 /* =========================
    MAIN CONTENT
