@@ -44,14 +44,12 @@ body {
 /* Logo */
 
 .logo {
+    color: #111111;
+
     font-size: 24px;
     font-weight: 800;
 
-    color: black;
-
     text-decoration: none;
-
-    margin-right: auto;
 
     transition: color 0.2s ease;
 }
