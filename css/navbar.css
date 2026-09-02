@@ -1,0 +1,84 @@
+/* =========================================================
+   NAVBAR
+   ========================================================= */
+
+
+/* =========================
+   NAVIGATION
+   ========================= */
+
+.navbar {
+    height: 70px;
+
+    background-color: var(--color-navbar);
+    border-bottom: var(--border-width) solid var(--color-border);
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 50px;
+}
+
+
+/* =========================
+   LOGO
+   ========================= */
+
+.logo {
+    color: var(--color-brand);
+
+    font-size: 24px;
+    font-weight: 800;
+
+    text-decoration: none;
+}
+
+
+/* =========================
+   NAVIGATION LINKS
+   ========================= */
+
+.navbar nav {
+    display: flex;
+    align-items: center;
+
+    gap: 30px;
+}
+
+
+.navbar nav a {
+    color: var(--color-nav-text);
+
+    text-decoration: none;
+
+    font-size: var(--font-size-small);
+    font-weight: var(--font-weight-medium);
+}
+
+
+.navbar nav a:hover {
+    color: var(--color-primary-dark);
+}
+
+
+/* =========================
+   LOGIN BUTTON
+   ========================= */
+
+.login-button {
+    background-color: var(--color-login);
+
+    color: var(--color-text-on-primary) !important;
+
+    padding: 9px 22px;
+
+    border-radius: var(--radius-small);
+
+    font-weight: var(--font-weight-medium) !important;
+}
+
+
+.login-button:hover {
+    background-color: var(--color-login-hover);
+}
