@@ -1,14 +1,1847 @@
-const schools = [
-    {
-        name: "Example Secondary College",
-        location: "Example Suburb",
-        distance: 4.2,
-        results: 92,
-        wellbeing: 88,
-        technology: 95,
-        facilities: 86,
-        sports: 79,
-        match: 91,
-        image: "images/example-school.jpg"
-    }
-];
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EduMatch - Swipe Schools</title>
+
+    <style>
+
+        /* =========================
+           RESET
+           ========================= */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        /* =========================
+           BODY
+           ========================= */
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            min-height: 100vh;
+        }
+
+
+        /* =========================
+           NAVIGATION
+           ========================= */
+
+        .navbar {
+            height: 70px;
+            background-color: #FFB7A7;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 50px;
+        }
+
+
+        .logo {
+            font-size: 26px;
+            font-weight: bold;
+
+            color: #222;
+            text-decoration: none;
+        }
+
+
+        .navbar nav {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+
+        .navbar nav a {
+            color: #222;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+
+        .navbar nav a:hover {
+            text-decoration: underline;
+        }
+
+
+        .login-button {
+            background-color: white;
+
+            padding: 10px 18px;
+
+            border-radius: 8px;
+        }
+
+
+        /* =========================
+           MAIN PAGE
+           ========================= */
+
+        .swipe-page {
+            padding: 40px 20px 60px;
+        }
+
+
+        /* =========================
+           PAGE HEADING
+           ========================= */
+
+        .page-heading {
+            text-align: center;
+
+            margin-bottom: 30px;
+        }
+
+
+        .page-heading h1 {
+            font-size: 34px;
+
+            margin-bottom: 8px;
+        }
+
+
+        .page-heading p {
+            color: #777;
+        }
+
+
+        /* =========================
+           CARD STACK
+           ========================= */
+
+        .card-stack {
+            width: 100%;
+            max-width: 520px;
+
+            margin: 0 auto;
+
+            position: relative;
+        }
+
+
+        /* =========================
+           SCHOOL CARD
+           ========================= */
+
+        .school-card {
+            width: 100%;
+
+            background-color: white;
+
+            border-radius: 20px;
+
+            overflow: hidden;
+
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.15);
+
+            cursor: grab;
+
+            user-select: none;
+
+            touch-action: pan-y;
+
+            transition:
+                transform 0.35s ease,
+                opacity 0.35s ease;
+        }
+
+
+        .school-card:not(.active) {
+            display: none;
+        }
+
+
+        .school-card:active {
+            cursor: grabbing;
+        }
+
+
+        /* =========================
+           SCHOOL IMAGE
+           ========================= */
+
+        .school-image {
+            display: block;
+
+            width: 100%;
+            height: 280px;
+
+            object-fit: cover;
+
+            background-color: #ddd;
+
+            pointer-events: none;
+        }
+
+
+        /* =========================
+           SCHOOL CONTENT
+           ========================= */
+
+        .school-content {
+            padding: 24px;
+        }
+
+
+        /* =========================
+           SCHOOL HEADER
+           ========================= */
+
+        .school-header {
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: flex-start;
+
+            gap: 20px;
+        }
+
+
+        .school-title {
+            min-width: 0;
+        }
+
+
+        .school-title h2 {
+            font-size: 25px;
+
+            margin-bottom: 6px;
+        }
+
+
+        .school-location {
+            color: #777;
+
+            font-size: 15px;
+        }
+
+
+        /* =========================
+           MATCH SCORE
+           ========================= */
+
+        .match-score {
+            min-width: 82px;
+
+            background-color: #FFB7A7;
+
+            text-align: center;
+
+            padding: 10px;
+
+            border-radius: 12px;
+
+            font-size: 20px;
+
+            font-weight: bold;
+        }
+
+
+        .match-score small {
+            display: block;
+
+            margin-top: 2px;
+
+            font-size: 11px;
+
+            font-weight: normal;
+        }
+
+
+        /* =========================
+           DESCRIPTION
+           ========================= */
+
+        .school-description {
+            margin: 20px 0;
+
+            color: #555;
+
+            line-height: 1.55;
+        }
+
+
+        /* =========================
+           STATS
+           ========================= */
+
+        .school-stats {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 10px;
+
+            margin-bottom: 22px;
+        }
+
+
+        .stat {
+            background-color: #f4f4f4;
+
+            padding: 13px;
+
+            border-radius: 10px;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 10px;
+        }
+
+
+        .stat span {
+            color: #666;
+
+            font-size: 14px;
+        }
+
+
+        .stat strong {
+            color: #222;
+
+            font-size: 15px;
+        }
+
+
+        /* =========================
+           SCHOOL WEBSITE
+           ========================= */
+
+        .school-link {
+            display: block;
+
+            width: 100%;
+
+            background-color: #FFB7A7;
+
+            color: #222;
+
+            text-decoration: none;
+
+            text-align: center;
+
+            padding: 14px;
+
+            border-radius: 10px;
+
+            font-weight: bold;
+        }
+
+
+        .school-link:hover {
+            filter: brightness(0.97);
+        }
+
+
+        /* =========================
+           SWIPE BUTTONS
+           ========================= */
+
+        .swipe-buttons {
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            gap: 45px;
+
+            margin-top: 30px;
+        }
+
+
+        .swipe-button {
+            width: 68px;
+            height: 68px;
+
+            border: none;
+
+            border-radius: 50%;
+
+            background-color: white;
+
+            font-size: 30px;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 5px 16px rgba(0, 0, 0, 0.15);
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+
+        .swipe-button:hover {
+            transform: scale(1.08);
+
+            box-shadow:
+                0 7px 20px rgba(0, 0, 0, 0.18);
+        }
+
+
+        .swipe-button:disabled {
+            opacity: 0.4;
+
+            cursor: not-allowed;
+
+            transform: none;
+        }
+
+
+        .dislike-button {
+            color: #df5555;
+        }
+
+
+        .like-button {
+            color: #45a76c;
+        }
+
+
+        /* =========================
+           SWIPE HELP
+           ========================= */
+
+        .swipe-help {
+            margin-top: 18px;
+
+            text-align: center;
+
+            color: #888;
+
+            font-size: 14px;
+        }
+
+
+        /* =========================
+           FINISHED MESSAGE
+           ========================= */
+
+        .finished-message {
+            display: none;
+
+            background-color: white;
+
+            padding: 60px 30px;
+
+            border-radius: 20px;
+
+            text-align: center;
+
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.12);
+        }
+
+
+        .finished-message h2 {
+            margin-bottom: 10px;
+        }
+
+
+        .finished-message p {
+            color: #777;
+
+            line-height: 1.5;
+        }
+
+
+        /* =========================
+           MOBILE
+           ========================= */
+
+        @media (max-width: 700px) {
+
+            .navbar {
+                padding: 0 18px;
+            }
+
+
+            .logo {
+                font-size: 21px;
+            }
+
+
+            .navbar nav {
+                gap: 10px;
+            }
+
+
+            .navbar nav a {
+                font-size: 13px;
+            }
+
+
+            .login-button {
+                padding: 8px 11px;
+            }
+
+
+            .swipe-page {
+                padding: 30px 15px 50px;
+            }
+
+
+            .page-heading h1 {
+                font-size: 28px;
+            }
+
+
+            .school-image {
+                height: 230px;
+            }
+
+
+            .school-content {
+                padding: 20px;
+            }
+
+
+            .school-stats {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+
+        @media (max-width: 480px) {
+
+            .navbar {
+                height: auto;
+
+                min-height: 70px;
+
+                flex-wrap: wrap;
+
+                padding-top: 12px;
+                padding-bottom: 12px;
+
+                gap: 10px;
+            }
+
+
+            .navbar nav {
+                width: 100%;
+
+                justify-content: space-between;
+            }
+
+
+            .school-header {
+                flex-direction: column;
+            }
+
+
+            .match-score {
+                align-self: flex-start;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================
+         NAVIGATION
+         ========================= -->
+
+    <header class="navbar">
+
+        <a
+            href="index.html"
+            class="logo"
+        >
+            EduMatch
+        </a>
+
+
+        <nav>
+
+            <a href="index.html">
+                Home
+            </a>
+
+            <a href="map.html">
+                Map
+            </a>
+
+            <a href="swipe.html">
+                Swipe
+            </a>
+
+            <a href="about.html">
+                About
+            </a>
+
+            <a
+                href="login.html"
+                class="login-button"
+            >
+                Login
+            </a>
+
+        </nav>
+
+    </header>
+
+
+    <!-- =========================
+         MAIN PAGE
+         ========================= -->
+
+    <main class="swipe-page">
+
+
+        <!-- =========================
+             PAGE TITLE
+             ========================= -->
+
+        <section class="page-heading">
+
+            <h1>
+                Discover Schools
+            </h1>
+
+            <p>
+                Swipe right to like a school or left to skip.
+            </p>
+
+        </section>
+
+
+
+        <!-- =========================
+             SCHOOL CARD STACK
+             ========================= -->
+
+        <section
+            class="card-stack"
+            id="card-stack"
+        >
+
+
+            <!-- =========================
+                 SCHOOL 1
+                 ========================= -->
+
+            <article
+                class="school-card active"
+                data-school-id="1"
+            >
+
+                <img
+                    src="images/example-school.jpg"
+                    alt="Example Secondary College"
+                    class="school-image"
+                >
+
+
+                <div class="school-content">
+
+
+                    <div class="school-header">
+
+
+                        <div class="school-title">
+
+                            <h2>
+                                Example Secondary College
+                            </h2>
+
+                            <p class="school-location">
+                                Example Suburb
+                            </p>
+
+                        </div>
+
+
+                        <div class="match-score">
+
+                            91%
+
+                            <small>
+                                Match
+                            </small>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <p class="school-description">
+
+                        Example Secondary College offers
+                        academic, sporting, technology and
+                        wellbeing opportunities for students.
+
+                    </p>
+
+
+                    <div class="school-stats">
+
+
+                        <div class="stat">
+
+                            <span>
+                                Distance
+                            </span>
+
+                            <strong>
+                                4.2 km
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <span>
+                                Results
+                            </span>
+
+                            <strong>
+                                92
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <span>
+                                Wellbeing
+                            </span>
+
+                            <strong>
+                                88
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <span>
+                                Technology
+                            </span>
+
+                            <strong>
+                                95
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <span>
+                                Facilities
+                            </span>
+
+                            <strong>
+                                86
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <span>
+                                Sports
+                            </span>
+
+                            <strong>
+                                79
+                            </strong>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <a
+                        href="https://example.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="school-link"
+                    >
+                        View School Website
+                    </a>
+
+
+                </div>
+
+            </article>
+
+
+
+            <!-- =========================
+                 SCHOOL 2
+                 ========================= -->
+
+            <article
+                class="school-card"
+                data-school-id="2"
+            >
+
+                <img
+                    src="images/example-school2.jpg"
+                    alt="Northside College"
+                    class="school-image"
+                >
+
+
+                <div class="school-content">
+
+
+                    <div class="school-header">
+
+
+                        <div class="school-title">
+
+                            <h2>
+                                Northside College
+                            </h2>
+
+                            <p class="school-location">
+                                Northside
+                            </p>
+
+                        </div>
+
+
+                        <div class="match-score">
+
+                            88%
+
+                            <small>
+                                Match
+                            </small>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <p class="school-description">
+
+                        Northside College focuses on
+                        wellbeing, sporting opportunities,
+                        modern facilities and academic growth.
+
+                    </p>
+
+
+                    <div class="school-stats">
+
+
+                        <div class="stat">
+
+                            <span>
+                                Distance
+                            </span>
+
+                            <strong>
+                                7.6 km
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <span>
+                                Results
+                            </span>
+
+                            <strong>
+                                85
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <span>
+                                Wellbeing
+                            </span>
+
+                            <strong>
+                                93
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <span>
+                                Technology
+                            </span>
+
+                            <strong>
+                                87
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <span>
+                                Facilities
+                            </span>
+
+                            <strong>
+                                91
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <span>
+                                Sports
+                            </span>
+
+                            <strong>
+                                89
+                            </strong>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <a
+                        href="https://example.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="school-link"
+                    >
+                        View School Website
+                    </a>
+
+
+                </div>
+
+            </article>
+
+
+
+            <!-- =========================
+                 SCHOOL 3
+                 ========================= -->
+
+            <article
+                class="school-card"
+                data-school-id="3"
+            >
+
+                <img
+                    src="images/example-school3.jpg"
+                    alt="Central High School"
+                    class="school-image"
+                >
+
+
+                <div class="school-content">
+
+
+                    <div class="school-header">
+
+
+                        <div class="school-title">
+
+                            <h2>
+                                Central High School
+                            </h2>
+
+                            <p class="school-location">
+                                Central Suburb
+                            </p>
+
+                        </div>
+
+
+                        <div class="match-score">
+
+                            84%
+
+                            <small>
+                                Match
+                            </small>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <p class="school-description">
+
+                        Central High School provides
+                        strong academic programs with
+                        a focus on technology and future
+                        pathways.
+
+                    </p>
+
+
+                    <div class="school-stats">
+
+
+                        <div class="stat">
+
+                            <span>
+                                Distance
+                            </span>
+
+                            <strong>
+                                10.3 km
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <span>
+                                Results
+                            </span>
+
+                            <strong>
+                                94
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <span>
+                                Wellbeing
+                            </span>
+
+                            <strong>
+                                84
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <span>
+                                Technology
+                            </span>
+
+                            <strong>
+                                91
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <span>
+                                Facilities
+                            </span>
+
+                            <strong>
+                                88
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat">
+
+                            <span>
+                                Sports
+                            </span>
+
+                            <strong>
+                                80
+                            </strong>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <a
+                        href="https://example.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="school-link"
+                    >
+                        View School Website
+                    </a>
+
+
+                </div>
+
+            </article>
+
+
+
+            <!-- =========================
+                 END MESSAGE
+                 ========================= -->
+
+            <div
+                id="finished-message"
+                class="finished-message"
+            >
+
+                <h2>
+                    You've seen all schools!
+                </h2>
+
+                <p>
+                    You've reached the end of the
+                    available schools.
+                </p>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =========================
+             SWIPE BUTTONS
+             ========================= -->
+
+        <section class="swipe-buttons">
+
+
+            <button
+                id="dislike-button"
+                class="
+                    swipe-button
+                    dislike-button
+                "
+                type="button"
+                aria-label="Skip school"
+            >
+                ✕
+            </button>
+
+
+            <button
+                id="like-button"
+                class="
+                    swipe-button
+                    like-button
+                "
+                type="button"
+                aria-label="Like school"
+            >
+                ♥
+            </button>
+
+
+        </section>
+
+
+        <p class="swipe-help">
+            Swipe left to skip • Swipe right to like
+        </p>
+
+
+    </main>
+
+
+
+    <script>
+
+        /* =========================
+           SCHOOL CARDS
+
+           There is NO school-data array.
+
+           JavaScript finds the school cards
+           that already exist in the HTML.
+           ========================= */
+
+        const cards =
+            Array.from(
+                document.querySelectorAll(
+                    ".school-card"
+                )
+            );
+
+
+        const likeButton =
+            document.getElementById(
+                "like-button"
+            );
+
+
+        const dislikeButton =
+            document.getElementById(
+                "dislike-button"
+            );
+
+
+        const finishedMessage =
+            document.getElementById(
+                "finished-message"
+            );
+
+
+        /* =========================
+           CURRENT CARD
+           ========================= */
+
+        let currentCardIndex = 0;
+
+
+        /* =========================
+           SWIPE VARIABLES
+           ========================= */
+
+        let startX = 0;
+
+        let currentX = 0;
+
+        let dragging = false;
+
+        let activePointerId = null;
+
+
+        /* =========================
+           CURRENT SCHOOL
+           ========================= */
+
+        function getCurrentCard() {
+
+            return cards[
+                currentCardIndex
+            ];
+
+        }
+
+
+        /* =========================
+           UPDATE DISPLAY
+           ========================= */
+
+        function updateCards() {
+
+
+            cards.forEach(
+                function (card, index) {
+
+
+                    if (
+                        index ===
+                        currentCardIndex
+                    ) {
+
+
+                        card.classList.add(
+                            "active"
+                        );
+
+
+                    } else {
+
+
+                        card.classList.remove(
+                            "active"
+                        );
+
+
+                    }
+
+
+                }
+            );
+
+
+            const currentCard =
+                getCurrentCard();
+
+
+            /* SCHOOL AVAILABLE */
+
+            if (currentCard) {
+
+
+                currentCard.style.transition =
+                    "none";
+
+
+                currentCard.style.transform =
+                    "translateX(0px) rotate(0deg)";
+
+
+                currentCard.style.opacity =
+                    "1";
+
+
+                finishedMessage.style.display =
+                    "none";
+
+
+                likeButton.disabled =
+                    false;
+
+
+                dislikeButton.disabled =
+                    false;
+
+
+            }
+
+
+            /* NO SCHOOLS LEFT */
+
+            else {
+
+
+                finishedMessage.style.display =
+                    "block";
+
+
+                likeButton.disabled =
+                    true;
+
+
+                dislikeButton.disabled =
+                    true;
+
+
+            }
+
+
+        }
+
+
+        /* =========================
+           SWIPE CURRENT CARD
+           ========================= */
+
+        function swipeCard(direction) {
+
+
+            const card =
+                getCurrentCard();
+
+
+            if (!card) {
+
+                return;
+
+            }
+
+
+            card.style.transition =
+                "transform 0.35s ease, opacity 0.35s ease";
+
+
+            /* RIGHT */
+
+            if (
+                direction === "right"
+            ) {
+
+
+                card.style.transform =
+                    "translateX(700px) rotate(20deg)";
+
+
+            }
+
+
+            /* LEFT */
+
+            else {
+
+
+                card.style.transform =
+                    "translateX(-700px) rotate(-20deg)";
+
+
+            }
+
+
+            card.style.opacity =
+                "0";
+
+
+            setTimeout(
+                function () {
+
+
+                    card.classList.remove(
+                        "active"
+                    );
+
+
+                    currentCardIndex++;
+
+
+                    updateCards();
+
+
+                },
+
+                350
+            );
+
+
+        }
+
+
+        /* =========================
+           LIKE SCHOOL
+           ========================= */
+
+        function likeSchool() {
+
+
+            const card =
+                getCurrentCard();
+
+
+            if (!card) {
+
+                return;
+
+            }
+
+
+            /*
+                School information is read
+                directly from the HTML.
+            */
+
+            const schoolName =
+                card
+                    .querySelector("h2")
+                    .textContent
+                    .trim();
+
+
+            const schoolId =
+                card.dataset.schoolId;
+
+
+            console.log(
+                "Liked:",
+                schoolId,
+                schoolName
+            );
+
+
+            swipeCard(
+                "right"
+            );
+
+
+        }
+
+
+        /* =========================
+           SKIP SCHOOL
+           ========================= */
+
+        function skipSchool() {
+
+
+            const card =
+                getCurrentCard();
+
+
+            if (!card) {
+
+                return;
+
+            }
+
+
+            const schoolName =
+                card
+                    .querySelector("h2")
+                    .textContent
+                    .trim();
+
+
+            const schoolId =
+                card.dataset.schoolId;
+
+
+            console.log(
+                "Skipped:",
+                schoolId,
+                schoolName
+            );
+
+
+            swipeCard(
+                "left"
+            );
+
+
+        }
+
+
+        /* =========================
+           BUTTON EVENTS
+           ========================= */
+
+        likeButton.addEventListener(
+            "click",
+            likeSchool
+        );
+
+
+        dislikeButton.addEventListener(
+            "click",
+            skipSchool
+        );
+
+
+        /* =========================
+           BEGIN DRAG
+           ========================= */
+
+        function startDrag(event) {
+
+
+            const card =
+                getCurrentCard();
+
+
+            if (!card) {
+
+                return;
+
+            }
+
+
+            /*
+                Clicking the school website
+                should not start a swipe.
+            */
+
+            if (
+                event.target.closest(
+                    ".school-link"
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            dragging =
+                true;
+
+
+            activePointerId =
+                event.pointerId;
+
+
+            startX =
+                event.clientX;
+
+
+            currentX =
+                0;
+
+
+            if (
+                card.setPointerCapture
+            ) {
+
+
+                card.setPointerCapture(
+                    event.pointerId
+                );
+
+
+            }
+
+
+        }
+
+
+        /* =========================
+           MOVE CARD
+           ========================= */
+
+        function dragCard(event) {
+
+
+            if (!dragging) {
+
+                return;
+
+            }
+
+
+            if (
+                activePointerId !== null &&
+                event.pointerId !==
+                    activePointerId
+            ) {
+
+                return;
+
+            }
+
+
+            const card =
+                getCurrentCard();
+
+
+            if (!card) {
+
+                return;
+
+            }
+
+
+            currentX =
+                event.clientX -
+                startX;
+
+
+            const rotation =
+                currentX / 20;
+
+
+            card.style.transition =
+                "none";
+
+
+            card.style.transform =
+                `translateX(${currentX}px)
+                 rotate(${rotation}deg)`;
+
+
+        }
+
+
+        /* =========================
+           END DRAG
+           ========================= */
+
+        function endDrag(event) {
+
+
+            if (!dragging) {
+
+                return;
+
+            }
+
+
+            if (
+                activePointerId !== null &&
+                event.pointerId !==
+                    activePointerId
+            ) {
+
+                return;
+
+            }
+
+
+            dragging =
+                false;
+
+
+            activePointerId =
+                null;
+
+
+            const card =
+                getCurrentCard();
+
+
+            if (!card) {
+
+                return;
+
+            }
+
+
+            /*
+                RIGHT SWIPE
+            */
+
+            if (currentX > 120) {
+
+
+                likeSchool();
+
+
+            }
+
+
+            /*
+                LEFT SWIPE
+            */
+
+            else if (currentX < -120) {
+
+
+                skipSchool();
+
+
+            }
+
+
+            /*
+                NOT FAR ENOUGH
+            */
+
+            else {
+
+
+                card.style.transition =
+                    "transform 0.3s ease";
+
+
+                card.style.transform =
+                    "translateX(0px) rotate(0deg)";
+
+
+            }
+
+
+            currentX =
+                0;
+
+
+        }
+
+
+        /* =========================
+           ADD SWIPE EVENTS
+           ========================= */
+
+        cards.forEach(
+            function (card) {
+
+
+                card.addEventListener(
+                    "pointerdown",
+                    startDrag
+                );
+
+
+                card.addEventListener(
+                    "pointermove",
+                    dragCard
+                );
+
+
+                card.addEventListener(
+                    "pointerup",
+                    endDrag
+                );
+
+
+                card.addEventListener(
+                    "pointercancel",
+                    endDrag
+                );
+
+
+            }
+        );
+
+
+        /* =========================
+           KEYBOARD CONTROLS
+           ========================= */
+
+        document.addEventListener(
+            "keydown",
+            function (event) {
+
+
+                if (
+                    event.key ===
+                    "ArrowLeft"
+                ) {
+
+
+                    skipSchool();
+
+
+                }
+
+
+                if (
+                    event.key ===
+                    "ArrowRight"
+                ) {
+
+
+                    likeSchool();
+
+
+                }
+
+
+            }
+        );
+
+
+        /* =========================
+           START
+           ========================= */
+
+        updateCards();
+
+
+    </script>
+
+
+</body>
+
+</html>
