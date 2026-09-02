@@ -1,0 +1,135 @@
+/* =========================================================
+   EDUMATCH THEME
+   =========================================================
+   
+   Global design system for the EduMatch website.
+
+   This file contains shared design values only.
+   Components and pages should use these variables rather
+   than defining their own copies of global colours, sizes,
+   spacing, etc.
+
+    This file is essentially a colour dictionary, it defines what something should be.
+    all .css files should source colors based upon variables stored below. 
+    If something doesnt fit, or you need a color that isn't defined here first consult the group.
+    the best approach is likely to add it in here.
+
+    colors are stored as variables, code should retrieve these variables in a read only manner
+
+   ========================================================= */
+
+
+:root {
+
+
+    /* =====================================================
+       COLOURS
+       ===================================================== */
+
+    /* ---------- Brand ---------- */
+
+    --color-primary: #FFB7A7;
+    --color-primary-dark: #E89B8B;
+    --color-secondary: #FFE5DE;
+
+
+    /* ---------- Backgrounds ---------- */
+
+    --color-background: #FFFFFF;
+    --color-surface: #FFF8F6;
+
+
+    /* ---------- Text ---------- */
+
+    --color-text: #222222;
+    --color-text-secondary: #666666;
+    --color-text-on-primary: #FFFFFF;
+
+
+    /* ---------- Borders ---------- */
+
+    --color-border: #DDDDDD;
+
+
+    /* ---------- Status ---------- */
+
+    --color-success: #7BC47F;
+    --color-warning: #F2C14E;
+    --color-error: #E57373;
+
+
+
+    /* =====================================================
+       TYPOGRAPHY
+       ===================================================== */
+
+    /* ---------- Font ---------- */
+
+    --font-family: Arial, Helvetica, sans-serif;
+
+
+    /* ---------- Font Sizes ---------- */
+
+    --font-size-h1: 40px;
+    --font-size-h2: 32px;
+    --font-size-h3: 24px;
+    --font-size-body: 16px;
+    --font-size-small: 14px;
+
+
+    /* ---------- Font Weights ---------- */
+
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-bold: 700;
+
+
+    /* ---------- Line Heights ---------- */
+
+    --line-height-heading: 1.2;
+    --line-height-body: 1.5;
+
+
+
+    /* =====================================================
+       SPACING
+       ===================================================== */
+
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-xxl: 48px;
+
+
+
+    /* =====================================================
+       LAYOUT
+       ===================================================== */
+
+    --content-max-width: 1200px;
+
+
+
+    /* =====================================================
+       BORDERS & CORNERS
+       ===================================================== */
+
+    --border-width: 1px;
+
+    --radius-small: 6px;
+    --radius-medium: 12px;
+    --radius-large: 20px;
+
+
+
+    /* =====================================================
+       EFFECTS
+       ===================================================== */
+
+    --shadow-small: 0 2px 6px rgba(0, 0, 0, 0.08);
+    --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.12);
+    --shadow-large: 0 8px 24px rgba(0, 0, 0, 0.16);
+
+}
