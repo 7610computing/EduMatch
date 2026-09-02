@@ -9,12 +9,19 @@
    than defining their own copies of global colours, sizes,
    spacing, etc.
 
-    This file is essentially a colour dictionary, it defines what something should be.
-    all .css files should source colors based upon variables stored below. 
-    If something doesnt fit, or you need a color that isn't defined here first consult the group.
-    the best approach is likely to add it in here.
+   This file is essentially a colour/design dictionary.
+   It defines what something should be.
 
-    colors are stored as variables, code should retrieve these variables in a read only manner
+   All .css files should source colours based upon the
+   variables stored below.
+
+   If something doesn't fit, or you need a colour that
+   isn't defined here, first consult the group. The best
+   approach is likely to add it here.
+
+   Colours and other design values are stored as variables.
+   Other CSS files should retrieve these variables rather
+   than redefining the values themselves.
 
    ========================================================= */
 
@@ -28,22 +35,39 @@
 
     /* ---------- Brand ---------- */
 
-    --color-primary: #FFB7A7;
-    --color-primary-dark: #E89B8B;
-    --color-secondary: #FFE5DE;
+    --color-brand: #D94F30;
+
+
+    /* ---------- Navigation ---------- */
+
+    --color-navbar: #FFE4DE;
+    --color-nav-text: #3D2925;
+
+
+    /* ---------- Primary / Secondary ---------- */
+
+    --color-primary: #D94F30;
+    --color-primary-dark: #C94F00;
+    --color-secondary: #FFE4DE;
 
 
     /* ---------- Backgrounds ---------- */
 
-    --color-background: #FFFFFF;
-    --color-surface: #FFF8F6;
+    --color-background: #FAFAFA;
+    --color-surface: #FFFFFF;
 
 
     /* ---------- Text ---------- */
 
-    --color-text: #222222;
+    --color-text: #3D2925;
     --color-text-secondary: #666666;
     --color-text-on-primary: #FFFFFF;
+
+
+    /* ---------- Login ---------- */
+
+    --color-login: #E85D04;
+    --color-login-hover: #C94F00;
 
 
     /* ---------- Borders ---------- */
