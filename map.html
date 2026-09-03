@@ -5,271 +5,404 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>EduMatch - Schools</title>
+    <title>EduMatch - Schools Map</title>
 
-    <!-- Google Font -->
-    <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-    >
-
-    <!-- Leaflet CSS -->
+    <!-- Leaflet -->
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     >
 
-    <!-- EduMatch CSS -->
+    <!-- Map CSS -->
     <link rel="stylesheet" href="css/map.css">
 </head>
 
 <body>
 
     <!-- =========================
-         NAVIGATION
+         UNIVERSAL NAVBAR
          ========================= -->
 
-    <header class="navbar">
-
-        <a href="index.html" class="logo">
-            EduMatch
-        </a>
-
-        <nav>
-
-            <a href="index.html">
-                Home
-            </a>
-
-            <a href="map.html">
-                Map
-            </a>
-
-            <a href="about.html">
-                About
-            </a>
-
-            <a href="login.html" class="login-button">
-                Login
-            </a>
-
-        </nav>
-
-    </header>
-
-    <!-- =========================
-         PAGE HEADER
-         ========================= -->
-
-    <section class="page-header">
-
-        <h1>Find Your School</h1>
-
-        <p>
-            Explore schools around you and find one that matches your preferences.
-        </p>
-
-    </section>
+    <div data-universal="navbar"></div>
 
 
     <!-- =========================
-         SEARCH AND FILTERS
+         PAGE
          ========================= -->
 
-    <section class="controls">
+    <main class="map-page">
 
-        <div class="search-box">
+        <!-- =========================
+             SEARCH
+             ========================= -->
 
-            <input
-                type="text"
-                id="searchInput"
-                placeholder="Search for a school..."
-            >
+        <section class="search-section">
+
+            <div class="search-box">
+
+                <span class="search-icon">⌕</span>
+
+                <input
+                    type="text"
+                    id="school-search"
+                    placeholder="Search for a school..."
+                    autocomplete="off"
+                >
+
+            </div>
 
             <button
+                id="search-button"
                 class="search-button"
-                onclick="searchSchools()"
+                type="button"
             >
                 Search
             </button>
 
-        </div>
+        </section>
 
 
-        <div class="filters">
+        <!-- =========================
+             FILTERS
+             ========================= -->
 
-            <button
-                class="filter active"
-                onclick="filterSchools('all')"
-            >
-                All
-            </button>
+        <section class="filter-panel">
 
-            <button
-                class="filter"
-                onclick="filterSchools('Public')"
-            >
-                Public
-            </button>
+            <div class="filter-header">
 
-            <button
-                class="filter"
-                onclick="filterSchools('Independent')"
-            >
-                Independent
-            </button>
+                <div>
+                    <h2>Filters</h2>
+                    <p>Refine the schools shown on the map.</p>
+                </div>
 
-            <button
-                class="filter"
-                onclick="filterSchools('STEM')"
-            >
-                STEM
-            </button>
-
-            <button
-                class="filter"
-                onclick="filterSchools('Sports')"
-            >
-                Sports
-            </button>
-
-            <button
-                class="filter"
-                onclick="filterSchools('Arts')"
-            >
-                Arts
-            </button>
-
-        </div>
-
-    </section>
-
-
-    <!-- =========================
-         SCHOOL CONTENT
-         ========================= -->
-
-    <main class="content">
-
-        <h2 class="content-title">
-            Schools in the Area
-        </h2>
-
-
-        <div class="app-layout">
-
-            <!-- School List -->
-
-            <div class="schools-list" id="schoolsList">
-
-                <!-- Blackburn High School -->
-
-                <div
-                    class="school-card"
-                    data-type="Public STEM"
-                    data-name="Blackburn High School"
-                    onclick="showSchool(0)"
+                <button
+                    id="clear-filters"
+                    class="clear-filters"
+                    type="button"
                 >
+                    Clear filters
+                </button>
 
-                    <img
-                        src="https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=700&q=80"
-                        alt="Blackburn High School"
-                    >
+            </div>
 
-                    <div class="school-card-body">
 
-                        <h3>Blackburn High School</h3>
+            <!-- =========================
+                 SEARCHABLE FILTERS
+                 ========================= -->
 
-                        <p class="school-location">
-                            Public • Years 7–12 • Blackburn North
-                        </p>
+            <div class="select-filters">
 
-                        <p class="school-description">
-                            A public secondary school offering a range of
-                            academic, technology and extracurricular opportunities.
-                        </p>
+                <!-- State -->
+                <div class="filter-field">
 
-                        <div class="tag-group">
-                            <span class="tag">STEM</span>
-                            <span class="tag">Public</span>
-                            <span class="tag">Years 7–12</span>
+                    <label for="state-filter">
+                        State / Province / Region
+                    </label>
+
+                    <div class="search-select">
+
+                        <input
+                            type="text"
+                            id="state-filter"
+                            placeholder="Search worldwide..."
+                            autocomplete="off"
+                        >
+
+                        <div
+                            id="state-options"
+                            class="search-options"
+                        ></div>
+
+                    </div>
+
+                    <div
+                        id="selected-states"
+                        class="selected-items"
+                    ></div>
+
+                </div>
+
+
+                <!-- Sector -->
+                <div class="filter-field">
+
+                    <label for="sector-filter">
+                        Sector
+                    </label>
+
+                    <div class="search-select">
+
+                        <input
+                            type="text"
+                            id="sector-filter"
+                            placeholder="Search worldwide..."
+                            autocomplete="off"
+                        >
+
+                        <div
+                            id="sector-options"
+                            class="search-options"
+                        ></div>
+
+                    </div>
+
+                    <div
+                        id="selected-sectors"
+                        class="selected-items"
+                    ></div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================
+                 RANGE FILTERS
+                 ========================= -->
+
+            <div class="range-filters">
+
+
+                <!-- AGE -->
+                <div class="range-filter">
+
+                    <div class="range-title">
+                        <h3>Age</h3>
+                    </div>
+
+                    <div class="range-inputs">
+
+                        <div>
+                            <label for="age-min">Min</label>
+
+                            <input
+                                type="number"
+                                id="age-min"
+                                min="0"
+                                max="100"
+                                placeholder="Any"
+                            >
                         </div>
+
+                        <div>
+                            <label for="age-max">Max</label>
+
+                            <input
+                                type="number"
+                                id="age-max"
+                                min="0"
+                                max="100"
+                                placeholder="Any"
+                            >
+                        </div>
+
+                    </div>
+
+                    <div class="dual-slider">
+
+                        <div class="slider-track"></div>
+
+                        <input
+                            type="range"
+                            id="age-slider-min"
+                            min="0"
+                            max="100"
+                            value="0"
+                            step="1"
+                        >
+
+                        <input
+                            type="range"
+                            id="age-slider-max"
+                            min="0"
+                            max="100"
+                            value="100"
+                            step="1"
+                        >
 
                     </div>
 
                 </div>
 
 
-                <!-- Koonung Secondary College -->
+                <!-- FEES -->
+                <div class="range-filter">
 
-                <div
-                    class="school-card"
-                    data-type="Public Sports"
-                    data-name="Koonung Secondary College"
-                    onclick="showSchool(1)"
-                >
+                    <div class="range-title">
+                        <h3>Fees</h3>
+                    </div>
 
-                    <img
-                        src="https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?auto=format&fit=crop&w=700&q=80"
-                        alt="Koonung Secondary College"
-                    >
+                    <div class="range-inputs">
 
-                    <div class="school-card-body">
+                        <div>
+                            <label for="fee-min">Min</label>
 
-                        <h3>Koonung Secondary College</h3>
-
-                        <p class="school-location">
-                            Public • Years 7–12 • Mont Albert North
-                        </p>
-
-                        <p class="school-description">
-                            A secondary college providing academic programs,
-                            sports and a wide range of student activities.
-                        </p>
-
-                        <div class="tag-group">
-                            <span class="tag">Sports</span>
-                            <span class="tag">Public</span>
-                            <span class="tag">Years 7–12</span>
+                            <input
+                                type="number"
+                                id="fee-min"
+                                min="0"
+                                step="1"
+                                placeholder="Any"
+                            >
                         </div>
+
+                        <div>
+                            <label for="fee-max">Max</label>
+
+                            <input
+                                type="number"
+                                id="fee-max"
+                                min="0"
+                                step="1"
+                                placeholder="Any"
+                            >
+                        </div>
+
+                    </div>
+
+                    <div class="dual-slider">
+
+                        <div class="slider-track"></div>
+
+                        <input
+                            type="range"
+                            id="fee-slider-min"
+                            min="0"
+                            max="100000"
+                            value="0"
+                            step="100"
+                        >
+
+                        <input
+                            type="range"
+                            id="fee-slider-max"
+                            min="0"
+                            max="100000"
+                            value="100000"
+                            step="100"
+                        >
 
                     </div>
 
                 </div>
 
 
-                <!-- Premier College -->
+                <!-- ENROLMENT -->
+                <div class="range-filter">
 
-                <div
-                    class="school-card"
-                    data-type="Independent Arts"
-                    data-name="Premier College"
-                    onclick="showSchool(2)"
-                >
+                    <div class="range-title">
+                        <h3>Enrolment</h3>
+                    </div>
 
-                    <img
-                        src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=700&q=80"
-                        alt="Premier College"
-                    >
+                    <div class="range-inputs">
 
-                    <div class="school-card-body">
+                        <div>
+                            <label for="enrolment-min">Min</label>
 
-                        <h3>Premier College</h3>
-
-                        <p class="school-location">
-                            Independent • Prep–12 • Box Hill
-                        </p>
-
-                        <p class="school-description">
-                            An independent school with a focus on student
-                            development, arts and academic learning.
-                        </p>
-
-                        <div class="tag-group">
-                            <span class="tag">Arts</span>
-                            <span class="tag">Independent</span>
-                            <span class="tag">Prep–12</span>
+                            <input
+                                type="number"
+                                id="enrolment-min"
+                                min="0"
+                                placeholder="Any"
+                            >
                         </div>
+
+                        <div>
+                            <label for="enrolment-max">Max</label>
+
+                            <input
+                                type="number"
+                                id="enrolment-max"
+                                min="0"
+                                placeholder="Any"
+                            >
+                        </div>
+
+                    </div>
+
+                    <div class="dual-slider">
+
+                        <div class="slider-track"></div>
+
+                        <input
+                            type="range"
+                            id="enrolment-slider-min"
+                            min="0"
+                            max="10000"
+                            value="0"
+                            step="10"
+                        >
+
+                        <input
+                            type="range"
+                            id="enrolment-slider-max"
+                            min="0"
+                            max="10000"
+                            value="10000"
+                            step="10"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- STUDENT TEACHER RATIO -->
+                <div class="range-filter">
+
+                    <div class="range-title">
+                        <h3>Student–Teacher Ratio</h3>
+                    </div>
+
+                    <div class="range-inputs">
+
+                        <div>
+                            <label for="ratio-min">Min</label>
+
+                            <input
+                                type="number"
+                                id="ratio-min"
+                                min="0"
+                                step="0.1"
+                                placeholder="Any"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="ratio-max">Max</label>
+
+                            <input
+                                type="number"
+                                id="ratio-max"
+                                min="0"
+                                step="0.1"
+                                placeholder="Any"
+                            >
+                        </div>
+
+                    </div>
+
+                    <div class="dual-slider">
+
+                        <div class="slider-track"></div>
+
+                        <input
+                            type="range"
+                            id="ratio-slider-min"
+                            min="0"
+                            max="100"
+                            value="0"
+                            step="0.1"
+                        >
+
+                        <input
+                            type="range"
+                            id="ratio-slider-max"
+                            min="0"
+                            max="100"
+                            value="100"
+                            step="0.1"
+                        >
 
                     </div>
 
@@ -277,224 +410,102 @@
 
             </div>
 
+        </section>
 
-            <!-- Map -->
 
-            <div class="map-container">
-                <div id="map"></div>
-            </div>
+        <!-- =========================
+             RESULTS COUNT
+             ========================= -->
+
+        <div class="results-bar">
+
+            <span id="results-count">
+                Loading schools...
+            </span>
 
         </div>
+
+
+        <!-- =========================
+             MAP
+             ========================= -->
+
+        <section class="map-workspace">
+
+            <div
+                id="school-map"
+                class="school-map"
+            ></div>
+
+
+            <!-- =========================
+                 SCHOOL DETAILS
+                 ========================= -->
+
+            <aside
+                id="school-details"
+                class="school-details"
+            >
+
+                <button
+                    id="close-details"
+                    class="close-details"
+                    type="button"
+                    aria-label="Close school details"
+                >
+                    ×
+                </button>
+
+                <div
+                    id="school-details-content"
+                    class="school-details-content"
+                >
+
+                    <div class="details-empty">
+
+                        <div class="details-icon">
+                            +
+                        </div>
+
+                        <h2>Select a school</h2>
+
+                        <p>
+                            Select a school on the map to view
+                            more information.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </aside>
+
+        </section>
 
     </main>
 
 
     <!-- =========================
-         FOOTER
+         LEAFLET
          ========================= -->
 
-    <footer>
-        © 2026 EduMatch. Helping students find the right school.
-    </footer>
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
 
 
-    <!-- Leaflet JavaScript -->
+    <!-- =========================
+         UNIVERSAL LOADER
+         ========================= -->
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/universal.js"></script>
 
 
     <!-- =========================
          MAP JAVASCRIPT
          ========================= -->
 
-    <script>
-
-        const schools = [
-
-            {
-                title: "Blackburn High School",
-                lat: -37.8152,
-                lng: 145.1481,
-                type: "Public",
-                category: "STEM"
-            },
-
-            {
-                title: "Koonung Secondary College",
-                lat: -37.8080,
-                lng: 145.1320,
-                type: "Public",
-                category: "Sports"
-            },
-
-            {
-                title: "Premier College",
-                lat: -37.8190,
-                lng: 145.1380,
-                type: "Independent",
-                category: "Arts"
-            }
-
-        ];
-
-
-        // Create map
-
-        const map = L.map("map").setView(
-            [-37.8130, 145.1400],
-            13
-        );
-
-
-        // Add OpenStreetMap tiles
-
-        L.tileLayer(
-            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-            {
-                maxZoom: 19,
-                attribution: "&copy; OpenStreetMap contributors"
-            }
-        ).addTo(map);
-
-
-        // Store markers
-
-        const markers = [];
-
-
-        // Create school markers
-
-        schools.forEach((school, index) => {
-
-            const marker = L.marker([
-                school.lat,
-                school.lng
-            ])
-            .addTo(map)
-            .bindPopup(
-                "<strong>" + school.title + "</strong>" +
-                "<br>" +
-                school.type + " School" +
-                "<br>" +
-                "Focus: " + school.category +
-                "<br><br>" +
-                "<button onclick=\"showSchool(" + index + ")\">" +
-                "View School" +
-                "</button>"
-            );
-
-            markers.push(marker);
-
-        });
-
-
-        // Show a school on the map
-
-        function showSchool(index) {
-
-            const school = schools[index];
-
-            map.setView(
-                [school.lat, school.lng],
-                15
-            );
-
-            markers[index].openPopup();
-
-        }
-
-
-        // Search schools
-
-        function searchSchools() {
-
-            const search = document
-                .getElementById("searchInput")
-                .value
-                .toLowerCase()
-                .trim();
-
-            const cards = document.querySelectorAll(".school-card");
-
-            cards.forEach(card => {
-
-                const name = card
-                    .getAttribute("data-name")
-                    .toLowerCase();
-
-                if (name.includes(search)) {
-                    card.style.display = "block";
-                } else {
-                    card.style.display = "none";
-                }
-
-            });
-
-        }
-
-
-        // Filter schools
-
-        function filterSchools(filter) {
-
-            const cards = document.querySelectorAll(".school-card");
-            const buttons = document.querySelectorAll(".filter");
-
-
-            // Remove active state
-
-            buttons.forEach(button => {
-                button.classList.remove("active");
-            });
-
-
-            // Add active state to clicked button
-
-            buttons.forEach(button => {
-
-                if (
-                    button.getAttribute("onclick") ===
-                    "filterSchools('" + filter + "')"
-                ) {
-                    button.classList.add("active");
-                }
-
-            });
-
-
-            // Show/hide schools
-
-            cards.forEach(card => {
-
-                const type = card.getAttribute("data-type");
-
-                if (
-                    filter === "all" ||
-                    type.includes(filter)
-                ) {
-                    card.style.display = "block";
-                } else {
-                    card.style.display = "none";
-                }
-
-            });
-
-        }
-
-
-        // Search when pressing Enter
-
-        document
-            .getElementById("searchInput")
-            .addEventListener("keydown", function(event) {
-
-                if (event.key === "Enter") {
-                    searchSchools();
-                }
-
-            });
-
-    </script>
+    <script src="js/map.js"></script>
 
 </body>
 
