@@ -1,5 +1,5 @@
 /* =========================================================
-   EDUMATCH SCHOOL MAP
+   EDUMATCH MAP
    ========================================================= */
 
 const SUPABASE_URL =
@@ -9,101 +9,86 @@ const SUPABASE_ANON_KEY =
     "YOUR_SUPABASE_ANON_KEY";
 
 
-let schools = [];
-let filteredSchools = [];
-
-let map = null;
-let markerLayer = null;
-
-let selectedStates = [];
-let selectedSectors = [];
-let selectedGenders = [];
-
-let userLocation = null;
-
-
 /* =========================================================
-   RANGE CONFIGURATION
+   FILTER LIMITS
    ========================================================= */
 
-const rangeConfig = {
-
+const FILTER_LIMITS = {
     age: {
-        minInput: "age-min",
-        maxInput: "age-max",
-        minSlider: "age-slider-min",
-        maxSlider: "age-slider-max",
-        minimum: 3,
-        maximum: 25
+        min: 3,
+        max: 25,
+        step: 1
     },
 
     fee: {
-        minInput: "fee-min",
-        maxInput: "fee-max",
-        minSlider: "fee-slider-min",
-        maxSlider: "fee-slider-max",
-        minimum: 0,
-        maximum: 100000
+        min: 0,
+        max: 100000,
+        step: 500
     },
 
     enrolment: {
-        minInput: "enrolment-min",
-        maxInput: "enrolment-max",
-        minSlider: "enrolment-slider-min",
-        maxSlider: "enrolment-slider-max",
-        minimum: 0,
-        maximum: 5000
+        min: 0,
+        max: 5000,
+        step: 50
     },
 
     ratio: {
-        minInput: "ratio-min",
-        maxInput: "ratio-max",
-        minSlider: "ratio-slider-min",
-        maxSlider: "ratio-slider-max",
-        minimum: 1,
-        maximum: 50
+        min: 1,
+        max: 50,
+        step: 0.1
     },
 
     distance: {
-        minInput: "distance-min",
-        maxInput: "distance-max",
-        minSlider: "distance-slider-min",
-        maxSlider: "distance-slider-max",
-        minimum: 0,
-        maximum: 100
+        min: 0,
+        max: 100,
+        step: 1
     }
-
 };
 
 
 /* =========================================================
-   INITIALISE
+   GLOBAL VARIABLES
    ========================================================= */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    async () => {
+let map = null;
 
-        initialiseMap();
+let schools = [];
 
-        initialiseRangeFilters();
+let filteredSchools = [];
 
-        initialiseDropdowns();
+let markers = [];
 
-        initialiseStateSearch();
+let userLocationMarker = null;
 
-        initialiseSchoolSearch();
+let userLatitude = null;
+let userLongitude = null;
 
-        initialiseLocation();
+let selectedStates = [];
 
-        initialiseClearButton();
+let selectedSectors = [];
 
-        initialiseDetailsPanel();
+let selectedGenders = [];
 
-        await loadSchools();
 
-    }
-);
+/* =========================================================
+   START
+   ========================================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    initialiseMap();
+
+    initialiseFilters();
+
+    initialiseSearch();
+
+    initialiseLocation();
+
+    initialiseDetailsPanel();
+
+    loadSchools();
+
+});
 
 
 /* =========================================================
@@ -112,43 +97,29 @@ document.addEventListener(
 
 function initialiseMap() {
 
-    map = L.map(
-        "school-map",
-        {
-            worldCopyJump: false,
-
-            maxBounds: [
-                [-60, 100],
-                [15, 180]
-            ],
-
-            maxBoundsViscosity: 1
-        }
-    );
-
-
-    map.setView(
-        [-25.2744, 133.7751],
-        4
-    );
-
+    map = L.map("school-map", {
+        worldCopyJump: false,
+        maxBounds: [
+            [-60, 100],
+            [15, 180]
+        ],
+        maxBoundsViscosity: 1
+    });
 
     L.tileLayer(
         "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         {
             maxZoom: 19,
-
             noWrap: true,
-
             attribution:
                 "&copy; OpenStreetMap contributors"
         }
     ).addTo(map);
 
-
-    markerLayer =
-        L.layerGroup().addTo(map);
-
+    map.setView(
+        [-37.8136, 144.9631],
+        7
+    );
 }
 
 
@@ -158,404 +129,328 @@ function initialiseMap() {
 
 async function loadSchools() {
 
-    const results =
-        document.getElementById(
-            "results-count"
-        );
-
-
-    results.textContent =
-        "Loading schools...";
-
-
     try {
 
-        const response =
-            await fetch(
-                `${SUPABASE_URL}/rest/v1/Schools?select=*`,
-                {
-                    headers: {
-                        "apikey":
-                            SUPABASE_ANON_KEY,
-
-                        "Authorization":
-                            `Bearer ${SUPABASE_ANON_KEY}`,
-
-                        "Content-Type":
-                            "application/json"
-                    }
+        const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/Schools?select=*`,
+            {
+                headers: {
+                    "apikey": SUPABASE_ANON_KEY,
+                    "Authorization":
+                        `Bearer ${SUPABASE_ANON_KEY}`,
+                    "Content-Type":
+                        "application/json"
                 }
-            );
-
+            }
+        );
 
         if (!response.ok) {
-
             throw new Error(
-                `Supabase error ${response.status}`
+                `Supabase request failed: ${response.status}`
             );
-
         }
 
+        schools = await response.json();
 
-        schools =
-            await response.json();
+        schools = schools.map(normaliseSchool);
 
-
-        schools =
-            schools.map(
-                normaliseSchool
-            );
-
-
-        createStateOptions();
+        populateStateOptions();
 
         applyFilters();
 
-
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Unable to load schools:",
+            error
+        );
 
-        results.textContent =
-            "Unable to load schools.";
+        updateResultsCount(0);
 
     }
-
 }
 
 
 /* =========================================================
-   NORMALISE
+   NORMALISE SCHOOL
    ========================================================= */
 
-function normaliseSchool(
-    school
-) {
+function normaliseSchool(school) {
 
     return {
-
         ...school,
 
         school_id:
-            Number(
-                school.school_id
-            ),
-
-        fee:
-            toNumber(
-                school.fee
-            ),
+            Number(school.school_id),
 
         enrolment:
-            toNumber(
-                school.enrolment
-            ),
+            school.enrolment !== null &&
+            school.enrolment !== ""
+                ? Number(school.enrolment)
+                : null,
+
+        fee:
+            school.fee !== null &&
+            school.fee !== ""
+                ? Number(school.fee)
+                : null,
 
         student_teacher_ratio:
-            toNumber(
-                school.student_teacher_ratio
-            )
-
+            school.student_teacher_ratio !== null &&
+            school.student_teacher_ratio !== ""
+                ? Number(
+                    school.student_teacher_ratio
+                )
+                : null
     };
-
 }
 
 
-function toNumber(value) {
+/* =========================================================
+   FILTER INITIALISATION
+   ========================================================= */
 
-    if (
-        value === null ||
-        value === undefined ||
-        value === ""
-    ) {
-        return null;
+function initialiseFilters() {
+
+    initialiseDualSlider(
+        "age",
+        FILTER_LIMITS.age
+    );
+
+    initialiseDualSlider(
+        "fee",
+        FILTER_LIMITS.fee
+    );
+
+    initialiseDualSlider(
+        "enrolment",
+        FILTER_LIMITS.enrolment
+    );
+
+    initialiseDualSlider(
+        "ratio",
+        FILTER_LIMITS.ratio
+    );
+
+    initialiseDualSlider(
+        "distance",
+        FILTER_LIMITS.distance
+    );
+
+
+    /* State search */
+
+    const stateInput =
+        document.getElementById("state-search");
+
+    if (stateInput) {
+
+        stateInput.addEventListener(
+            "input",
+            filterStateOptions
+        );
+
+        stateInput.addEventListener(
+            "focus",
+            () => {
+
+                const options =
+                    document.getElementById(
+                        "state-options"
+                    );
+
+                if (options) {
+                    options.classList.add(
+                        "visible"
+                    );
+                }
+
+            }
+        );
+
     }
 
 
-    const number =
-        Number(value);
+    /* Sector dropdown */
 
-
-    return Number.isFinite(number)
-        ? number
-        : null;
-
-}
-
-
-/* =========================================================
-   STATE SEARCH
-   ========================================================= */
-
-function createStateOptions() {
-
-    const states = [
-        ...new Set(
-            schools
-                .map(
-                    school =>
-                        school.state
-                )
-                .filter(Boolean)
-                .map(
-                    value =>
-                        value.trim()
-                )
-        )
-    ];
-
-
-    states.sort(
-        (a, b) =>
-            a.localeCompare(b)
-    );
-
-
-    const container =
+    const sectorButton =
         document.getElementById(
-            "state-options"
+            "sector-dropdown-button"
         );
 
+    if (sectorButton) {
 
-    container.innerHTML = "";
+        sectorButton.addEventListener(
+            "click",
+            event => {
 
+                event.stopPropagation();
 
-    states.forEach(
-        state => {
-
-            const option =
-                document.createElement(
-                    "div"
-                );
-
-
-            option.className =
-                "search-option";
-
-
-            option.textContent =
-                state;
-
-
-            option.dataset.value =
-                state;
-
-
-            option.addEventListener(
-                "click",
-                () => {
-
-                    if (
-                        !selectedStates
-                            .includes(state)
-                    ) {
-
-                        selectedStates
-                            .push(state);
-
-                    }
-
-
+                const options =
                     document.getElementById(
-                        "state-filter"
-                    ).value = "";
-
-
-                    container.classList
-                        .remove(
-                            "visible"
-                        );
-
-
-                    applyFilters();
-
-                }
-            );
-
-
-            container.appendChild(
-                option
-            );
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   STATE SEARCH INPUT
-   ========================================================= */
-
-function initialiseStateSearch() {
-
-    const input =
-        document.getElementById(
-            "state-filter"
-        );
-
-    const options =
-        document.getElementById(
-            "state-options"
-        );
-
-
-    input.addEventListener(
-        "focus",
-        () => {
-
-            options.classList.add(
-                "visible"
-            );
-
-        }
-    );
-
-
-    input.addEventListener(
-        "input",
-        () => {
-
-            const search =
-                input.value
-                    .toLowerCase();
-
-
-            options
-                .querySelectorAll(
-                    ".search-option"
-                )
-                .forEach(
-                    option => {
-
-                        const matches =
-                            option.dataset.value
-                                .toLowerCase()
-                                .includes(search);
-
-
-                        option.style.display =
-                            matches
-                                ? "block"
-                                : "none";
-
-                    }
-                );
-
-
-            options.classList.add(
-                "visible"
-            );
-
-        }
-    );
-
-
-    document.addEventListener(
-        "click",
-        event => {
-
-            if (
-                !event.target.closest(
-                    ".search-select"
-                )
-            ) {
-
-                options.classList
-                    .remove(
-                        "visible"
+                        "sector-options"
                     );
 
+                options.classList.toggle("open");
+
             }
+        );
 
-        }
-    );
-
-}
+    }
 
 
-/* =========================================================
-   DROPDOWNS
-   ========================================================= */
+    /* Gender dropdown */
 
-function initialiseDropdowns() {
+    const genderButton =
+        document.getElementById(
+            "gender-dropdown-button"
+        );
 
-    setupDropdown(
-        "sector-dropdown-button",
-        "sector-options"
-    );
+    if (genderButton) {
 
-    setupDropdown(
-        "gender-dropdown-button",
-        "gender-options"
-    );
+        genderButton.addEventListener(
+            "click",
+            event => {
 
+                event.stopPropagation();
+
+                const options =
+                    document.getElementById(
+                        "gender-options"
+                    );
+
+                options.classList.toggle("open");
+
+            }
+        );
+
+    }
+
+
+    /* Sector checkboxes */
 
     document
         .querySelectorAll(
-            '.checkbox-options input[type="checkbox"]'
+            '#sector-options input[type="checkbox"]'
         )
-        .forEach(
-            checkbox => {
+        .forEach(checkbox => {
 
-                checkbox.addEventListener(
-                    "change",
-                    () => {
-
-                        updateCheckboxFilters();
-
-                    }
-                );
-
-            }
-        );
-
-}
-
-
-function setupDropdown(
-    buttonId,
-    optionsId
-) {
-
-    const button =
-        document.getElementById(
-            buttonId
-        );
-
-    const options =
-        document.getElementById(
-            optionsId
-        );
-
-
-    button.addEventListener(
-        "click",
-        event => {
-
-            event.stopPropagation();
-
-            options.classList.toggle(
-                "open"
+            checkbox.addEventListener(
+                "change",
+                updateSectorFilter
             );
 
-        }
-    );
+        });
 
+
+    /* Gender checkboxes */
+
+    document
+        .querySelectorAll(
+            '#gender-options input[type="checkbox"]'
+        )
+        .forEach(checkbox => {
+
+            checkbox.addEventListener(
+                "change",
+                updateGenderFilter
+            );
+
+        });
+
+
+    /* Clear filters */
+
+    const clearButton =
+        document.getElementById(
+            "clear-filters"
+        );
+
+    if (clearButton) {
+
+        clearButton.addEventListener(
+            "click",
+            clearFilters
+        );
+
+    }
+
+
+    /* Close dropdowns when clicking elsewhere */
 
     document.addEventListener(
         "click",
         event => {
 
+            const stateContainer =
+                document.querySelector(
+                    ".search-select"
+                );
+
+            const sectorContainer =
+                document.querySelector(
+                    ".sector-dropdown"
+                );
+
+            const genderContainer =
+                document.querySelector(
+                    ".gender-dropdown"
+                );
+
+
             if (
-                !event.target.closest(
-                    ".checkbox-dropdown"
-                )
+                stateContainer &&
+                !stateContainer.contains(event.target)
             ) {
 
-                options.classList.remove(
-                    "open"
-                );
+                const options =
+                    document.getElementById(
+                        "state-options"
+                    );
+
+                if (options) {
+                    options.classList.remove(
+                        "visible"
+                    );
+                }
+
+            }
+
+
+            if (
+                sectorContainer &&
+                !sectorContainer.contains(event.target)
+            ) {
+
+                const options =
+                    document.getElementById(
+                        "sector-options"
+                    );
+
+                if (options) {
+                    options.classList.remove(
+                        "open"
+                    );
+                }
+
+            }
+
+
+            if (
+                genderContainer &&
+                !genderContainer.contains(event.target)
+            ) {
+
+                const options =
+                    document.getElementById(
+                        "gender-options"
+                    );
+
+                if (options) {
+                    options.classList.remove(
+                        "open"
+                    );
+                }
 
             }
 
@@ -566,445 +461,234 @@ function setupDropdown(
 
 
 /* =========================================================
-   CHECKBOX FILTERS
+   DUAL RANGE SLIDERS
    ========================================================= */
 
-function updateCheckboxFilters() {
-
-    selectedSectors =
-        getCheckedValues(
-            "sector"
-        );
-
-
-    selectedGenders =
-        getCheckedValues(
-            "gender"
-        );
-
-
-    updateDropdownText(
-        "sector-dropdown-button",
-        selectedSectors,
-        "Select sector"
-    );
-
-
-    updateDropdownText(
-        "gender-dropdown-button",
-        selectedGenders,
-        "Select gender"
-    );
-
-
-    applyFilters();
-
-}
-
-
-function getCheckedValues(
-    filterType
+function initialiseDualSlider(
+    name,
+    limits
 ) {
 
-    return [
-        ...document.querySelectorAll(
-            `input[data-filter="${filterType}"]:checked`
-        )
-    ]
-        .map(
-            checkbox =>
-                checkbox.value
-        );
-
-}
-
-
-function updateDropdownText(
-    buttonId,
-    values,
-    defaultText
-) {
-
-    const button =
+    const minSlider =
         document.getElementById(
-            buttonId
+            `${name}-min-slider`
         );
 
-
-    const text =
-        button.querySelector(
-            "span"
-        );
-
-
-    if (values.length === 0) {
-
-        text.textContent =
-            defaultText;
-
-    } else {
-
-        text.textContent =
-            values.join(", ");
-
-    }
-
-}
-
-
-/* =========================================================
-   SCHOOL SEARCH
-   ========================================================= */
-
-function initialiseSchoolSearch() {
-
-    const input =
+    const maxSlider =
         document.getElementById(
-            "school-search"
+            `${name}-max-slider`
         );
 
-
-    input.addEventListener(
-        "input",
-        applyFilters
-    );
-
-
-    document
-        .getElementById(
-            "search-button"
-        )
-        .addEventListener(
-            "click",
-            applyFilters
+    const minInput =
+        document.getElementById(
+            `${name}-min`
         );
 
-}
-
-
-/* =========================================================
-   LOCATION
-   ========================================================= */
-
-function initialiseLocation() {
-
-    document
-        .getElementById(
-            "current-location-button"
-        )
-        .addEventListener(
-            "click",
-            getCurrentLocation
+    const maxInput =
+        document.getElementById(
+            `${name}-max`
         );
 
-
-    document
-        .getElementById(
-            "location-input"
-        )
-        .addEventListener(
-            "change",
-            () => {
-
-                /*
-                 * Geocoding will be connected here.
-                 *
-                 * The address should eventually be converted
-                 * into latitude/longitude and stored in
-                 * userLocation.
-                 */
-
-                console.log(
-                    "Location entered:",
-                    document.getElementById(
-                        "location-input"
-                    ).value
-                );
-
-            }
-        );
-
-}
-
-
-function getCurrentLocation() {
 
     if (
-        !navigator.geolocation
+        !minSlider ||
+        !maxSlider ||
+        !minInput ||
+        !maxInput
     ) {
-
-        alert(
-            "Location services are not supported by this browser."
-        );
-
         return;
-
     }
 
 
-    const button =
-        document.getElementById(
-            "current-location-button"
-        );
+    minSlider.min = limits.min;
+    minSlider.max = limits.max;
+    minSlider.step = limits.step;
+
+    maxSlider.min = limits.min;
+    maxSlider.max = limits.max;
+    maxSlider.step = limits.step;
 
 
-    button.textContent =
-        "Finding location...";
+    minSlider.value = limits.min;
+    maxSlider.value = limits.max;
+
+    minInput.value = limits.min;
+    maxInput.value = limits.max;
 
 
-    navigator.geolocation.getCurrentPosition(
+    minSlider.addEventListener(
+        "input",
+        () => {
 
-        position => {
+            let minValue =
+                Number(minSlider.value);
 
-            userLocation = {
-
-                latitude:
-                    position.coords.latitude,
-
-                longitude:
-                    position.coords.longitude
-
-            };
+            let maxValue =
+                Number(maxSlider.value);
 
 
-            button.textContent =
-                "Location Found";
+            if (minValue > maxValue) {
+                minValue = maxValue;
+                minSlider.value = minValue;
+            }
 
+            minInput.value =
+                formatNumber(
+                    minValue,
+                    limits.step
+                );
 
-            map.setView(
-                [
-                    userLocation.latitude,
-                    userLocation.longitude
-                ],
-                12
+            updateSliderTrack(
+                name,
+                limits
             );
-
 
             applyFilters();
 
-        },
-
-        error => {
-
-            console.error(error);
-
-            button.textContent =
-                "Current Location";
-
-
-            alert(
-                "Unable to access your current location."
-            );
-
         }
-
     );
 
-}
+
+    maxSlider.addEventListener(
+        "input",
+        () => {
+
+            let minValue =
+                Number(minSlider.value);
+
+            let maxValue =
+                Number(maxSlider.value);
 
 
-/* =========================================================
-   RANGE FILTERS
-   ========================================================= */
+            if (maxValue < minValue) {
+                maxValue = minValue;
+                maxSlider.value = maxValue;
+            }
 
-function initialiseRangeFilters() {
-
-    Object.values(
-        rangeConfig
-    ).forEach(
-        config => {
-
-            const minSlider =
-                document.getElementById(
-                    config.minSlider
+            maxInput.value =
+                formatNumber(
+                    maxValue,
+                    limits.step
                 );
 
-            const maxSlider =
-                document.getElementById(
-                    config.maxSlider
+            updateSliderTrack(
+                name,
+                limits
+            );
+
+            applyFilters();
+
+        }
+    );
+
+
+    minInput.addEventListener(
+        "change",
+        () => {
+
+            let value =
+                parseNumber(
+                    minInput.value
                 );
 
-            const minInput =
-                document.getElementById(
-                    config.minInput
-                );
-
-            const maxInput =
-                document.getElementById(
-                    config.maxInput
-                );
-
-
-            minSlider.addEventListener(
-                "input",
-                () => {
-
-                    if (
-                        Number(minSlider.value) >
-                        Number(maxSlider.value)
-                    ) {
-
-                        minSlider.value =
-                            maxSlider.value;
-
-                    }
-
-
-                    minInput.value =
-                        Number(minSlider.value) ===
-                        config.minimum
-                            ? ""
-                            : minSlider.value;
-
-
-                    updateSliderTrack(
-                        minSlider,
-                        maxSlider
-                    );
-
-
-                    applyFilters();
-
-                }
+            value = clamp(
+                value,
+                limits.min,
+                limits.max
             );
 
 
-            maxSlider.addEventListener(
-                "input",
-                () => {
-
-                    if (
-                        Number(maxSlider.value) <
-                        Number(minSlider.value)
-                    ) {
-
-                        maxSlider.value =
-                            minSlider.value;
-
-                    }
+            let maxValue =
+                Number(maxSlider.value);
 
 
-                    maxInput.value =
-                        Number(maxSlider.value) ===
-                        config.maximum
-                            ? ""
-                            : maxSlider.value;
+            if (value > maxValue) {
+                value = maxValue;
+            }
 
 
-                    updateSliderTrack(
-                        minSlider,
-                        maxSlider
-                    );
+            value =
+                snapToStep(
+                    value,
+                    limits
+                );
 
 
-                    applyFilters();
+            minSlider.value = value;
 
-                }
-            );
-
-
-            minInput.addEventListener(
-                "change",
-                () => {
-
-                    let value =
-                        parseFloat(
-                            minInput.value
-                        );
-
-
-                    if (
-                        Number.isNaN(value)
-                    ) {
-
-                        value =
-                            config.minimum;
-
-                    }
-
-
-                    value =
-                        Math.max(
-                            config.minimum,
-                            Math.min(
-                                value,
-                                Number(
-                                    maxSlider.value
-                                )
-                            )
-                        );
-
-
-                    minSlider.value =
-                        value;
-
-
-                    updateSliderTrack(
-                        minSlider,
-                        maxSlider
-                    );
-
-
-                    applyFilters();
-
-                }
-            );
-
-
-            maxInput.addEventListener(
-                "change",
-                () => {
-
-                    let value =
-                        parseFloat(
-                            maxInput.value
-                        );
-
-
-                    if (
-                        Number.isNaN(value)
-                    ) {
-
-                        value =
-                            config.maximum;
-
-                    }
-
-
-                    value =
-                        Math.min(
-                            config.maximum,
-                            Math.max(
-                                value,
-                                Number(
-                                    minSlider.value
-                                )
-                            )
-                        );
-
-
-                    maxSlider.value =
-                        value;
-
-
-                    updateSliderTrack(
-                        minSlider,
-                        maxSlider
-                    );
-
-
-                    applyFilters();
-
-                }
-            );
+            minInput.value =
+                formatNumber(
+                    value,
+                    limits.step
+                );
 
 
             updateSliderTrack(
-                minSlider,
-                maxSlider
+                name,
+                limits
             );
 
+            applyFilters();
+
         }
+    );
+
+
+    maxInput.addEventListener(
+        "change",
+        () => {
+
+            let value =
+                parseNumber(
+                    maxInput.value
+                );
+
+            value = clamp(
+                value,
+                limits.min,
+                limits.max
+            );
+
+
+            let minValue =
+                Number(minSlider.value);
+
+
+            if (value < minValue) {
+                value = minValue;
+            }
+
+
+            value =
+                snapToStep(
+                    value,
+                    limits
+                );
+
+
+            maxSlider.value = value;
+
+            maxInput.value =
+                formatNumber(
+                    value,
+                    limits.step
+                );
+
+
+            updateSliderTrack(
+                name,
+                limits
+            );
+
+            applyFilters();
+
+        }
+    );
+
+
+    updateSliderTrack(
+        name,
+        limits
     );
 
 }
@@ -1015,15 +699,34 @@ function initialiseRangeFilters() {
    ========================================================= */
 
 function updateSliderTrack(
-    minSlider,
-    maxSlider
+    name,
+    limits
 ) {
 
-    const min =
-        Number(minSlider.min);
+    const minSlider =
+        document.getElementById(
+            `${name}-min-slider`
+        );
 
-    const max =
-        Number(minSlider.max);
+    const maxSlider =
+        document.getElementById(
+            `${name}-max-slider`
+        );
+
+    const track =
+        document.getElementById(
+            `${name}-track`
+        );
+
+
+    if (
+        !minSlider ||
+        !maxSlider ||
+        !track
+    ) {
+        return;
+    }
+
 
     const minValue =
         Number(minSlider.value);
@@ -1033,48 +736,485 @@ function updateSliderTrack(
 
 
     const minPercent =
-        ((minValue - min) /
-        (max - min)) * 100;
+        (
+            (minValue - limits.min) /
+            (limits.max - limits.min)
+        ) * 100;
 
 
     const maxPercent =
-        ((maxValue - min) /
-        (max - min)) * 100;
+        (
+            (maxValue - limits.min) /
+            (limits.max - limits.min)
+        ) * 100;
 
 
-    const track =
-        minSlider
-            .parentElement
-            .querySelector(
-                ".slider-track"
-            );
+    track.style.setProperty(
+        "--range-start",
+        `${minPercent}%`
+    );
 
-
-    track.style.background =
-        `linear-gradient(
-            to right,
-            #ddd ${minPercent}%,
-            #ff7700 ${minPercent}%,
-            #ff7700 ${maxPercent}%,
-            #ddd ${maxPercent}%
-        )`;
+    track.style.setProperty(
+        "--range-end",
+        `${maxPercent}%`
+    );
 
 }
 
 
 /* =========================================================
-   APPLY FILTERS
+   NUMBER HELPERS
+   ========================================================= */
+
+function parseNumber(value) {
+
+    const cleaned =
+        String(value)
+            .replace(/,/g, "")
+            .trim();
+
+    const number =
+        Number(cleaned);
+
+    return Number.isFinite(number)
+        ? number
+        : 0;
+}
+
+
+function clamp(
+    value,
+    min,
+    max
+) {
+
+    return Math.min(
+        Math.max(value, min),
+        max
+    );
+
+}
+
+
+function snapToStep(
+    value,
+    limits
+) {
+
+    const steps =
+        Math.round(
+            (
+                value -
+                limits.min
+            ) /
+            limits.step
+        );
+
+    return (
+        limits.min +
+        steps * limits.step
+    );
+
+}
+
+
+function formatNumber(
+    value,
+    step
+) {
+
+    if (step < 1) {
+        return Number(value).toFixed(1);
+    }
+
+    return Math.round(value);
+}
+
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+function initialiseSearch() {
+
+    const searchInput =
+        document.getElementById(
+            "school-search"
+        );
+
+    const searchButton =
+        document.getElementById(
+            "search-button"
+        );
+
+
+    if (searchInput) {
+
+        searchInput.addEventListener(
+            "input",
+            applyFilters
+        );
+
+        searchInput.addEventListener(
+            "keydown",
+            event => {
+
+                if (event.key === "Enter") {
+                    applyFilters();
+                }
+
+            }
+        );
+
+    }
+
+
+    if (searchButton) {
+
+        searchButton.addEventListener(
+            "click",
+            applyFilters
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   STATE OPTIONS
+   ========================================================= */
+
+function populateStateOptions() {
+
+    const container =
+        document.getElementById(
+            "state-options"
+        );
+
+    if (!container) {
+        return;
+    }
+
+
+    const states =
+        [
+            ...new Set(
+                schools
+                    .map(
+                        school =>
+                            school.state
+                    )
+                    .filter(
+                        state =>
+                            state &&
+                            String(state).trim()
+                    )
+                    .map(
+                        state =>
+                            String(state).trim()
+                    )
+            )
+        ]
+        .sort(
+            (a, b) =>
+                a.localeCompare(b)
+        );
+
+
+    container.innerHTML = "";
+
+
+    states.forEach(state => {
+
+        const option =
+            document.createElement(
+                "div"
+            );
+
+        option.className =
+            "search-option";
+
+        option.textContent =
+            state;
+
+
+        option.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    selectedStates.includes(
+                        state
+                    )
+                ) {
+
+                    selectedStates =
+                        selectedStates.filter(
+                            item =>
+                                item !== state
+                        );
+
+                } else {
+
+                    selectedStates.push(
+                        state
+                    );
+
+                }
+
+
+                updateStateDisplay();
+
+                applyFilters();
+
+            }
+        );
+
+
+        container.appendChild(
+            option
+        );
+
+    });
+
+}
+
+
+/* =========================================================
+   STATE SEARCH
+   ========================================================= */
+
+function filterStateOptions() {
+
+    const input =
+        document.getElementById(
+            "state-search"
+        );
+
+    const container =
+        document.getElementById(
+            "state-options"
+        );
+
+
+    if (
+        !input ||
+        !container
+    ) {
+        return;
+    }
+
+
+    const search =
+        input.value
+            .trim()
+            .toLowerCase();
+
+
+    container
+        .querySelectorAll(
+            ".search-option"
+        )
+        .forEach(option => {
+
+            const text =
+                option.textContent
+                    .toLowerCase();
+
+            option.style.display =
+                text.includes(search)
+                    ? "block"
+                    : "none";
+
+        });
+
+
+    container.classList.add(
+        "visible"
+    );
+
+}
+
+
+/* =========================================================
+   STATE DISPLAY
+   ========================================================= */
+
+function updateStateDisplay() {
+
+    const input =
+        document.getElementById(
+            "state-search"
+        );
+
+
+    if (!input) {
+        return;
+    }
+
+
+    if (selectedStates.length === 0) {
+
+        input.placeholder =
+            "Search states / regions worldwide...";
+
+    } else {
+
+        input.placeholder =
+            selectedStates.join(", ");
+
+    }
+
+}
+
+
+/* =========================================================
+   SECTOR FILTER
+   ========================================================= */
+
+function updateSectorFilter() {
+
+    selectedSectors =
+        [
+            ...document.querySelectorAll(
+                '#sector-options input[type="checkbox"]:checked'
+            )
+        ]
+        .map(
+            checkbox =>
+                checkbox.value
+        );
+
+
+    updateSectorDisplay();
+
+    applyFilters();
+
+}
+
+
+function updateSectorDisplay() {
+
+    const button =
+        document.getElementById(
+            "sector-dropdown-button"
+        );
+
+
+    if (!button) {
+        return;
+    }
+
+
+    const text =
+        button.querySelector(
+            ".dropdown-text"
+        );
+
+
+    if (!text) {
+        return;
+    }
+
+
+    if (selectedSectors.length === 0) {
+
+        text.textContent =
+            "All sectors";
+
+    } else {
+
+        text.textContent =
+            selectedSectors.join(", ");
+
+    }
+
+}
+
+
+/* =========================================================
+   GENDER FILTER
+   ========================================================= */
+
+function updateGenderFilter() {
+
+    selectedGenders =
+        [
+            ...document.querySelectorAll(
+                '#gender-options input[type="checkbox"]:checked'
+            )
+        ]
+        .map(
+            checkbox =>
+                checkbox.value
+        );
+
+
+    updateGenderDisplay();
+
+    applyFilters();
+
+}
+
+
+function updateGenderDisplay() {
+
+    const button =
+        document.getElementById(
+            "gender-dropdown-button"
+        );
+
+
+    if (!button) {
+        return;
+    }
+
+
+    const text =
+        button.querySelector(
+            ".dropdown-text"
+        );
+
+
+    if (!text) {
+        return;
+    }
+
+
+    if (selectedGenders.length === 0) {
+
+        text.textContent =
+            "All genders";
+
+    } else {
+
+        text.textContent =
+            selectedGenders.join(", ");
+
+    }
+
+}
+
+
+/* =========================================================
+   FILTER SCHOOLS
    ========================================================= */
 
 function applyFilters() {
 
-    const search =
+    const searchInput =
         document.getElementById(
             "school-search"
-        )
-            .value
-            .trim()
-            .toLowerCase();
+        );
+
+
+    const search =
+        searchInput
+            ? searchInput.value
+                .trim()
+                .toLowerCase()
+            : "";
 
 
     const ageRange =
@@ -1094,300 +1234,292 @@ function applyFilters() {
 
 
     filteredSchools =
-        schools.filter(
-            school => {
+        schools.filter(school => {
 
 
-                /* SEARCH */
+            /* Search */
 
-                if (search) {
+            if (search) {
 
-                    const text = [
-
+                const searchableText =
+                    [
                         school.name,
-
                         school.address,
-
                         school.state,
-
                         school.description
-
                     ]
-                        .filter(Boolean)
-                        .join(" ")
-                        .toLowerCase();
+                    .filter(Boolean)
+                    .join(" ")
+                    .toLowerCase();
+
+
+                if (
+                    !searchableText.includes(
+                        search
+                    )
+                ) {
+                    return false;
+                }
+
+            }
+
+
+            /* State */
+
+            if (
+                selectedStates.length > 0 &&
+                !selectedStates.includes(
+                    String(
+                        school.state || ""
+                    ).trim()
+                )
+            ) {
+                return false;
+            }
+
+
+            /* Sector */
+
+            if (
+                selectedSectors.length > 0
+            ) {
+
+                const sector =
+                    String(
+                        school.sector || ""
+                    )
+                    .trim()
+                    .toLowerCase();
+
+
+                const matches =
+                    selectedSectors.some(
+                        selected =>
+                            sector ===
+                            selected
+                                .toLowerCase()
+                    );
+
+
+                if (!matches) {
+                    return false;
+                }
+
+            }
+
+
+            /* Gender */
+
+            if (
+                selectedGenders.length > 0
+            ) {
+
+                const gender =
+                    String(
+                        school.gender || ""
+                    )
+                    .trim()
+                    .toLowerCase();
+
+
+                const matches =
+                    selectedGenders.some(
+                        selected =>
+                            gender ===
+                            selected
+                                .toLowerCase()
+                    );
+
+
+                if (!matches) {
+                    return false;
+                }
+
+            }
+
+
+            /* Age */
+
+            if (
+                school.allowed_ages &&
+                !ageMatches(
+                    school.allowed_ages,
+                    ageRange
+                )
+            ) {
+                return false;
+            }
+
+
+            /* Fee */
+
+            if (
+                school.fee !== null &&
+                (
+                    school.fee <
+                    feeRange.min ||
+                    school.fee >
+                    feeRange.max
+                )
+            ) {
+                return false;
+            }
+
+
+            /* Enrolment */
+
+            if (
+                school.enrolment !== null &&
+                (
+                    school.enrolment <
+                    enrolmentRange.min ||
+                    school.enrolment >
+                    enrolmentRange.max
+                )
+            ) {
+                return false;
+            }
+
+
+            /* Ratio */
+
+            if (
+                school.student_teacher_ratio !== null &&
+                (
+                    school.student_teacher_ratio <
+                    ratioRange.min ||
+                    school.student_teacher_ratio >
+                    ratioRange.max
+                )
+            ) {
+                return false;
+            }
+
+
+            /* Distance */
+
+            if (
+                userLatitude !== null &&
+                userLongitude !== null
+            ) {
+
+                const latitude =
+                    Number(
+                        school.latitude
+                    );
+
+                const longitude =
+                    Number(
+                        school.longitude
+                    );
+
+
+                if (
+                    Number.isFinite(
+                        latitude
+                    ) &&
+                    Number.isFinite(
+                        longitude
+                    )
+                ) {
+
+                    const distance =
+                        calculateDistance(
+                            userLatitude,
+                            userLongitude,
+                            latitude,
+                            longitude
+                        );
 
 
                     if (
-                        !text.includes(search)
+                        distance <
+                        distanceRange.min ||
+                        distance >
+                        distanceRange.max
                     ) {
-
                         return false;
-
                     }
 
                 }
 
-
-                /* STATE */
-
-                if (
-                    selectedStates.length > 0 &&
-                    !selectedStates.includes(
-                        school.state
-                    )
-                ) {
-
-                    return false;
-
-                }
-
-
-                /* SECTOR */
-
-                if (
-                    selectedSectors.length > 0 &&
-                    !selectedSectors.includes(
-                        school.sector
-                    )
-                ) {
-
-                    return false;
-
-                }
-
-
-                /* GENDER */
-
-                if (
-                    selectedGenders.length > 0 &&
-                    !selectedGenders.includes(
-                        school.gender
-                    )
-                ) {
-
-                    return false;
-
-                }
-
-
-                /* AGE */
-
-                if (
-                    !schoolMatchesAge(
-                        school,
-                        ageRange
-                    )
-                ) {
-
-                    return false;
-
-                }
-
-
-                /* FEE */
-
-                if (
-                    !matchesRange(
-                        school.fee,
-                        feeRange
-                    )
-                ) {
-
-                    return false;
-
-                }
-
-
-                /* ENROLMENT */
-
-                if (
-                    !matchesRange(
-                        school.enrolment,
-                        enrolmentRange
-                    )
-                ) {
-
-                    return false;
-
-                }
-
-
-                /* RATIO */
-
-                if (
-                    !matchesRange(
-                        school.student_teacher_ratio,
-                        ratioRange
-                    )
-                ) {
-
-                    return false;
-
-                }
-
-
-                /*
-                 * DISTANCE
-                 *
-                 * This only activates once userLocation
-                 * and school coordinates are available.
-                 */
-
-                if (
-                    userLocation &&
-                    !matchesDistance(
-                        school,
-                        distanceRange
-                    )
-                ) {
-
-                    return false;
-
-                }
-
-
-                return true;
-
             }
-        );
 
 
-    renderSchools();
+            return true;
+
+        });
+
+
+    renderSchoolMarkers();
+
+    updateResultsCount(
+        filteredSchools.length
+    );
 
 }
 
 
 /* =========================================================
-   RANGE
+   GET RANGE
    ========================================================= */
 
 function getRange(name) {
 
-    const config =
-        rangeConfig[name];
-
-
-    const minSlider =
+    const min =
         document.getElementById(
-            config.minSlider
+            `${name}-min-slider`
         );
 
-    const maxSlider =
+    const max =
         document.getElementById(
-            config.maxSlider
+            `${name}-max-slider`
         );
 
 
     return {
+        min: min
+            ? Number(min.value)
+            : FILTER_LIMITS[name].min,
 
-        min:
-            Number(minSlider.value) >
-            config.minimum
-                ? Number(minSlider.value)
-                : null,
-
-        max:
-            Number(maxSlider.value) <
-            config.maximum
-                ? Number(maxSlider.value)
-                : null
-
+        max: max
+            ? Number(max.value)
+            : FILTER_LIMITS[name].max
     };
 
 }
 
 
 /* =========================================================
-   NUMERIC RANGE MATCH
+   AGE MATCHING
    ========================================================= */
 
-function matchesRange(
-    value,
+function ageMatches(
+    allowedAges,
     range
 ) {
 
-    if (
-        value === null
-    ) {
-
-        return (
-            range.min === null &&
-            range.max === null
-        );
-
-    }
-
-
-    if (
-        range.min !== null &&
-        value < range.min
-    ) {
-
-        return false;
-
-    }
-
-
-    if (
-        range.max !== null &&
-        value > range.max
-    ) {
-
-        return false;
-
-    }
-
-
-    return true;
-
-}
-
-
-/* =========================================================
-   AGE
-   ========================================================= */
-
-function schoolMatchesAge(
-    school,
-    range
-) {
-
-    if (
-        range.min === null &&
-        range.max === null
-    ) {
-
-        return true;
-
-    }
-
-
-    if (!school.allowed_ages) {
-
-        return false;
-
-    }
+    const text =
+        String(
+            allowedAges
+        ).toLowerCase();
 
 
     const numbers =
-        String(
-            school.allowed_ages
-        )
-            .match(
-                /\d+(?:\.\d+)?/g
-            );
+        text.match(
+            /\d+(?:\.\d+)?/g
+        );
 
 
-    if (!numbers) {
-
-        return false;
-
+    if (!numbers || numbers.length === 0) {
+        return true;
     }
 
 
     const ages =
-        numbers.map(Number);
+        numbers.map(
+            Number
+        );
 
 
     const schoolMin =
@@ -1397,80 +1529,16 @@ function schoolMatchesAge(
         Math.max(...ages);
 
 
-    if (
-        range.min !== null &&
-        schoolMax < range.min
-    ) {
-
-        return false;
-
-    }
-
-
-    if (
-        range.max !== null &&
-        schoolMin > range.max
-    ) {
-
-        return false;
-
-    }
-
-
-    return true;
-
-}
-
-
-/* =========================================================
-   DISTANCE
-   ========================================================= */
-
-function matchesDistance(
-    school,
-    range
-) {
-
-    const latitude =
-        Number(
-            school.latitude
-        );
-
-    const longitude =
-        Number(
-            school.longitude
-        );
-
-
-    if (
-        !Number.isFinite(latitude) ||
-        !Number.isFinite(longitude)
-    ) {
-
-        return false;
-
-    }
-
-
-    const distance =
-        calculateDistance(
-            userLocation.latitude,
-            userLocation.longitude,
-            latitude,
-            longitude
-        );
-
-
-    return matchesRange(
-        distance,
-        range
+    return (
+        schoolMax >= range.min &&
+        schoolMin <= range.max
     );
 
 }
 
 
 /* =========================================================
-   HAVERSINE DISTANCE
+   DISTANCE
    ========================================================= */
 
 function calculateDistance(
@@ -1480,9 +1548,7 @@ function calculateDistance(
     lon2
 ) {
 
-    const earthRadius =
-        6371;
-
+    const earthRadius = 6371;
 
     const dLat =
         toRadians(
@@ -1531,330 +1597,477 @@ function toRadians(
 
 
 /* =========================================================
-   RENDER
+   RENDER MARKERS
    ========================================================= */
 
-function renderSchools() {
+function renderSchoolMarkers() {
 
-    markerLayer.clearLayers();
+    markers.forEach(
+        marker =>
+            map.removeLayer(marker)
+    );
 
-
-    document.getElementById(
-        "results-count"
-    ).textContent =
-        `${filteredSchools.length} school${
-            filteredSchools.length === 1
-                ? ""
-                : "s"
-        } found`;
+    markers = [];
 
 
     filteredSchools.forEach(
-        createSchoolMarker
-    );
+        school => {
 
-}
+            const latitude =
+                Number(
+                    school.latitude
+                );
 
-
-/* =========================================================
-   MARKERS
-   ========================================================= */
-
-function createSchoolMarker(
-    school
-) {
-
-    const latitude =
-        Number(
-            school.latitude
-        );
-
-    const longitude =
-        Number(
-            school.longitude
-        );
+            const longitude =
+                Number(
+                    school.longitude
+                );
 
 
-    if (
-        !Number.isFinite(latitude) ||
-        !Number.isFinite(longitude)
-    ) {
-
-        return;
-
-    }
-
-
-    const icon =
-        L.divIcon({
-
-            className: "",
-
-            html: `
-                <div class="school-marker">
-
-                    <div
-                        class="school-marker-dot">
-                    </div>
-
-                    <div
-                        class="school-marker-label">
-
-                        ${escapeHtml(
-                            school.name ||
-                            "Unnamed school"
-                        )}
-
-                    </div>
-
-                </div>
-            `,
-
-            iconSize: [0, 0],
-
-            iconAnchor: [0, 0]
-
-        });
-
-
-    const marker =
-        L.marker(
-            [
-                latitude,
-                longitude
-            ],
-            {
-                icon
+            if (
+                !Number.isFinite(
+                    latitude
+                ) ||
+                !Number.isFinite(
+                    longitude
+                )
+            ) {
+                return;
             }
-        );
 
 
-    marker.bindPopup(
-        createPopup(
-            school
-        ),
-        {
-            minWidth: 280,
+            const icon =
+                L.divIcon({
 
-            maxWidth: 300,
+                    className:
+                        "custom-school-icon",
 
-            offset: [
-                12,
-                -5
-            ]
+                    html: `
+                        <div class="school-marker">
+                            <span class="school-marker-dot"></span>
+                            <span class="school-marker-label">
+                                ${escapeHTML(
+                                    school.name ||
+                                    "School"
+                                )}
+                            </span>
+                        </div>
+                    `,
+
+                    iconSize: null,
+
+                    iconAnchor: [
+                        0,
+                        0
+                    ]
+
+                });
+
+
+            const marker =
+                L.marker(
+                    [
+                        latitude,
+                        longitude
+                    ],
+                    {
+                        icon
+                    }
+                )
+                .addTo(map);
+
+
+            marker.bindPopup(
+                createSchoolPopup(
+                    school
+                ),
+                {
+                    closeButton: true,
+                    maxWidth: 320,
+                    minWidth: 260
+                }
+            );
+
+
+            marker.on(
+                "popupopen",
+                event => {
+
+                    const popup =
+                        event.popup
+                            .getElement();
+
+
+                    if (!popup) {
+                        return;
+                    }
+
+
+                    const button =
+                        popup.querySelector(
+                            ".view-school-button"
+                        );
+
+
+                    if (button) {
+
+                        button.addEventListener(
+                            "click",
+                            () => {
+
+                                openSchoolDetails(
+                                    school
+                                );
+
+                            }
+                        );
+
+                    }
+
+
+                    const tagButton =
+                        popup.querySelector(
+                            ".school-tag-button"
+                        );
+
+
+                    if (tagButton) {
+
+                        tagButton.addEventListener(
+                            "click",
+                            () => {
+
+                                openSchoolTags(
+                                    school
+                                );
+
+                            }
+                        );
+
+                    }
+
+                }
+            );
+
+
+            markers.push(
+                marker
+            );
+
         }
     );
 
-
-    markerLayer.addLayer(
-        marker
-    );
-
 }
 
 
 /* =========================================================
-   POPUP
+   SCHOOL POPUP
    ========================================================= */
 
-function createPopup(
+function createSchoolPopup(
     school
 ) {
 
     return `
-
         <div class="school-popup">
 
-            <h3>
-                ${escapeHtml(
-                    school.name ||
-                    "Unnamed school"
-                )}
-            </h3>
+            <div class="school-popup-header">
 
-            <p>
-                ${
-                    escapeHtml(
-                        school.description ||
-                        "No overview available."
-                    )
-                }
-            </p>
+                <div>
+                    <h3>
+                        ${escapeHTML(
+                            school.name ||
+                            "School"
+                        )}
+                    </h3>
 
-            <p>
-                ${
-                    escapeHtml(
-                        school.address ||
-                        "Address unavailable"
-                    )
-                }
-            </p>
-
-            <div class="popup-actions">
+                    <p>
+                        ${escapeHTML(
+                            school.address ||
+                            school.state ||
+                            "Location unavailable"
+                        )}
+                    </p>
+                </div>
 
                 <button
-                    onclick="openSchoolDetails(
-                        ${school.school_id}
-                    )"
-                >
-                    View details
-                </button>
-
-                <button
-                    onclick="openSchoolTags(
-                        ${school.school_id}
-                    )"
+                    type="button"
+                    class="school-tag-button"
+                    title="Add tag"
                 >
                     +
                 </button>
 
             </div>
 
-        </div>
+            <p class="school-popup-description">
+                ${escapeHTML(
+                    school.description ||
+                    "No overview is available for this school."
+                )}
+            </p>
 
+            <button
+                type="button"
+                class="view-school-button"
+            >
+                View details
+            </button>
+
+        </div>
     `;
 
 }
 
 
 /* =========================================================
-   DETAILS
+   DETAILS PANEL
    ========================================================= */
 
-function openSchoolDetails(
-    schoolId
-) {
+function initialiseDetailsPanel() {
 
-    const school =
-        schools.find(
-            item =>
-                Number(
-                    item.school_id
-                ) === Number(schoolId)
+    const closeButton =
+        document.getElementById(
+            "close-details"
         );
 
 
-    if (!school) {
+    if (closeButton) {
+
+        closeButton.addEventListener(
+            "click",
+            closeSchoolDetails
+        );
+
+    }
+
+}
+
+
+function openSchoolDetails(
+    school
+) {
+
+    const panel =
+        document.getElementById(
+            "school-details"
+        );
+
+    const content =
+        document.getElementById(
+            "school-details-content"
+        );
+
+
+    if (
+        !panel ||
+        !content
+    ) {
         return;
     }
 
 
-    document.getElementById(
-        "school-details-content"
-    ).innerHTML = `
+    content.innerHTML = `
 
         <h2>
-            ${escapeHtml(
+            ${escapeHTML(
                 school.name ||
-                "Unnamed school"
+                "School"
             )}
         </h2>
 
         <p class="details-description">
-            ${
-                escapeHtml(
-                    school.description ||
-                    "No description available."
-                )
-            }
+            ${escapeHTML(
+                school.description ||
+                "No description available."
+            )}
         </p>
 
         <div class="detail-list">
 
-            ${detail(
+            ${createDetail(
                 "Address",
                 school.address
             )}
 
-            ${detail(
-                "State / Province / Region",
+            ${createDetail(
+                "State / Region",
                 school.state
             )}
 
-            ${detail(
+            ${createDetail(
                 "Sector",
                 school.sector
             )}
 
-            ${detail(
+            ${createDetail(
                 "Gender",
                 school.gender
             )}
 
-            ${detail(
-                "Ages",
+            ${createDetail(
+                "Age Range",
                 school.allowed_ages
             )}
 
-            ${detail(
+            ${createDetail(
                 "Fees",
-                school.fee
+                school.fee !== null
+                    ? `$${Number(
+                        school.fee
+                    ).toLocaleString()}`
+                    : null
             )}
 
-            ${detail(
+            ${createDetail(
                 "Enrolment",
-                school.enrolment
+                school.enrolment !== null
+                    ? Number(
+                        school.enrolment
+                    ).toLocaleString()
+                    : null
             )}
 
-            ${detail(
+            ${createDetail(
                 "Student–Teacher Ratio",
                 school.student_teacher_ratio
+                    ? String(
+                        school.student_teacher_ratio
+                    )
+                    : null
             )}
 
-            ${detail(
+            ${createDetail(
                 "Uniform",
                 school.uniform
             )}
 
-            ${detail(
+            ${createDetail(
                 "Enrolment Information",
                 school.enrolment_info
             )}
 
-            ${detail(
+            ${createDetail(
                 "Contact",
                 school.contact
             )}
 
-        </div>
+            ${createWebsiteDetail(
+                school.website
+            )}
 
+        </div>
     `;
 
 
-    document.getElementById(
-        "school-details"
-    ).classList.add(
+    panel.classList.add(
         "open"
     );
 
 }
 
 
-function detail(
+function closeSchoolDetails() {
+
+    const panel =
+        document.getElementById(
+            "school-details"
+        );
+
+
+    if (panel) {
+
+        panel.classList.remove(
+            "open"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   DETAIL HELPERS
+   ========================================================= */
+
+function createDetail(
     label,
     value
 ) {
 
-    return `
+    if (
+        value === null ||
+        value === undefined ||
+        String(value).trim() === ""
+    ) {
+        return "";
+    }
 
+
+    return `
         <div class="detail-item">
 
             <span class="detail-label">
-                ${label}
+                ${escapeHTML(label)}
             </span>
 
             <span class="detail-value">
-                ${
-                    value === null ||
-                    value === undefined ||
-                    value === ""
-                        ? "Not provided"
-                        : escapeHtml(value)
-                }
+                ${escapeHTML(
+                    String(value)
+                )}
             </span>
 
         </div>
+    `;
 
+}
+
+
+function createWebsiteDetail(
+    website
+) {
+
+    if (
+        !website ||
+        String(website).trim() === ""
+    ) {
+        return "";
+    }
+
+
+    let url =
+        String(website).trim();
+
+
+    if (
+        !url.startsWith("http://") &&
+        !url.startsWith("https://")
+    ) {
+        url =
+            `https://${url}`;
+    }
+
+
+    return `
+        <div class="detail-item">
+
+            <span class="detail-label">
+                Website
+            </span>
+
+            <span class="detail-value">
+
+                <a
+                    href="${escapeAttribute(url)}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Visit website
+                </a>
+
+            </span>
+
+        </div>
     `;
 
 }
@@ -1865,146 +2078,434 @@ function detail(
    ========================================================= */
 
 function openSchoolTags(
-    schoolId
+    school
 ) {
 
+    /*
+       Tag storage has not been connected yet.
+       This keeps the button functional without
+       pretending tags are already stored in Supabase.
+    */
+
     console.log(
-        "Open tags for school:",
-        schoolId
+        "Tags for school:",
+        school.school_id
     );
 
 }
 
 
 /* =========================================================
-   CLOSE DETAILS
+   CURRENT LOCATION
    ========================================================= */
 
-function initialiseDetailsPanel() {
+function initialiseLocation() {
 
-    document.getElementById(
-        "close-details"
-    ).addEventListener(
+    const button =
+        document.getElementById(
+            "current-location-button"
+        );
+
+
+    if (!button) {
+        return;
+    }
+
+
+    button.addEventListener(
         "click",
-        () => {
-
-            document.getElementById(
-                "school-details"
-            ).classList.remove(
-                "open"
-            );
-
-        }
+        requestCurrentLocation
     );
 
 }
 
 
 /* =========================================================
-   CLEAR
+   REQUEST BROWSER LOCATION
    ========================================================= */
 
-function initialiseClearButton() {
+function requestCurrentLocation() {
 
-    document.getElementById(
-        "clear-filters"
-    ).addEventListener(
-        "click",
-        () => {
+    if (
+        !navigator.geolocation
+    ) {
 
-            selectedStates = [];
+        alert(
+            "Geolocation is not supported by your browser."
+        );
 
-            selectedSectors = [];
-
-            selectedGenders = [];
-
-
-            document.getElementById(
-                "state-filter"
-            ).value = "";
+        return;
+    }
 
 
-            document.querySelectorAll(
-                '.checkbox-options input[type="checkbox"]'
-            ).forEach(
-                checkbox => {
-                    checkbox.checked = false;
-                }
+    const button =
+        document.getElementById(
+            "current-location-button"
+        );
+
+
+    if (button) {
+
+        button.disabled = true;
+
+        button.textContent =
+            "Getting location...";
+
+    }
+
+
+    navigator.geolocation.getCurrentPosition(
+
+        position => {
+
+            userLatitude =
+                position.coords.latitude;
+
+            userLongitude =
+                position.coords.longitude;
+
+
+            console.log(
+                "User location:",
+                userLatitude,
+                userLongitude
             );
 
 
-            updateDropdownText(
-                "sector-dropdown-button",
-                [],
-                "Select sector"
-            );
+            if (map) {
+
+                map.setView(
+                    [
+                        userLatitude,
+                        userLongitude
+                    ],
+                    13
+                );
+
+            }
 
 
-            updateDropdownText(
-                "gender-dropdown-button",
-                [],
-                "Select gender"
-            );
+            if (
+                userLocationMarker
+            ) {
+
+                userLocationMarker.setLatLng(
+                    [
+                        userLatitude,
+                        userLongitude
+                    ]
+                );
+
+            } else {
+
+                const locationIcon =
+                    L.divIcon({
+
+                        className:
+                            "user-location-icon",
+
+                        html: `
+                            <div class="user-location-marker">
+                                <div class="user-location-dot"></div>
+                            </div>
+                        `,
+
+                        iconSize: [
+                            24,
+                            24
+                        ],
+
+                        iconAnchor: [
+                            12,
+                            12
+                        ]
+
+                    });
 
 
-            document.getElementById(
-                "school-search"
-            ).value = "";
-
-
-            Object.values(
-                rangeConfig
-            ).forEach(
-                config => {
-
-                    document.getElementById(
-                        config.minSlider
-                    ).value =
-                        config.minimum;
-
-
-                    document.getElementById(
-                        config.maxSlider
-                    ).value =
-                        config.maximum;
-
-
-                    document.getElementById(
-                        config.minInput
-                    ).value = "";
-
-
-                    document.getElementById(
-                        config.maxInput
-                    ).value = "";
-
-
-                    updateSliderTrack(
-                        document.getElementById(
-                            config.minSlider
-                        ),
-                        document.getElementById(
-                            config.maxSlider
-                        )
+                userLocationMarker =
+                    L.marker(
+                        [
+                            userLatitude,
+                            userLongitude
+                        ],
+                        {
+                            icon:
+                                locationIcon,
+                            zIndexOffset:
+                                1000
+                        }
+                    )
+                    .addTo(map)
+                    .bindPopup(
+                        "Your current location"
                     );
 
-                }
-            );
+            }
 
+
+            updateLocationInput();
 
             applyFilters();
 
+
+            if (button) {
+
+                button.disabled = false;
+
+                button.textContent =
+                    "Current Location";
+
+            }
+
+        },
+
+        error => {
+
+            console.error(
+                "Geolocation error:",
+                error
+            );
+
+
+            if (button) {
+
+                button.disabled = false;
+
+                button.textContent =
+                    "Current Location";
+
+            }
+
+
+            if (
+                error.code ===
+                error.PERMISSION_DENIED
+            ) {
+
+                alert(
+                    "Location access was denied. Please allow location access for this website in your browser settings."
+                );
+
+            } else if (
+                error.code ===
+                error.POSITION_UNAVAILABLE
+            ) {
+
+                alert(
+                    "Your location could not be determined."
+                );
+
+            } else if (
+                error.code ===
+                error.TIMEOUT
+            ) {
+
+                alert(
+                    "Getting your location timed out. Please try again."
+                );
+
+            } else {
+
+                alert(
+                    "Unable to get your current location."
+                );
+
+            }
+
+        },
+
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
         }
+
     );
 
 }
 
 
 /* =========================================================
-   ESCAPE HTML
+   LOCATION INPUT
    ========================================================= */
 
-function escapeHtml(
+function updateLocationInput() {
+
+    const input =
+        document.getElementById(
+            "location-input"
+        );
+
+
+    if (!input) {
+        return;
+    }
+
+
+    input.value =
+        `${userLatitude.toFixed(5)}, ${userLongitude.toFixed(5)}`;
+
+}
+
+
+/* =========================================================
+   CLEAR FILTERS
+   ========================================================= */
+
+function clearFilters() {
+
+    selectedStates = [];
+
+    selectedSectors = [];
+
+    selectedGenders = [];
+
+
+    const searchInput =
+        document.getElementById(
+            "school-search"
+        );
+
+
+    if (searchInput) {
+        searchInput.value = "";
+    }
+
+
+    const stateInput =
+        document.getElementById(
+            "state-search"
+        );
+
+
+    if (stateInput) {
+
+        stateInput.value = "";
+
+        stateInput.placeholder =
+            "Search states / regions worldwide...";
+
+    }
+
+
+    document
+        .querySelectorAll(
+            '#sector-options input[type="checkbox"]'
+        )
+        .forEach(
+            checkbox =>
+                checkbox.checked = false
+        );
+
+
+    document
+        .querySelectorAll(
+            '#gender-options input[type="checkbox"]'
+        )
+        .forEach(
+            checkbox =>
+                checkbox.checked = false
+        );
+
+
+    Object.entries(
+        FILTER_LIMITS
+    ).forEach(
+        ([name, limits]) => {
+
+            const minSlider =
+                document.getElementById(
+                    `${name}-min-slider`
+                );
+
+            const maxSlider =
+                document.getElementById(
+                    `${name}-max-slider`
+                );
+
+            const minInput =
+                document.getElementById(
+                    `${name}-min`
+                );
+
+            const maxInput =
+                document.getElementById(
+                    `${name}-max`
+                );
+
+
+            if (minSlider) {
+                minSlider.value =
+                    limits.min;
+            }
+
+            if (maxSlider) {
+                maxSlider.value =
+                    limits.max;
+            }
+
+            if (minInput) {
+                minInput.value =
+                    limits.min;
+            }
+
+            if (maxInput) {
+                maxInput.value =
+                    limits.max;
+            }
+
+
+            updateSliderTrack(
+                name,
+                limits
+            );
+
+        }
+    );
+
+
+    updateSectorDisplay();
+
+    updateGenderDisplay();
+
+    updateStateDisplay();
+
+    applyFilters();
+
+}
+
+
+/* =========================================================
+   RESULTS
+   ========================================================= */
+
+function updateResultsCount(
+    count
+) {
+
+    const result =
+        document.getElementById(
+            "results-count"
+        );
+
+
+    if (!result) {
+        return;
+    }
+
+
+    result.textContent =
+        `${count} school${count === 1 ? "" : "s"} found`;
+
+}
+
+
+/* =========================================================
+   HTML SECURITY
+   ========================================================= */
+
+function escapeHTML(
     value
 ) {
 
@@ -2029,5 +2530,16 @@ function escapeHtml(
             /'/g,
             "&#039;"
         );
+
+}
+
+
+function escapeAttribute(
+    value
+) {
+
+    return escapeHTML(
+        value
+    );
 
 }
