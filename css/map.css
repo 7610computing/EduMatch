@@ -1,214 +1,166 @@
-/* =========================
-   RESET
-   ========================= */
+/* =========================================================
+   MAP PAGE
+   ========================================================= */
 
 * {
     box-sizing: border-box;
-    margin: 0;
-    padding: 0;
 }
-
-
-/* =========================
-   BODY
-   ========================= */
 
 body {
-    font-family: 'Inter', Arial, sans-serif;
-    background-color: #fafafa;
-    color: #333333;
+    margin: 0;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background-color: #f7f7f7;
+    color: #222;
 }
 
 
-/* =========================
-   NAVIGATION
-   ========================= */
+/* =========================================================
+   MAIN PAGE
+   ========================================================= */
 
-.navbar {
-    height: 70px;
+.map-page {
+    width: 100%;
+    padding: 25px 40px 40px;
+}
 
-    background-color: #FFB7A7;
-    border-bottom: 1px solid #ddd;
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+.search-section {
+    width: 100%;
 
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    gap: 12px;
 
-    padding: 0 50px;
+    margin-bottom: 20px;
 }
-
-
-/* Logo */
-
-.logo {
-    color: #111111;
-
-    font-size: 24px;
-    font-weight: 800;
-
-    text-decoration: none;
-}
-
-
-/* Navigation links */
-
-.navbar nav {
-    display: flex;
-    align-items: center;
-
-    gap: 30px;
-}
-
-.navbar nav a {
-    color: #333333;
-
-    text-decoration: none;
-
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.navbar nav a:hover {
-    color: #e56800;
-}
-
-
-/* Login button */
-
-.login-button {
-    background-color: #ff7700;
-
-    color: #ffffff !important;
-
-    padding: 9px 22px;
-
-    border-radius: 8px;
-
-    font-weight: 600 !important;
-}
-
-.login-button:hover {
-    background-color: #e06800;
-}
-
-
-/* =========================
-   PAGE HEADER
-   ========================= */
-
-.page-header {
-    max-width: 800px;
-
-    margin: 0 auto;
-
-    padding: 50px 20px 30px;
-
-    text-align: center;
-}
-
-.page-header h1 {
-    color: #111111;
-
-    font-size: 38px;
-    font-weight: 800;
-
-    margin-bottom: 12px;
-}
-
-.page-header p {
-    color: #666666;
-
-    font-size: 17px;
-    line-height: 1.5;
-}
-
-
-/* =========================
-   SEARCH + FILTERS
-   ========================= */
-
-.controls {
-    max-width: 1100px;
-
-    margin: 0 auto 30px;
-
-    padding: 0 20px;
-}
-
-
-/* Search */
 
 .search-box {
+    flex: 1;
+
+    height: 52px;
+
     display: flex;
+    align-items: center;
 
-    gap: 10px;
+    background-color: white;
 
-    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+
+    padding: 0 16px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.search-box:focus-within {
+    border-color: #ff7700;
+
+    box-shadow:
+        0 0 0 3px rgba(255, 119, 0, 0.1);
+}
+
+.search-icon {
+    font-size: 25px;
+    color: #777;
+
+    margin-right: 10px;
+
+    line-height: 1;
 }
 
 .search-box input {
-    flex: 1;
+    width: 100%;
 
-    padding: 14px 16px;
-
-    background-color: #ffffff;
-
-    border: 1px solid #dddddd;
-
-    border-radius: 8px;
+    border: none;
+    outline: none;
 
     font-size: 15px;
 
-    outline: none;
+    background: transparent;
 }
-
-.search-box input:focus {
-    border-color: #ff7700;
-}
-
-
-/* Search button */
 
 .search-button {
-    padding: 0 25px;
-
-    background-color: #ff7700;
-
-    color: #ffffff;
+    width: 120px;
 
     border: none;
+    border-radius: 10px;
 
-    border-radius: 8px;
+    background-color: #ff7700;
+    color: white;
 
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
 
     cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.1s ease;
 }
 
 .search-button:hover {
     background-color: #e06800;
 }
 
-
-/* Filters */
-
-.filters {
-    display: flex;
-
-    flex-wrap: wrap;
-
-    gap: 10px;
+.search-button:active {
+    transform: scale(0.98);
 }
 
-.filter {
-    padding: 9px 14px;
 
-    background-color: #ffffff;
+/* =========================================================
+   FILTER PANEL
+   ========================================================= */
 
-    color: #333333;
+.filter-panel {
+    width: 100%;
 
-    border: 1px solid #dddddd;
+    background-color: white;
+
+    border: 1px solid #ddd;
+    border-radius: 12px;
+
+    padding: 24px;
+
+    margin-bottom: 18px;
+}
+
+.filter-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 24px;
+}
+
+.filter-header h2 {
+    margin: 0 0 5px;
+
+    font-size: 20px;
+}
+
+.filter-header p {
+    margin: 0;
+
+    color: #777;
+
+    font-size: 14px;
+}
+
+.clear-filters {
+    border: 1px solid #ddd;
+    background-color: white;
+
+    padding: 8px 14px;
 
     border-radius: 7px;
 
@@ -217,311 +169,780 @@ body {
     cursor: pointer;
 }
 
-.filter:hover {
-    border-color: #ff7700;
-    color: #ff7700;
-}
-
-.filter.active {
-    background-color: #fff1eb;
-
-    border-color: #ff7700;
-
-    color: #ff7700;
+.clear-filters:hover {
+    background-color: #f5f5f5;
 }
 
 
-/* =========================
-   MAIN CONTENT
-   ========================= */
+/* =========================================================
+   SEARCHABLE FILTERS
+   ========================================================= */
 
-.content {
-    max-width: 1200px;
+.select-filters {
+    display: grid;
 
-    margin: 0 auto 60px;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
 
-    padding: 0 20px;
+    gap: 20px;
+
+    margin-bottom: 28px;
 }
 
-.content-title {
-    margin-bottom: 18px;
-
-    color: #111111;
-
-    font-size: 25px;
-    font-weight: 700;
+.filter-field {
+    position: relative;
 }
 
-
-/* =========================
-   MAP + SCHOOL LIST
-   ========================= */
-
-.app-layout {
-    display: flex;
-
-    width: 100%;
-    height: 600px;
-
-    background-color: #ffffff;
-
-    border-radius: 12px;
-
-    overflow: hidden;
-
-    box-shadow:
-        0 4px 15px rgba(0, 0, 0, 0.08);
-}
-
-
-/* School list */
-
-.schools-list {
-    width: 410px;
-
-    padding: 15px;
-
-    background-color: #f4f4f5;
-
-    overflow-y: auto;
-}
-
-
-/* =========================
-   SCHOOL CARDS
-   ========================= */
-
-.school-card {
-    margin-bottom: 15px;
-
-    background-color: #ffffff;
-
-    border: 1px solid #e1e1e1;
-
-    border-radius: 9px;
-
-    overflow: hidden;
-
-    cursor: pointer;
-
-    transition:
-        transform 0.2s,
-        box-shadow 0.2s,
-        border-color 0.2s;
-}
-
-.school-card:last-child {
-    margin-bottom: 0;
-}
-
-.school-card:hover {
-    transform: translateY(-2px);
-
-    border-color: #ff7700;
-
-    box-shadow:
-        0 4px 10px rgba(0, 0, 0, 0.08);
-}
-
-
-/* School image */
-
-.school-card img {
+.filter-field label {
     display: block;
 
+    font-size: 13px;
+    font-weight: 600;
+
+    margin-bottom: 8px;
+}
+
+.search-select {
+    position: relative;
+}
+
+.search-select input {
     width: 100%;
-    height: 135px;
 
-    object-fit: cover;
+    height: 44px;
+
+    border: 1px solid #d5d5d5;
+    border-radius: 8px;
+
+    padding: 0 13px;
+
+    outline: none;
+
+    font-size: 14px;
 }
 
-
-/* Card body */
-
-.school-card-body {
-    padding: 14px;
+.search-select input:focus {
+    border-color: #ff7700;
 }
 
-.school-card-body h3 {
-    margin-bottom: 5px;
+.search-options {
+    display: none;
 
-    color: #111111;
+    position: absolute;
 
-    font-size: 17px;
-    font-weight: 700;
+    left: 0;
+    right: 0;
+
+    top: calc(100% + 5px);
+
+    background-color: white;
+
+    border: 1px solid #ddd;
+    border-radius: 8px;
+
+    max-height: 200px;
+
+    overflow-y: auto;
+
+    z-index: 1000;
+
+    box-shadow:
+        0 5px 20px rgba(0, 0, 0, 0.1);
 }
 
-.school-location {
-    margin-bottom: 10px;
+.search-options.visible {
+    display: block;
+}
 
-    color: #666666;
+.search-option {
+    padding: 10px 13px;
+
+    font-size: 14px;
+
+    cursor: pointer;
+}
+
+.search-option:hover {
+    background-color: #fff1ec;
+}
+
+.no-options {
+    padding: 12px;
+
+    color: #888;
 
     font-size: 13px;
 }
 
-.school-description {
-    margin-bottom: 12px;
 
-    color: #555555;
+/* =========================================================
+   SELECTED ITEMS
+   ========================================================= */
 
-    font-size: 13px;
-
-    line-height: 1.4;
-}
-
-
-/* =========================
-   TAGS
-   ========================= */
-
-.tag-group {
+.selected-items {
     display: flex;
 
     flex-wrap: wrap;
 
-    gap: 6px;
+    gap: 7px;
+
+    margin-top: 9px;
 }
 
-.tag {
-    padding: 4px 9px;
+.selected-item {
+    display: inline-flex;
 
-    background-color: #fff1eb;
+    align-items: center;
 
-    color: #e56800;
+    gap: 7px;
 
-    border: 1px solid #ffd5c5;
+    background-color: #fff1ec;
 
-    border-radius: 5px;
+    border: 1px solid #ffd0c5;
 
-    font-size: 11px;
-    font-weight: 500;
+    border-radius: 20px;
+
+    padding: 5px 9px;
+
+    font-size: 12px;
+}
+
+.selected-item button {
+    border: none;
+
+    background: transparent;
+
+    cursor: pointer;
+
+    font-size: 15px;
+
+    line-height: 1;
+
+    padding: 0;
+
+    color: #777;
+}
+
+.selected-item button:hover {
+    color: #222;
 }
 
 
-/* =========================
-   MAP
-   ========================= */
+/* =========================================================
+   RANGE FILTERS
+   ========================================================= */
 
-.map-container {
-    flex: 1;
+.range-filters {
+    display: grid;
 
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 30px 35px;
+}
+
+.range-filter {
     min-width: 0;
-
-    height: 100%;
 }
 
-#map {
+.range-title {
+    margin-bottom: 12px;
+}
+
+.range-title h3 {
+    margin: 0;
+
+    font-size: 15px;
+}
+
+
+/* =========================================================
+   RANGE INPUTS
+   ========================================================= */
+
+.range-inputs {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 12px;
+
+    margin-bottom: 15px;
+}
+
+.range-inputs label {
+    display: block;
+
+    font-size: 12px;
+
+    color: #777;
+
+    margin-bottom: 5px;
+}
+
+.range-inputs input {
     width: 100%;
-    height: 100%;
+
+    height: 38px;
+
+    border: 1px solid #d5d5d5;
+    border-radius: 7px;
+
+    padding: 0 10px;
+
+    font-size: 13px;
+
+    outline: none;
+}
+
+.range-inputs input:focus {
+    border-color: #ff7700;
 }
 
 
-/* =========================
-   LEAFLET POPUP
-   ========================= */
+/* =========================================================
+   DUAL SLIDER
+   ========================================================= */
 
-.leaflet-popup-content button {
-    margin-top: 5px;
+.dual-slider {
+    position: relative;
 
-    padding: 6px 10px;
+    height: 24px;
+
+    width: 100%;
+}
+
+.slider-track {
+    position: absolute;
+
+    left: 0;
+    right: 0;
+
+    top: 50%;
+
+    height: 4px;
+
+    transform: translateY(-50%);
+
+    border-radius: 10px;
+
+    background-color: #ddd;
+}
+
+.dual-slider input[type="range"] {
+    position: absolute;
+
+    left: 0;
+    top: 0;
+
+    width: 100%;
+
+    height: 24px;
+
+    margin: 0;
+
+    pointer-events: none;
+
+    appearance: none;
+
+    background: transparent;
+
+    outline: none;
+}
+
+.dual-slider input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+
+    width: 18px;
+    height: 18px;
+
+    border-radius: 50%;
 
     background-color: #ff7700;
 
-    color: #ffffff;
+    border: 3px solid white;
 
-    border: none;
-
-    border-radius: 5px;
+    box-shadow:
+        0 0 0 1px #ff7700;
 
     cursor: pointer;
+
+    pointer-events: auto;
 }
 
-.leaflet-popup-content button:hover {
-    background-color: #e06800;
+.dual-slider input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+
+    border-radius: 50%;
+
+    background-color: #ff7700;
+
+    border: 3px solid white;
+
+    box-shadow:
+        0 0 0 1px #ff7700;
+
+    cursor: pointer;
+
+    pointer-events: auto;
 }
 
 
-/* =========================
-   FOOTER
-   ========================= */
+/* =========================================================
+   RESULTS BAR
+   ========================================================= */
 
-footer {
-    padding: 25px;
+.results-bar {
+    width: 100%;
 
-    background-color: #222222;
+    margin-bottom: 10px;
 
-    color: #ffffff;
+    padding: 0 3px;
 
-    text-align: center;
+    color: #666;
 
     font-size: 13px;
 }
 
 
-/* =========================
-   MOBILE
-   ========================= */
+/* =========================================================
+   MAP WORKSPACE
+   ========================================================= */
 
-@media screen and (max-width: 800px) {
+.map-workspace {
+    position: relative;
 
-    /* Navigation */
+    width: 100%;
 
-    .navbar {
-        padding: 15px 20px;
+    height: 650px;
+
+    overflow: hidden;
+
+    border-radius: 12px;
+
+    border: 1px solid #ddd;
+
+    background-color: #e9e9e9;
+}
+
+.school-map {
+    width: 100%;
+    height: 100%;
+}
+
+
+/* =========================================================
+   MAP MARKER
+   ========================================================= */
+
+.school-marker {
+    display: flex;
+
+    align-items: center;
+
+    white-space: nowrap;
+
+    transform: translate(-50%, -50%);
+}
+
+.school-marker-dot {
+    width: 17px;
+    height: 17px;
+
+    border-radius: 50%;
+
+    background-color: #ff7700;
+
+    border: 3px solid white;
+
+    box-shadow:
+        0 1px 5px rgba(0, 0, 0, 0.3);
+
+    flex-shrink: 0;
+}
+
+.school-marker-label {
+    margin-left: 7px;
+
+    background-color: white;
+
+    border-radius: 5px;
+
+    padding: 4px 7px;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    box-shadow:
+        0 1px 5px rgba(0, 0, 0, 0.18);
+
+    color: #333;
+}
+
+
+/* =========================================================
+   LEAFLET POPUP
+   ========================================================= */
+
+.school-popup {
+    width: 300px;
+
+    min-height: 150px;
+
+    padding: 16px;
+
+    position: relative;
+}
+
+.school-popup h3 {
+    margin: 0 30px 7px 0;
+
+    font-size: 17px;
+
+    line-height: 1.25;
+}
+
+.school-popup p {
+    margin: 4px 0;
+
+    color: #666;
+
+    font-size: 12px;
+
+    line-height: 1.4;
+}
+
+.popup-actions {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 8px;
+
+    margin-top: 13px;
+}
+
+.popup-details-button {
+    flex: 1;
+
+    border: none;
+
+    background-color: #ff7700;
+    color: white;
+
+    border-radius: 6px;
+
+    padding: 8px;
+
+    cursor: pointer;
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.popup-details-button:hover {
+    background-color: #e06800;
+}
+
+.popup-tag-button {
+    width: 34px;
+    height: 34px;
+
+    border: 1px solid #ddd;
+
+    background-color: white;
+
+    border-radius: 6px;
+
+    font-size: 20px;
+
+    cursor: pointer;
+}
+
+.popup-tag-button:hover {
+    background-color: #f5f5f5;
+}
+
+
+/* =========================================================
+   SCHOOL DETAILS PANEL
+   ========================================================= */
+
+.school-details {
+    position: absolute;
+
+    top: 0;
+    right: 0;
+    bottom: 0;
+
+    width: 380px;
+
+    background-color: white;
+
+    z-index: 1000;
+
+    transform: translateX(100%);
+
+    transition:
+        transform 0.25s ease;
+
+    box-shadow:
+        -4px 0 20px rgba(0, 0, 0, 0.12);
+}
+
+.school-details.open {
+    transform: translateX(0);
+}
+
+.close-details {
+    position: absolute;
+
+    top: 15px;
+    right: 15px;
+
+    width: 34px;
+    height: 34px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background-color: #f2f2f2;
+
+    font-size: 22px;
+
+    cursor: pointer;
+
+    z-index: 2;
+}
+
+.close-details:hover {
+    background-color: #e5e5e5;
+}
+
+.school-details-content {
+    height: 100%;
+
+    overflow-y: auto;
+
+    padding: 35px 25px 25px;
+}
+
+.school-details-content h2 {
+    margin: 0 45px 10px 0;
+
+    font-size: 23px;
+
+    line-height: 1.2;
+}
+
+.details-description {
+    color: #666;
+
+    font-size: 14px;
+
+    line-height: 1.6;
+
+    margin-bottom: 25px;
+}
+
+
+/* =========================================================
+   DETAIL ITEMS
+   ========================================================= */
+
+.detail-list {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 14px;
+}
+
+.detail-item {
+    padding-bottom: 13px;
+
+    border-bottom: 1px solid #eee;
+}
+
+.detail-label {
+    display: block;
+
+    color: #888;
+
+    font-size: 11px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.5px;
+
+    margin-bottom: 4px;
+}
+
+.detail-value {
+    color: #222;
+
+    font-size: 14px;
+
+    line-height: 1.4;
+
+    word-break: break-word;
+}
+
+.detail-value a {
+    color: #ff7700;
+
+    text-decoration: none;
+}
+
+.detail-value a:hover {
+    text-decoration: underline;
+}
+
+
+/* =========================================================
+   EMPTY DETAILS
+   ========================================================= */
+
+.details-empty {
+    height: 100%;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    flex-direction: column;
+
+    text-align: center;
+
+    padding: 30px;
+}
+
+.details-icon {
+    width: 50px;
+    height: 50px;
+
+    border-radius: 50%;
+
+    background-color: #fff1ec;
+
+    color: #ff7700;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    font-size: 25px;
+
+    margin-bottom: 15px;
+}
+
+.details-empty h2 {
+    margin: 0 0 8px;
+
+    font-size: 19px;
+}
+
+.details-empty p {
+    margin: 0;
+
+    color: #888;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   LEAFLET POPUP OVERRIDES
+   ========================================================= */
+
+.leaflet-popup-content {
+    margin: 0 !important;
+}
+
+.leaflet-popup-content-wrapper {
+    padding: 0 !important;
+
+    border-radius: 9px;
+}
+
+.leaflet-popup-tip {
+    background-color: white;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .map-page {
+        padding: 20px;
     }
 
-    .navbar nav {
-        gap: 10px;
+    .range-filters {
+        grid-template-columns: 1fr;
     }
 
-    .navbar nav a:not(.login-button) {
-        display: none;
+    .map-workspace {
+        height: 600px;
     }
 
+    .school-details {
+        width: 340px;
+    }
+}
 
-    /* Page header */
 
-    .page-header {
-        padding-top: 35px;
+@media (max-width: 650px) {
+
+    .map-page {
+        padding: 15px;
     }
 
-    .page-header h1 {
-        font-size: 30px;
-    }
-
-    .page-header p {
-        font-size: 15px;
-    }
-
-
-    /* Search */
-
-    .search-box {
+    .search-section {
         flex-direction: column;
     }
 
     .search-button {
-        padding: 12px;
+        width: 100%;
+        height: 48px;
     }
 
+    .select-filters {
+        grid-template-columns: 1fr;
+    }
 
-    /* Map layout */
+    .filter-panel {
+        padding: 18px;
+    }
 
-    .app-layout {
+    .filter-header {
+        align-items: flex-start;
+
+        gap: 15px;
+
         flex-direction: column;
-
-        height: auto;
     }
 
-    .schools-list {
-        width: 100%;
-
-        max-height: 500px;
+    .map-workspace {
+        height: 550px;
     }
 
-    .map-container {
+    .school-details {
         width: 100%;
+    }
 
-        height: 400px;
+    .school-popup {
+        width: 250px;
     }
 }
