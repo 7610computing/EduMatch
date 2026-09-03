@@ -4,23 +4,46 @@ on:
   workflow_dispatch:
 
 jobs:
+
   import-school:
+
     runs-on: ubuntu-latest
 
     steps:
+
+      # ==========================================
+      # Get repository files
+      # ==========================================
+
       - name: Checkout repository
         uses: actions/checkout@v4
+
+
+      # ==========================================
+      # Install Node.js
+      # ==========================================
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
+
+      # ==========================================
+      # Install Supabase JavaScript library
+      # ==========================================
+
       - name: Install Supabase client
         run: npm install @supabase/supabase-js
+
+
+      # ==========================================
+      # Run school importer
+      # ==========================================
 
       - name: Import Parade College
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+
         run: node scripts/import-schools.js
