@@ -7,11 +7,13 @@
 
     <title>EduMatch - Schools Map</title>
 
+    <!-- Leaflet -->
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     >
 
+    <!-- Map CSS -->
     <link rel="stylesheet" href="css/map.css">
 </head>
 
@@ -27,14 +29,16 @@
     <main class="map-page">
 
         <!-- =========================
-             LOCATION + SCHOOL SEARCH
+             SCHOOL SEARCH
              ========================= -->
 
         <section class="search-section">
 
             <div class="search-box">
 
-                <span class="search-icon">⌕</span>
+                <span class="search-icon">
+                    ⌕
+                </span>
 
                 <input
                     type="text"
@@ -44,6 +48,7 @@
                 >
 
             </div>
+
 
             <button
                 id="search-button"
@@ -56,7 +61,9 @@
         </section>
 
 
-        <!-- USER LOCATION -->
+        <!-- =========================
+             USER LOCATION
+             ========================= -->
 
         <section class="location-section">
 
@@ -69,11 +76,12 @@
                 <input
                     type="text"
                     id="location-input"
-                    placeholder="Enter your location..."
+                    placeholder="Enter your address or location..."
                     autocomplete="street-address"
                 >
 
             </div>
+
 
             <button
                 id="current-location-button"
@@ -92,15 +100,22 @@
 
         <section class="filter-panel">
 
+            <!-- FILTER HEADER -->
+
             <div class="filter-header">
 
                 <div>
-                    <h2>Filters</h2>
+
+                    <h2>
+                        Filters
+                    </h2>
 
                     <p>
                         Refine the schools shown on the map.
                     </p>
+
                 </div>
+
 
                 <button
                     id="clear-filters"
@@ -114,28 +129,32 @@
 
 
             <!-- =========================
-                 DROPDOWN FILTERS
+                 SELECT FILTERS
                  ========================= -->
 
             <div class="select-filters">
 
 
-                <!-- STATE -->
+                <!-- =====================
+                     STATE / REGION
+                     ===================== -->
 
                 <div class="filter-field">
 
-                    <label>
+                    <label for="state-search">
                         State / Province / Region
                     </label>
+
 
                     <div class="search-select">
 
                         <input
                             type="text"
-                            id="state-filter"
-                            placeholder="Search worldwide..."
+                            id="state-search"
+                            placeholder="Search states / regions worldwide..."
                             autocomplete="off"
                         >
+
 
                         <div
                             id="state-options"
@@ -143,6 +162,7 @@
                         ></div>
 
                     </div>
+
 
                     <div
                         id="selected-states"
@@ -152,7 +172,9 @@
                 </div>
 
 
-                <!-- SECTOR -->
+                <!-- =====================
+                     SECTOR
+                     ===================== -->
 
                 <div class="filter-field">
 
@@ -160,9 +182,10 @@
                         Sector
                     </label>
 
+
                     <div
                         id="sector-dropdown"
-                        class="checkbox-dropdown"
+                        class="checkbox-dropdown sector-dropdown"
                     >
 
                         <button
@@ -170,14 +193,17 @@
                             class="dropdown-button"
                             type="button"
                         >
-                            <span>
-                                Select sector
+
+                            <span class="dropdown-text">
+                                All sectors
                             </span>
 
-                            <span>
+                            <span class="dropdown-arrow">
                                 ▾
                             </span>
+
                         </button>
+
 
                         <div
                             id="sector-options"
@@ -185,30 +211,47 @@
                         >
 
                             <label>
+
                                 <input
                                     type="checkbox"
                                     value="Public"
                                     data-filter="sector"
                                 >
-                                <span>Public</span>
+
+                                <span>
+                                    Public
+                                </span>
+
                             </label>
 
+
                             <label>
+
                                 <input
                                     type="checkbox"
                                     value="Private"
                                     data-filter="sector"
                                 >
-                                <span>Private</span>
+
+                                <span>
+                                    Private
+                                </span>
+
                             </label>
 
+
                             <label>
+
                                 <input
                                     type="checkbox"
                                     value="Catholic"
                                     data-filter="sector"
                                 >
-                                <span>Catholic</span>
+
+                                <span>
+                                    Catholic
+                                </span>
+
                             </label>
 
                         </div>
@@ -218,7 +261,9 @@
                 </div>
 
 
-                <!-- GENDER -->
+                <!-- =====================
+                     GENDER
+                     ===================== -->
 
                 <div class="filter-field">
 
@@ -226,9 +271,10 @@
                         Gender
                     </label>
 
+
                     <div
                         id="gender-dropdown"
-                        class="checkbox-dropdown"
+                        class="checkbox-dropdown gender-dropdown"
                     >
 
                         <button
@@ -236,14 +282,17 @@
                             class="dropdown-button"
                             type="button"
                         >
-                            <span>
-                                Select gender
+
+                            <span class="dropdown-text">
+                                All genders
                             </span>
 
-                            <span>
+                            <span class="dropdown-arrow">
                                 ▾
                             </span>
+
                         </button>
+
 
                         <div
                             id="gender-options"
@@ -251,30 +300,47 @@
                         >
 
                             <label>
+
                                 <input
                                     type="checkbox"
                                     value="Male"
                                     data-filter="gender"
                                 >
-                                <span>Male</span>
+
+                                <span>
+                                    Male
+                                </span>
+
                             </label>
 
+
                             <label>
+
                                 <input
                                     type="checkbox"
                                     value="Female"
                                     data-filter="gender"
                                 >
-                                <span>Female</span>
+
+                                <span>
+                                    Female
+                                </span>
+
                             </label>
 
+
                             <label>
+
                                 <input
                                     type="checkbox"
                                     value="Other"
                                     data-filter="gender"
                                 >
-                                <span>Other</span>
+
+                                <span>
+                                    Other
+                                </span>
+
                             </label>
 
                         </div>
@@ -293,56 +359,78 @@
             <div class="range-filters">
 
 
-                <!-- AGE -->
+                <!-- =====================
+                     AGE
+                     ===================== -->
 
                 <div class="range-filter">
 
-                    <h3>Age</h3>
+                    <h3>
+                        Age
+                    </h3>
+
 
                     <div class="range-inputs">
 
                         <div>
-                            <label>Min</label>
+
+                            <label for="age-min">
+                                Min
+                            </label>
 
                             <input
                                 type="number"
                                 id="age-min"
                                 min="3"
                                 max="25"
+                                step="1"
                                 placeholder="Any"
                             >
+
                         </div>
 
+
                         <div>
-                            <label>Max</label>
+
+                            <label for="age-max">
+                                Max
+                            </label>
 
                             <input
                                 type="number"
                                 id="age-max"
                                 min="3"
                                 max="25"
+                                step="1"
                                 placeholder="Any"
                             >
+
                         </div>
 
                     </div>
 
+
                     <div class="dual-slider">
 
-                        <div class="slider-track"></div>
+                        <div
+                            id="age-track"
+                            class="slider-track"
+                        ></div>
+
 
                         <input
                             type="range"
-                            id="age-slider-min"
+                            id="age-min-slider"
                             min="3"
                             max="25"
                             value="3"
                             step="1"
                         >
 
+
                         <input
                             type="range"
-                            id="age-slider-max"
+                            id="age-max-slider"
                             min="3"
                             max="25"
                             value="25"
@@ -354,56 +442,78 @@
                 </div>
 
 
-                <!-- FEES -->
+                <!-- =====================
+                     FEES
+                     ===================== -->
 
                 <div class="range-filter">
 
-                    <h3>Fees</h3>
+                    <h3>
+                        Fees
+                    </h3>
+
 
                     <div class="range-inputs">
 
                         <div>
-                            <label>Min</label>
+
+                            <label for="fee-min">
+                                Min
+                            </label>
 
                             <input
                                 type="number"
                                 id="fee-min"
                                 min="0"
                                 max="100000"
+                                step="500"
                                 placeholder="Any"
                             >
+
                         </div>
 
+
                         <div>
-                            <label>Max</label>
+
+                            <label for="fee-max">
+                                Max
+                            </label>
 
                             <input
                                 type="number"
                                 id="fee-max"
                                 min="0"
                                 max="100000"
+                                step="500"
                                 placeholder="Any"
                             >
+
                         </div>
 
                     </div>
 
+
                     <div class="dual-slider">
 
-                        <div class="slider-track"></div>
+                        <div
+                            id="fee-track"
+                            class="slider-track"
+                        ></div>
+
 
                         <input
                             type="range"
-                            id="fee-slider-min"
+                            id="fee-min-slider"
                             min="0"
                             max="100000"
                             value="0"
                             step="500"
                         >
 
+
                         <input
                             type="range"
-                            id="fee-slider-max"
+                            id="fee-max-slider"
                             min="0"
                             max="100000"
                             value="100000"
@@ -415,56 +525,78 @@
                 </div>
 
 
-                <!-- ENROLMENT -->
+                <!-- =====================
+                     ENROLMENT
+                     ===================== -->
 
                 <div class="range-filter">
 
-                    <h3>Enrolment</h3>
+                    <h3>
+                        Enrolment
+                    </h3>
+
 
                     <div class="range-inputs">
 
                         <div>
-                            <label>Min</label>
+
+                            <label for="enrolment-min">
+                                Min
+                            </label>
 
                             <input
                                 type="number"
                                 id="enrolment-min"
                                 min="0"
                                 max="5000"
+                                step="50"
                                 placeholder="Any"
                             >
+
                         </div>
 
+
                         <div>
-                            <label>Max</label>
+
+                            <label for="enrolment-max">
+                                Max
+                            </label>
 
                             <input
                                 type="number"
                                 id="enrolment-max"
                                 min="0"
                                 max="5000"
+                                step="50"
                                 placeholder="Any"
                             >
+
                         </div>
 
                     </div>
 
+
                     <div class="dual-slider">
 
-                        <div class="slider-track"></div>
+                        <div
+                            id="enrolment-track"
+                            class="slider-track"
+                        ></div>
+
 
                         <input
                             type="range"
-                            id="enrolment-slider-min"
+                            id="enrolment-min-slider"
                             min="0"
                             max="5000"
                             value="0"
                             step="50"
                         >
 
+
                         <input
                             type="range"
-                            id="enrolment-slider-max"
+                            id="enrolment-max-slider"
                             min="0"
                             max="5000"
                             value="5000"
@@ -476,7 +608,9 @@
                 </div>
 
 
-                <!-- STUDENT TEACHER RATIO -->
+                <!-- =====================
+                     STUDENT / TEACHER RATIO
+                     ===================== -->
 
                 <div class="range-filter">
 
@@ -484,10 +618,14 @@
                         Student–Teacher Ratio
                     </h3>
 
+
                     <div class="range-inputs">
 
                         <div>
-                            <label>Min</label>
+
+                            <label for="ratio-min">
+                                Min
+                            </label>
 
                             <input
                                 type="number"
@@ -497,10 +635,15 @@
                                 step="0.1"
                                 placeholder="Any"
                             >
+
                         </div>
 
+
                         <div>
-                            <label>Max</label>
+
+                            <label for="ratio-max">
+                                Max
+                            </label>
 
                             <input
                                 type="number"
@@ -510,26 +653,33 @@
                                 step="0.1"
                                 placeholder="Any"
                             >
+
                         </div>
 
                     </div>
 
+
                     <div class="dual-slider">
 
-                        <div class="slider-track"></div>
+                        <div
+                            id="ratio-track"
+                            class="slider-track"
+                        ></div>
+
 
                         <input
                             type="range"
-                            id="ratio-slider-min"
+                            id="ratio-min-slider"
                             min="1"
                             max="50"
                             value="1"
                             step="0.1"
                         >
 
+
                         <input
                             type="range"
-                            id="ratio-slider-max"
+                            id="ratio-max-slider"
                             min="1"
                             max="50"
                             value="50"
@@ -541,7 +691,9 @@
                 </div>
 
 
-                <!-- DISTANCE -->
+                <!-- =====================
+                     DISTANCE
+                     ===================== -->
 
                 <div class="range-filter">
 
@@ -549,50 +701,68 @@
                         Distance
                     </h3>
 
+
                     <div class="range-inputs">
 
                         <div>
-                            <label>Min (km)</label>
+
+                            <label for="distance-min">
+                                Min (km)
+                            </label>
 
                             <input
                                 type="number"
                                 id="distance-min"
                                 min="0"
                                 max="100"
+                                step="1"
                                 placeholder="Any"
                             >
+
                         </div>
 
+
                         <div>
-                            <label>Max (km)</label>
+
+                            <label for="distance-max">
+                                Max (km)
+                            </label>
 
                             <input
                                 type="number"
                                 id="distance-max"
                                 min="0"
                                 max="100"
+                                step="1"
                                 placeholder="Any"
                             >
+
                         </div>
 
                     </div>
 
+
                     <div class="dual-slider">
 
-                        <div class="slider-track"></div>
+                        <div
+                            id="distance-track"
+                            class="slider-track"
+                        ></div>
+
 
                         <input
                             type="range"
-                            id="distance-slider-min"
+                            id="distance-min-slider"
                             min="0"
                             max="100"
                             value="0"
                             step="1"
                         >
 
+
                         <input
                             type="range"
-                            id="distance-slider-max"
+                            id="distance-max-slider"
                             min="0"
                             max="100"
                             value="100"
@@ -622,7 +792,7 @@
 
 
         <!-- =========================
-             MAP
+             MAP WORKSPACE
              ========================= -->
 
         <section class="map-workspace">
@@ -633,7 +803,9 @@
             ></div>
 
 
-            <!-- DETAILS PANEL -->
+            <!-- =====================
+                 SCHOOL DETAILS PANEL
+                 ===================== -->
 
             <aside
                 id="school-details"
@@ -644,9 +816,11 @@
                     id="close-details"
                     class="close-details"
                     type="button"
+                    aria-label="Close school details"
                 >
                     ×
                 </button>
+
 
                 <div
                     id="school-details-content"
@@ -659,9 +833,11 @@
                             +
                         </div>
 
+
                         <h2>
                             Select a school
                         </h2>
+
 
                         <p>
                             Select a school on the map
@@ -679,11 +855,25 @@
     </main>
 
 
+    <!-- =========================
+         LEAFLET
+         ========================= -->
+
     <script
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
     </script>
 
+
+    <!-- =========================
+         UNIVERSAL COMPONENTS
+         ========================= -->
+
     <script src="js/universal.js"></script>
+
+
+    <!-- =========================
+         MAP JAVASCRIPT
+         ========================= -->
 
     <script src="js/map.js"></script>
 
