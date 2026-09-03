@@ -43,6 +43,8 @@ body {
 .search-box {
     flex: 1;
 
+    min-width: 0;
+
     height: 46px;
 
     display: flex;
@@ -62,7 +64,9 @@ body {
 }
 
 .search-icon {
-    font-size: 22px;
+    flex-shrink: 0;
+
+    font-size: 20px;
 
     color: #777;
 
@@ -71,6 +75,8 @@ body {
 
 .search-box input {
     width: 100%;
+
+    min-width: 0;
 
     border: none;
 
@@ -82,7 +88,11 @@ body {
 }
 
 .search-button {
+    flex-shrink: 0;
+
     width: 110px;
+
+    height: 46px;
 
     border: none;
 
@@ -109,6 +119,8 @@ body {
 .location-section {
     display: flex;
 
+    width: 100%;
+
     gap: 10px;
 
     margin-bottom: 15px;
@@ -116,6 +128,8 @@ body {
 
 .location-input {
     flex: 1;
+
+    min-width: 0;
 
     height: 42px;
 
@@ -136,6 +150,8 @@ body {
 }
 
 .location-icon {
+    flex-shrink: 0;
+
     color: #ff7700;
 
     font-size: 13px;
@@ -146,14 +162,22 @@ body {
 .location-input input {
     width: 100%;
 
+    min-width: 0;
+
     border: none;
 
     outline: none;
+
+    background: transparent;
 
     font-size: 13px;
 }
 
 .current-location-button {
+    flex-shrink: 0;
+
+    height: 42px;
+
     padding: 0 18px;
 
     border: 1px solid #ddd;
@@ -165,6 +189,10 @@ body {
     font-size: 13px;
 
     cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease;
 }
 
 .current-location-button:hover {
@@ -173,12 +201,22 @@ body {
     border-color: #ffb7a7;
 }
 
+.current-location-button:disabled {
+    opacity: 0.65;
+
+    cursor: wait;
+}
+
 
 /* =========================================================
    FILTER PANEL
    ========================================================= */
 
 .filter-panel {
+    position: relative;
+
+    z-index: 50;
+
     width: 100%;
 
     background: white;
@@ -199,6 +237,8 @@ body {
 
     justify-content: space-between;
 
+    gap: 15px;
+
     margin-bottom: 18px;
 }
 
@@ -217,6 +257,8 @@ body {
 }
 
 .clear-filters {
+    flex-shrink: 0;
+
     border: 1px solid #ddd;
 
     background: white;
@@ -252,9 +294,11 @@ body {
 
 .filter-field {
     position: relative;
+
+    min-width: 0;
 }
 
-.filter-field label {
+.filter-field > label {
     display: block;
 
     margin-bottom: 6px;
@@ -271,6 +315,8 @@ body {
 
 .search-select {
     position: relative;
+
+    z-index: 60;
 }
 
 .search-select input {
@@ -285,6 +331,8 @@ body {
     border-radius: 7px;
 
     outline: none;
+
+    background: white;
 
     font-size: 12px;
 }
@@ -313,10 +361,10 @@ body {
 
     border-radius: 7px;
 
-    z-index: 2000;
+    z-index: 5000;
 
     box-shadow:
-        0 4px 15px rgba(0, 0, 0, 0.1);
+        0 5px 18px rgba(0, 0, 0, 0.12);
 }
 
 .search-options.visible {
@@ -342,6 +390,8 @@ body {
 
 .checkbox-dropdown {
     position: relative;
+
+    z-index: 60;
 }
 
 .dropdown-button {
@@ -354,6 +404,8 @@ body {
     align-items: center;
 
     justify-content: space-between;
+
+    gap: 8px;
 
     padding: 0 10px;
 
@@ -368,10 +420,28 @@ body {
     cursor: pointer;
 
     color: #555;
+
+    text-align: left;
 }
 
 .dropdown-button:hover {
     border-color: #ff7700;
+}
+
+.dropdown-text {
+    overflow: hidden;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+}
+
+.dropdown-arrow {
+    flex-shrink: 0;
+
+    font-size: 10px;
+
+    color: #777;
 }
 
 .checkbox-options {
@@ -392,10 +462,10 @@ body {
 
     border-radius: 7px;
 
-    z-index: 2000;
+    z-index: 5000;
 
     box-shadow:
-        0 4px 15px rgba(0, 0, 0, 0.1);
+        0 5px 18px rgba(0, 0, 0, 0.12);
 }
 
 .checkbox-options.open {
@@ -413,9 +483,13 @@ body {
 
     margin: 0;
 
+    font-size: 12px;
+
     font-weight: normal;
 
     cursor: pointer;
+
+    border-radius: 4px;
 }
 
 .checkbox-options label:hover {
@@ -423,7 +497,14 @@ body {
 }
 
 .checkbox-options input {
+    width: 14px;
+    height: 14px;
+
+    margin: 0;
+
     accent-color: #ff7700;
+
+    cursor: pointer;
 }
 
 
@@ -440,8 +521,12 @@ body {
     gap: 20px 25px;
 }
 
+.range-filter {
+    min-width: 0;
+}
+
 .range-filter h3 {
-    margin: 0 0 9px;
+    margin: 0 0 8px;
 
     font-size: 13px;
 }
@@ -457,17 +542,17 @@ body {
     grid-template-columns:
         1fr 1fr;
 
-    gap: 8px;
+    gap: 7px;
 
-    margin-bottom: 7px;
+    margin-bottom: 5px;
 }
 
 .range-inputs label {
     display: block;
 
-    margin-bottom: 3px;
+    margin-bottom: 2px;
 
-    font-size: 10px;
+    font-size: 9px;
 
     color: #888;
 }
@@ -475,7 +560,7 @@ body {
 .range-inputs input {
     width: 100%;
 
-    height: 31px;
+    height: 29px;
 
     padding: 0 7px;
 
@@ -484,6 +569,8 @@ body {
     border-radius: 5px;
 
     outline: none;
+
+    background: white;
 
     font-size: 11px;
 }
@@ -503,6 +590,8 @@ body {
     width: 100%;
 
     height: 18px;
+
+    margin-top: 1px;
 }
 
 .slider-track {
@@ -519,7 +608,14 @@ body {
 
     border-radius: 5px;
 
-    background: #ddd;
+    background:
+        linear-gradient(
+            to right,
+            #ddd var(--range-start, 0%),
+            #ff7700 var(--range-start, 0%),
+            #ff7700 var(--range-end, 100%),
+            #ddd var(--range-end, 100%)
+        );
 }
 
 .dual-slider input[type="range"] {
@@ -536,6 +632,8 @@ body {
 
     appearance: none;
 
+    -webkit-appearance: none;
+
     background: transparent;
 
     pointer-events: none;
@@ -543,11 +641,35 @@ body {
     outline: none;
 }
 
+.dual-slider input[type="range"]::-webkit-slider-runnable-track {
+    width: 100%;
+
+    height: 3px;
+
+    background: transparent;
+
+    border: none;
+}
+
+.dual-slider input[type="range"]::-moz-range-track {
+    width: 100%;
+
+    height: 3px;
+
+    background: transparent;
+
+    border: none;
+}
+
 .dual-slider input[type="range"]::-webkit-slider-thumb {
     appearance: none;
 
+    -webkit-appearance: none;
+
     width: 13px;
     height: 13px;
+
+    margin-top: -5px;
 
     border-radius: 50%;
 
@@ -619,9 +741,13 @@ body {
     color: #666;
 }
 
+#results-count {
+    font-weight: 600;
+}
+
 
 /* =========================================================
-   MAP
+   MAP WORKSPACE
    ========================================================= */
 
 .map-workspace {
@@ -636,6 +762,10 @@ body {
     border: 1px solid #ddd;
 
     border-radius: 10px;
+
+    background: #e5e5e5;
+
+    z-index: 1;
 }
 
 .school-map {
@@ -646,20 +776,47 @@ body {
 
 
 /* =========================================================
+   LEAFLET
+   ========================================================= */
+
+.leaflet-container {
+    width: 100%;
+
+    height: 100%;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+}
+
+
+/* =========================================================
    SCHOOL MARKER
    ========================================================= */
+
+.custom-school-icon {
+    background: transparent;
+
+    border: none;
+}
 
 .school-marker {
     display: flex;
 
     align-items: center;
 
+    width: max-content;
+
     white-space: nowrap;
 
-    transform: translate(-50%, -50%);
+    transform:
+        translate(-50%, -50%);
 }
 
 .school-marker-dot {
+    flex-shrink: 0;
+
     width: 15px;
     height: 15px;
 
@@ -692,6 +849,144 @@ body {
 
 
 /* =========================================================
+   USER LOCATION MARKER
+   ========================================================= */
+
+.user-location-icon {
+    background: transparent;
+
+    border: none;
+}
+
+.user-location-marker {
+    width: 24px;
+    height: 24px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+}
+
+.user-location-dot {
+    width: 15px;
+    height: 15px;
+
+    border-radius: 50%;
+
+    background: #4285f4;
+
+    border: 3px solid white;
+
+    box-shadow:
+        0 1px 7px rgba(0, 0, 0, 0.35);
+}
+
+
+/* =========================================================
+   SCHOOL POPUP
+   ========================================================= */
+
+.school-popup {
+    width: 260px;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+}
+
+.school-popup-header {
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 10px;
+}
+
+.school-popup h3 {
+    margin: 0 0 4px;
+
+    font-size: 15px;
+
+    line-height: 1.25;
+}
+
+.school-popup-header p {
+    margin: 0;
+
+    color: #777;
+
+    font-size: 10px;
+
+    line-height: 1.35;
+}
+
+.school-popup-description {
+    margin: 10px 0;
+
+    color: #555;
+
+    font-size: 11px;
+
+    line-height: 1.4;
+}
+
+.school-tag-button {
+    flex-shrink: 0;
+
+    width: 27px;
+    height: 27px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 50%;
+
+    background: white;
+
+    color: #ff7700;
+
+    font-size: 18px;
+
+    line-height: 23px;
+
+    cursor: pointer;
+}
+
+.school-tag-button:hover {
+    background: #fff1ec;
+
+    border-color: #ffb7a7;
+}
+
+.view-school-button {
+    width: 100%;
+
+    height: 32px;
+
+    border: none;
+
+    border-radius: 6px;
+
+    background: #ff7700;
+
+    color: white;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.view-school-button:hover {
+    background: #e06800;
+}
+
+
+/* =========================================================
    DETAILS PANEL
    ========================================================= */
 
@@ -708,7 +1003,8 @@ body {
 
     z-index: 1000;
 
-    transform: translateX(100%);
+    transform:
+        translateX(100%);
 
     transition:
         transform 0.25s ease;
@@ -718,7 +1014,8 @@ body {
 }
 
 .school-details.open {
-    transform: translateX(0);
+    transform:
+        translateX(0);
 }
 
 .close-details {
@@ -738,7 +1035,15 @@ body {
 
     font-size: 20px;
 
+    line-height: 30px;
+
     cursor: pointer;
+
+    z-index: 2;
+}
+
+.close-details:hover {
+    background: #e8e8e8;
 }
 
 .school-details-content {
@@ -789,12 +1094,30 @@ body {
     font-size: 10px;
 
     text-transform: uppercase;
+
+    letter-spacing: 0.3px;
 }
 
 .detail-value {
+    display: block;
+
     font-size: 13px;
 
     line-height: 1.4;
+
+    overflow-wrap: anywhere;
+}
+
+.detail-value a {
+    color: #ff7700;
+
+    text-decoration: none;
+
+    font-weight: 600;
+}
+
+.detail-value a:hover {
+    text-decoration: underline;
 }
 
 
@@ -829,6 +1152,8 @@ body {
     }
 
     .current-location-button {
+        width: 100%;
+
         height: 40px;
     }
 
@@ -838,7 +1163,18 @@ body {
 
     .search-button {
         width: 100%;
+
         height: 42px;
+    }
+
+    .filter-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .clear-filters {
+        width: 100%;
     }
 
     .school-details {
@@ -847,6 +1183,31 @@ body {
 
     .map-workspace {
         height: 550px;
+    }
+
+}
+
+
+/* =========================================================
+   VERY SMALL SCREENS
+   ========================================================= */
+
+@media (max-width: 450px) {
+
+    .map-page {
+        padding: 10px;
+    }
+
+    .filter-panel {
+        padding: 15px;
+    }
+
+    .range-filters {
+        gap: 18px;
+    }
+
+    .school-popup {
+        width: 230px;
     }
 
 }
