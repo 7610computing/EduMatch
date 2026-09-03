@@ -2,6 +2,11 @@
    EDUMATCH MAP
    ========================================================= */
 
+
+/* =========================================================
+   SUPABASE
+   ========================================================= */
+
 const SUPABASE_URL =
     "https://lwamtnocbxgostdrqhhz.supabase.co";
 
@@ -10,10 +15,26 @@ const SUPABASE_ANON_KEY =
 
 
 /* =========================================================
+   GEOCODING
+   ========================================================= */
+
+/*
+   This uses Nominatim for individual address searches.
+
+   It is deliberately NOT used for autocomplete.
+   The request only happens when the user submits an address.
+*/
+
+const GEOCODING_URL =
+    "https://nominatim.openstreetmap.org/search";
+
+
+/* =========================================================
    FILTER LIMITS
    ========================================================= */
 
 const FILTER_LIMITS = {
+
     age: {
         min: 3,
         max: 25,
@@ -43,6 +64,7 @@ const FILTER_LIMITS = {
         max: 100,
         step: 1
     }
+
 };
 
 
@@ -60,7 +82,10 @@ let markers = [];
 
 let userLocationMarker = null;
 
+let distanceCircle = null;
+
 let userLatitude = null;
+
 let userLongitude = null;
 
 let selectedStates = [];
@@ -74,21 +99,24 @@ let selectedGenders = [];
    START
    ========================================================= */
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
 
-    initialiseMap();
+        initialiseMap();
 
-    initialiseFilters();
+        initialiseFilters();
 
-    initialiseSearch();
+        initialiseSearch();
 
-    initialiseLocation();
+        initialiseLocation();
 
-    initialiseDetailsPanel();
+        initialiseDetailsPanel();
 
-    loadSchools();
+        loadSchools();
 
-});
+    }
+);
 
 
 /* =========================================================
@@ -97,29 +125,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function initialiseMap() {
 
-    map = L.map("school-map", {
-        worldCopyJump: false,
-        maxBounds: [
-            [-60, 100],
-            [15, 180]
-        ],
-        maxBoundsViscosity: 1
-    });
+    map = L.map(
+        "school-map",
+        {
+            worldCopyJump: false
+        }
+    );
+
 
     L.tileLayer(
         "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         {
             maxZoom: 19,
+
             noWrap: true,
+
             attribution:
                 "&copy; OpenStreetMap contributors"
         }
     ).addTo(map);
 
+
+    /*
+       Start centred on Australia because that is
+       currently where the project data is expected.
+       The map itself is no longer restricted to Australia.
+    */
+
     map.setView(
-        [-37.8136, 144.9631],
-        7
+        [
+            -37.8136,
+            144.9631
+        ],
+        6
     );
+
 }
 
 
@@ -131,32 +171,47 @@ async function loadSchools() {
 
     try {
 
-        const response = await fetch(
-            `${SUPABASE_URL}/rest/v1/Schools?select=*`,
-            {
-                headers: {
-                    "apikey": SUPABASE_ANON_KEY,
-                    "Authorization":
-                        `Bearer ${SUPABASE_ANON_KEY}`,
-                    "Content-Type":
-                        "application/json"
+        const response =
+            await fetch(
+                `${SUPABASE_URL}/rest/v1/Schools?select=*`,
+                {
+                    headers: {
+                        "apikey":
+                            SUPABASE_ANON_KEY,
+
+                        "Authorization":
+                            `Bearer ${SUPABASE_ANON_KEY}`,
+
+                        "Content-Type":
+                            "application/json"
+                    }
                 }
-            }
-        );
+            );
+
 
         if (!response.ok) {
+
             throw new Error(
                 `Supabase request failed: ${response.status}`
             );
+
         }
 
-        schools = await response.json();
 
-        schools = schools.map(normaliseSchool);
+        schools =
+            await response.json();
+
+
+        schools =
+            schools.map(
+                normaliseSchool
+            );
+
 
         populateStateOptions();
 
         applyFilters();
+
 
     } catch (error) {
 
@@ -165,9 +220,11 @@ async function loadSchools() {
             error
         );
 
+
         updateResultsCount(0);
 
     }
+
 }
 
 
@@ -175,24 +232,33 @@ async function loadSchools() {
    NORMALISE SCHOOL
    ========================================================= */
 
-function normaliseSchool(school) {
+function normaliseSchool(
+    school
+) {
 
     return {
+
         ...school,
 
         school_id:
-            Number(school.school_id),
+            Number(
+                school.school_id
+            ),
 
         enrolment:
             school.enrolment !== null &&
             school.enrolment !== ""
-                ? Number(school.enrolment)
+                ? Number(
+                    school.enrolment
+                )
                 : null,
 
         fee:
             school.fee !== null &&
             school.fee !== ""
-                ? Number(school.fee)
+                ? Number(
+                    school.fee
+                )
                 : null,
 
         student_teacher_ratio:
@@ -201,8 +267,26 @@ function normaliseSchool(school) {
                 ? Number(
                     school.student_teacher_ratio
                 )
+                : null,
+
+        latitude:
+            school.latitude !== null &&
+            school.latitude !== ""
+                ? Number(
+                    school.latitude
+                )
+                : null,
+
+        longitude:
+            school.longitude !== null &&
+            school.longitude !== ""
+                ? Number(
+                    school.longitude
+                )
                 : null
+
     };
+
 }
 
 
@@ -212,25 +296,30 @@ function normaliseSchool(school) {
 
 function initialiseFilters() {
 
+
     initialiseDualSlider(
         "age",
         FILTER_LIMITS.age
     );
+
 
     initialiseDualSlider(
         "fee",
         FILTER_LIMITS.fee
     );
 
+
     initialiseDualSlider(
         "enrolment",
         FILTER_LIMITS.enrolment
     );
 
+
     initialiseDualSlider(
         "ratio",
         FILTER_LIMITS.ratio
     );
+
 
     initialiseDualSlider(
         "distance",
@@ -238,10 +327,15 @@ function initialiseFilters() {
     );
 
 
-    /* State search */
+    /* -----------------------------------------------------
+       STATE SEARCH
+       ----------------------------------------------------- */
 
     const stateInput =
-        document.getElementById("state-search");
+        document.getElementById(
+            "state-search"
+        );
+
 
     if (stateInput) {
 
@@ -249,6 +343,7 @@ function initialiseFilters() {
             "input",
             filterStateOptions
         );
+
 
         stateInput.addEventListener(
             "focus",
@@ -259,10 +354,13 @@ function initialiseFilters() {
                         "state-options"
                     );
 
+
                 if (options) {
+
                     options.classList.add(
                         "visible"
                     );
+
                 }
 
             }
@@ -271,12 +369,15 @@ function initialiseFilters() {
     }
 
 
-    /* Sector dropdown */
+    /* -----------------------------------------------------
+       SECTOR DROPDOWN
+       ----------------------------------------------------- */
 
     const sectorButton =
         document.getElementById(
             "sector-dropdown-button"
         );
+
 
     if (sectorButton) {
 
@@ -286,12 +387,20 @@ function initialiseFilters() {
 
                 event.stopPropagation();
 
+
                 const options =
                     document.getElementById(
                         "sector-options"
                     );
 
-                options.classList.toggle("open");
+
+                if (options) {
+
+                    options.classList.toggle(
+                        "open"
+                    );
+
+                }
 
             }
         );
@@ -299,12 +408,15 @@ function initialiseFilters() {
     }
 
 
-    /* Gender dropdown */
+    /* -----------------------------------------------------
+       GENDER DROPDOWN
+       ----------------------------------------------------- */
 
     const genderButton =
         document.getElementById(
             "gender-dropdown-button"
         );
+
 
     if (genderButton) {
 
@@ -314,12 +426,20 @@ function initialiseFilters() {
 
                 event.stopPropagation();
 
+
                 const options =
                     document.getElementById(
                         "gender-options"
                     );
 
-                options.classList.toggle("open");
+
+                if (options) {
+
+                    options.classList.toggle(
+                        "open"
+                    );
+
+                }
 
             }
         );
@@ -327,44 +447,55 @@ function initialiseFilters() {
     }
 
 
-    /* Sector checkboxes */
+    /* -----------------------------------------------------
+       SECTOR CHECKBOXES
+       ----------------------------------------------------- */
 
     document
         .querySelectorAll(
             '#sector-options input[type="checkbox"]'
         )
-        .forEach(checkbox => {
+        .forEach(
+            checkbox => {
 
-            checkbox.addEventListener(
-                "change",
-                updateSectorFilter
-            );
+                checkbox.addEventListener(
+                    "change",
+                    updateSectorFilter
+                );
 
-        });
+            }
+        );
 
 
-    /* Gender checkboxes */
+    /* -----------------------------------------------------
+       GENDER CHECKBOXES
+       ----------------------------------------------------- */
 
     document
         .querySelectorAll(
             '#gender-options input[type="checkbox"]'
         )
-        .forEach(checkbox => {
+        .forEach(
+            checkbox => {
 
-            checkbox.addEventListener(
-                "change",
-                updateGenderFilter
-            );
+                checkbox.addEventListener(
+                    "change",
+                    updateGenderFilter
+                );
 
-        });
+            }
+        );
 
 
-    /* Clear filters */
+    /* -----------------------------------------------------
+       CLEAR FILTERS
+       ----------------------------------------------------- */
 
     const clearButton =
         document.getElementById(
             "clear-filters"
         );
+
 
     if (clearButton) {
 
@@ -376,7 +507,9 @@ function initialiseFilters() {
     }
 
 
-    /* Close dropdowns when clicking elsewhere */
+    /* -----------------------------------------------------
+       CLOSE DROPDOWNS WHEN CLICKING OUTSIDE
+       ----------------------------------------------------- */
 
     document.addEventListener(
         "click",
@@ -387,20 +520,26 @@ function initialiseFilters() {
                     ".search-select"
                 );
 
+
             const sectorContainer =
                 document.querySelector(
-                    ".sector-dropdown"
+                    ".checkbox-dropdown.sector-dropdown"
                 );
+
 
             const genderContainer =
                 document.querySelector(
-                    ".gender-dropdown"
+                    ".checkbox-dropdown.gender-dropdown"
                 );
 
 
+            /* State */
+
             if (
                 stateContainer &&
-                !stateContainer.contains(event.target)
+                !stateContainer.contains(
+                    event.target
+                )
             ) {
 
                 const options =
@@ -408,18 +547,25 @@ function initialiseFilters() {
                         "state-options"
                     );
 
+
                 if (options) {
+
                     options.classList.remove(
                         "visible"
                     );
+
                 }
 
             }
 
 
+            /* Sector */
+
             if (
                 sectorContainer &&
-                !sectorContainer.contains(event.target)
+                !sectorContainer.contains(
+                    event.target
+                )
             ) {
 
                 const options =
@@ -427,18 +573,25 @@ function initialiseFilters() {
                         "sector-options"
                     );
 
+
                 if (options) {
+
                     options.classList.remove(
                         "open"
                     );
+
                 }
 
             }
 
 
+            /* Gender */
+
             if (
                 genderContainer &&
-                !genderContainer.contains(event.target)
+                !genderContainer.contains(
+                    event.target
+                )
             ) {
 
                 const options =
@@ -446,10 +599,13 @@ function initialiseFilters() {
                         "gender-options"
                     );
 
+
                 if (options) {
+
                     options.classList.remove(
                         "open"
                     );
+
                 }
 
             }
@@ -474,15 +630,18 @@ function initialiseDualSlider(
             `${name}-min-slider`
         );
 
+
     const maxSlider =
         document.getElementById(
             `${name}-max-slider`
         );
 
+
     const minInput =
         document.getElementById(
             `${name}-min`
         );
+
 
     const maxInput =
         document.getElementById(
@@ -496,41 +655,92 @@ function initialiseDualSlider(
         !minInput ||
         !maxInput
     ) {
+
         return;
+
     }
 
 
-    minSlider.min = limits.min;
-    minSlider.max = limits.max;
-    minSlider.step = limits.step;
+    minSlider.min =
+        limits.min;
 
-    maxSlider.min = limits.min;
-    maxSlider.max = limits.max;
-    maxSlider.step = limits.step;
+    minSlider.max =
+        limits.max;
+
+    minSlider.step =
+        limits.step;
 
 
-    minSlider.value = limits.min;
-    maxSlider.value = limits.max;
+    maxSlider.min =
+        limits.min;
 
-    minInput.value = limits.min;
-    maxInput.value = limits.max;
+    maxSlider.max =
+        limits.max;
 
+    maxSlider.step =
+        limits.step;
+
+
+    minSlider.value =
+        limits.min;
+
+    maxSlider.value =
+        limits.max;
+
+
+    minInput.value =
+        formatNumber(
+            limits.min,
+            limits.step
+        );
+
+
+    maxInput.value =
+        formatNumber(
+            limits.max,
+            limits.step
+        );
+
+
+    updateSliderTrack(
+        name,
+        limits
+    );
+
+
+    /* -----------------------------------------------------
+       MIN SLIDER
+       ----------------------------------------------------- */
 
     minSlider.addEventListener(
         "input",
         () => {
 
             let minValue =
-                Number(minSlider.value);
+                Number(
+                    minSlider.value
+                );
+
 
             let maxValue =
-                Number(maxSlider.value);
+                Number(
+                    maxSlider.value
+                );
 
 
-            if (minValue > maxValue) {
-                minValue = maxValue;
-                minSlider.value = minValue;
+            if (
+                minValue >
+                maxValue
+            ) {
+
+                minValue =
+                    maxValue;
+
+                minSlider.value =
+                    minValue;
+
             }
+
 
             minInput.value =
                 formatNumber(
@@ -538,10 +748,21 @@ function initialiseDualSlider(
                     limits.step
                 );
 
+
             updateSliderTrack(
                 name,
                 limits
             );
+
+
+            if (
+                name === "distance"
+            ) {
+
+                updateDistanceCircle();
+
+            }
+
 
             applyFilters();
 
@@ -549,21 +770,39 @@ function initialiseDualSlider(
     );
 
 
+    /* -----------------------------------------------------
+       MAX SLIDER
+       ----------------------------------------------------- */
+
     maxSlider.addEventListener(
         "input",
         () => {
 
             let minValue =
-                Number(minSlider.value);
+                Number(
+                    minSlider.value
+                );
+
 
             let maxValue =
-                Number(maxSlider.value);
+                Number(
+                    maxSlider.value
+                );
 
 
-            if (maxValue < minValue) {
-                maxValue = minValue;
-                maxSlider.value = maxValue;
+            if (
+                maxValue <
+                minValue
+            ) {
+
+                maxValue =
+                    minValue;
+
+                maxSlider.value =
+                    maxValue;
+
             }
+
 
             maxInput.value =
                 formatNumber(
@@ -571,16 +810,31 @@ function initialiseDualSlider(
                     limits.step
                 );
 
+
             updateSliderTrack(
                 name,
                 limits
             );
+
+
+            if (
+                name === "distance"
+            ) {
+
+                updateDistanceCircle();
+
+            }
+
 
             applyFilters();
 
         }
     );
 
+
+    /* -----------------------------------------------------
+       MIN TEXT INPUT
+       ----------------------------------------------------- */
 
     minInput.addEventListener(
         "change",
@@ -591,20 +845,13 @@ function initialiseDualSlider(
                     minInput.value
                 );
 
-            value = clamp(
-                value,
-                limits.min,
-                limits.max
-            );
 
-
-            let maxValue =
-                Number(maxSlider.value);
-
-
-            if (value > maxValue) {
-                value = maxValue;
-            }
+            value =
+                clamp(
+                    value,
+                    limits.min,
+                    limits.max
+                );
 
 
             value =
@@ -614,7 +861,26 @@ function initialiseDualSlider(
                 );
 
 
-            minSlider.value = value;
+            const maxValue =
+                Number(
+                    maxSlider.value
+                );
+
+
+            if (
+                value >
+                maxValue
+            ) {
+
+                value =
+                    maxValue;
+
+            }
+
+
+            minSlider.value =
+                value;
+
 
             minInput.value =
                 formatNumber(
@@ -628,11 +894,25 @@ function initialiseDualSlider(
                 limits
             );
 
+
+            if (
+                name === "distance"
+            ) {
+
+                updateDistanceCircle();
+
+            }
+
+
             applyFilters();
 
         }
     );
 
+
+    /* -----------------------------------------------------
+       MAX TEXT INPUT
+       ----------------------------------------------------- */
 
     maxInput.addEventListener(
         "change",
@@ -643,20 +923,13 @@ function initialiseDualSlider(
                     maxInput.value
                 );
 
-            value = clamp(
-                value,
-                limits.min,
-                limits.max
-            );
 
-
-            let minValue =
-                Number(minSlider.value);
-
-
-            if (value < minValue) {
-                value = minValue;
-            }
+            value =
+                clamp(
+                    value,
+                    limits.min,
+                    limits.max
+                );
 
 
             value =
@@ -666,7 +939,26 @@ function initialiseDualSlider(
                 );
 
 
-            maxSlider.value = value;
+            const minValue =
+                Number(
+                    minSlider.value
+                );
+
+
+            if (
+                value <
+                minValue
+            ) {
+
+                value =
+                    minValue;
+
+            }
+
+
+            maxSlider.value =
+                value;
+
 
             maxInput.value =
                 formatNumber(
@@ -680,15 +972,19 @@ function initialiseDualSlider(
                 limits
             );
 
+
+            if (
+                name === "distance"
+            ) {
+
+                updateDistanceCircle();
+
+            }
+
+
             applyFilters();
 
         }
-    );
-
-
-    updateSliderTrack(
-        name,
-        limits
     );
 
 }
@@ -708,10 +1004,12 @@ function updateSliderTrack(
             `${name}-min-slider`
         );
 
+
     const maxSlider =
         document.getElementById(
             `${name}-max-slider`
         );
+
 
     const track =
         document.getElementById(
@@ -724,28 +1022,40 @@ function updateSliderTrack(
         !maxSlider ||
         !track
     ) {
+
         return;
+
     }
 
 
     const minValue =
-        Number(minSlider.value);
+        Number(
+            minSlider.value
+        );
+
 
     const maxValue =
-        Number(maxSlider.value);
+        Number(
+            maxSlider.value
+        );
+
+
+    const range =
+        limits.max -
+        limits.min;
 
 
     const minPercent =
         (
             (minValue - limits.min) /
-            (limits.max - limits.min)
+            range
         ) * 100;
 
 
     const maxPercent =
         (
             (maxValue - limits.min) /
-            (limits.max - limits.min)
+            range
         ) * 100;
 
 
@@ -753,6 +1063,7 @@ function updateSliderTrack(
         "--range-start",
         `${minPercent}%`
     );
+
 
     track.style.setProperty(
         "--range-end",
@@ -766,19 +1077,29 @@ function updateSliderTrack(
    NUMBER HELPERS
    ========================================================= */
 
-function parseNumber(value) {
+function parseNumber(
+    value
+) {
 
     const cleaned =
         String(value)
-            .replace(/,/g, "")
+            .replace(
+                /,/g,
+                ""
+            )
             .trim();
+
 
     const number =
         Number(cleaned);
 
-    return Number.isFinite(number)
+
+    return Number.isFinite(
+        number
+    )
         ? number
         : 0;
+
 }
 
 
@@ -789,7 +1110,10 @@ function clamp(
 ) {
 
     return Math.min(
-        Math.max(value, min),
+        Math.max(
+            value,
+            min
+        ),
         max
     );
 
@@ -810,9 +1134,11 @@ function snapToStep(
             limits.step
         );
 
+
     return (
         limits.min +
-        steps * limits.step
+        steps *
+        limits.step
     );
 
 }
@@ -823,11 +1149,21 @@ function formatNumber(
     step
 ) {
 
-    if (step < 1) {
-        return Number(value).toFixed(1);
+    if (
+        step < 1
+    ) {
+
+        return Number(
+            value
+        ).toFixed(1);
+
     }
 
-    return Math.round(value);
+
+    return Math.round(
+        value
+    );
+
 }
 
 
@@ -842,6 +1178,7 @@ function initialiseSearch() {
             "school-search"
         );
 
+
     const searchButton =
         document.getElementById(
             "search-button"
@@ -855,12 +1192,18 @@ function initialiseSearch() {
             applyFilters
         );
 
+
         searchInput.addEventListener(
             "keydown",
             event => {
 
-                if (event.key === "Enter") {
+                if (
+                    event.key ===
+                    "Enter"
+                ) {
+
                     applyFilters();
+
                 }
 
             }
@@ -892,6 +1235,7 @@ function populateStateOptions() {
             "state-options"
         );
 
+
     if (!container) {
         return;
     }
@@ -908,11 +1252,15 @@ function populateStateOptions() {
                     .filter(
                         state =>
                             state &&
-                            String(state).trim()
+                            String(
+                                state
+                            ).trim()
                     )
                     .map(
                         state =>
-                            String(state).trim()
+                            String(
+                                state
+                            ).trim()
                     )
             )
         ]
@@ -925,58 +1273,63 @@ function populateStateOptions() {
     container.innerHTML = "";
 
 
-    states.forEach(state => {
+    states.forEach(
+        state => {
 
-        const option =
-            document.createElement(
-                "div"
-            );
-
-        option.className =
-            "search-option";
-
-        option.textContent =
-            state;
+            const option =
+                document.createElement(
+                    "div"
+                );
 
 
-        option.addEventListener(
-            "click",
-            () => {
+            option.className =
+                "search-option";
 
-                if (
-                    selectedStates.includes(
-                        state
-                    )
-                ) {
 
-                    selectedStates =
-                        selectedStates.filter(
-                            item =>
-                                item !== state
+            option.textContent =
+                state;
+
+
+            option.addEventListener(
+                "click",
+                () => {
+
+                    if (
+                        selectedStates.includes(
+                            state
+                        )
+                    ) {
+
+                        selectedStates =
+                            selectedStates.filter(
+                                item =>
+                                    item !==
+                                    state
+                            );
+
+                    } else {
+
+                        selectedStates.push(
+                            state
                         );
 
-                } else {
+                    }
 
-                    selectedStates.push(
-                        state
-                    );
+
+                    updateStateDisplay();
+
+                    applyFilters();
 
                 }
+            );
 
 
-                updateStateDisplay();
+            container.appendChild(
+                option
+            );
 
-                applyFilters();
-
-            }
-        );
-
-
-        container.appendChild(
-            option
-        );
-
-    });
+        }
+    );
 
 }
 
@@ -992,6 +1345,7 @@ function filterStateOptions() {
             "state-search"
         );
 
+
     const container =
         document.getElementById(
             "state-options"
@@ -1002,7 +1356,9 @@ function filterStateOptions() {
         !input ||
         !container
     ) {
+
         return;
+
     }
 
 
@@ -1016,18 +1372,23 @@ function filterStateOptions() {
         .querySelectorAll(
             ".search-option"
         )
-        .forEach(option => {
+        .forEach(
+            option => {
 
-            const text =
-                option.textContent
-                    .toLowerCase();
+                const text =
+                    option.textContent
+                        .toLowerCase();
 
-            option.style.display =
-                text.includes(search)
-                    ? "block"
-                    : "none";
 
-        });
+                option.style.display =
+                    text.includes(
+                        search
+                    )
+                        ? "block"
+                        : "none";
+
+            }
+        );
 
 
     container.classList.add(
@@ -1054,15 +1415,20 @@ function updateStateDisplay() {
     }
 
 
-    if (selectedStates.length === 0) {
+    if (
+        selectedStates.length ===
+        0
+    ) {
 
         input.placeholder =
             "Search states / regions worldwide...";
 
     } else {
 
-        input.placeholder =
-            selectedStates.join(", ");
+        input.value =
+            selectedStates.join(
+                ", "
+            );
 
     }
 
@@ -1118,15 +1484,28 @@ function updateSectorDisplay() {
     }
 
 
-    if (selectedSectors.length === 0) {
+    const count =
+        selectedSectors.length;
+
+
+    if (
+        count === 0
+    ) {
 
         text.textContent =
             "All sectors";
 
+    } else if (
+        count === 1
+    ) {
+
+        text.textContent =
+            "1 filter selected";
+
     } else {
 
         text.textContent =
-            selectedSectors.join(", ");
+            `${count} filters selected`;
 
     }
 
@@ -1182,15 +1561,28 @@ function updateGenderDisplay() {
     }
 
 
-    if (selectedGenders.length === 0) {
+    const count =
+        selectedGenders.length;
+
+
+    if (
+        count === 0
+    ) {
 
         text.textContent =
             "All genders";
 
+    } else if (
+        count === 1
+    ) {
+
+        text.textContent =
+            "1 filter selected";
+
     } else {
 
         text.textContent =
-            selectedGenders.join(", ");
+            `${count} filters selected`;
 
     }
 
@@ -1198,7 +1590,7 @@ function updateGenderDisplay() {
 
 
 /* =========================================================
-   FILTER SCHOOLS
+   APPLY FILTERS
    ========================================================= */
 
 function applyFilters() {
@@ -1220,215 +1612,251 @@ function applyFilters() {
     const ageRange =
         getRange("age");
 
+
     const feeRange =
         getRange("fee");
+
 
     const enrolmentRange =
         getRange("enrolment");
 
+
     const ratioRange =
         getRange("ratio");
+
 
     const distanceRange =
         getRange("distance");
 
 
     filteredSchools =
-        schools.filter(school => {
+        schools.filter(
+            school => {
 
 
-            /* Search */
+                /* -----------------------------------------
+                   SEARCH
+                   ----------------------------------------- */
 
-            if (search) {
+                if (search) {
 
-                const searchableText =
-                    [
-                        school.name,
-                        school.address,
-                        school.state,
-                        school.description
-                    ]
-                    .filter(Boolean)
-                    .join(" ")
-                    .toLowerCase();
+                    const searchableText =
+                        [
+                            school.name,
+                            school.address,
+                            school.state,
+                            school.description
+                        ]
+                        .filter(Boolean)
+                        .join(" ")
+                        .toLowerCase();
 
+
+                    if (
+                        !searchableText.includes(
+                            search
+                        )
+                    ) {
+
+                        return false;
+
+                    }
+
+                }
+
+
+                /* -----------------------------------------
+                   STATE
+                   ----------------------------------------- */
 
                 if (
-                    !searchableText.includes(
-                        search
+                    selectedStates.length >
+                    0
+                ) {
+
+                    const schoolState =
+                        String(
+                            school.state ||
+                            ""
+                        ).trim();
+
+
+                    if (
+                        !selectedStates.includes(
+                            schoolState
+                        )
+                    ) {
+
+                        return false;
+
+                    }
+
+                }
+
+
+                /* -----------------------------------------
+                   SECTOR
+                   ----------------------------------------- */
+
+                if (
+                    selectedSectors.length >
+                    0
+                ) {
+
+                    const schoolSector =
+                        String(
+                            school.sector ||
+                            ""
+                        )
+                        .trim()
+                        .toLowerCase();
+
+
+                    const matches =
+                        selectedSectors.some(
+                            selected =>
+                                schoolSector ===
+                                selected
+                                    .toLowerCase()
+                        );
+
+
+                    if (!matches) {
+
+                        return false;
+
+                    }
+
+                }
+
+
+                /* -----------------------------------------
+                   GENDER
+                   ----------------------------------------- */
+
+                if (
+                    selectedGenders.length >
+                    0
+                ) {
+
+                    const schoolGender =
+                        String(
+                            school.gender ||
+                            ""
+                        )
+                        .trim()
+                        .toLowerCase();
+
+
+                    const matches =
+                        selectedGenders.some(
+                            selected =>
+                                schoolGender ===
+                                selected
+                                    .toLowerCase()
+                        );
+
+
+                    if (!matches) {
+
+                        return false;
+
+                    }
+
+                }
+
+
+                /* -----------------------------------------
+                   AGE
+                   ----------------------------------------- */
+
+                if (
+                    school.allowed_ages &&
+                    !ageMatches(
+                        school.allowed_ages,
+                        ageRange
                     )
                 ) {
+
                     return false;
+
                 }
 
-            }
 
-
-            /* State */
-
-            if (
-                selectedStates.length > 0 &&
-                !selectedStates.includes(
-                    String(
-                        school.state || ""
-                    ).trim()
-                )
-            ) {
-                return false;
-            }
-
-
-            /* Sector */
-
-            if (
-                selectedSectors.length > 0
-            ) {
-
-                const sector =
-                    String(
-                        school.sector || ""
-                    )
-                    .trim()
-                    .toLowerCase();
-
-
-                const matches =
-                    selectedSectors.some(
-                        selected =>
-                            sector ===
-                            selected
-                                .toLowerCase()
-                    );
-
-
-                if (!matches) {
-                    return false;
-                }
-
-            }
-
-
-            /* Gender */
-
-            if (
-                selectedGenders.length > 0
-            ) {
-
-                const gender =
-                    String(
-                        school.gender || ""
-                    )
-                    .trim()
-                    .toLowerCase();
-
-
-                const matches =
-                    selectedGenders.some(
-                        selected =>
-                            gender ===
-                            selected
-                                .toLowerCase()
-                    );
-
-
-                if (!matches) {
-                    return false;
-                }
-
-            }
-
-
-            /* Age */
-
-            if (
-                school.allowed_ages &&
-                !ageMatches(
-                    school.allowed_ages,
-                    ageRange
-                )
-            ) {
-                return false;
-            }
-
-
-            /* Fee */
-
-            if (
-                school.fee !== null &&
-                (
-                    school.fee <
-                    feeRange.min ||
-                    school.fee >
-                    feeRange.max
-                )
-            ) {
-                return false;
-            }
-
-
-            /* Enrolment */
-
-            if (
-                school.enrolment !== null &&
-                (
-                    school.enrolment <
-                    enrolmentRange.min ||
-                    school.enrolment >
-                    enrolmentRange.max
-                )
-            ) {
-                return false;
-            }
-
-
-            /* Ratio */
-
-            if (
-                school.student_teacher_ratio !== null &&
-                (
-                    school.student_teacher_ratio <
-                    ratioRange.min ||
-                    school.student_teacher_ratio >
-                    ratioRange.max
-                )
-            ) {
-                return false;
-            }
-
-
-            /* Distance */
-
-            if (
-                userLatitude !== null &&
-                userLongitude !== null
-            ) {
-
-                const latitude =
-                    Number(
-                        school.latitude
-                    );
-
-                const longitude =
-                    Number(
-                        school.longitude
-                    );
-
+                /* -----------------------------------------
+                   FEE
+                   ----------------------------------------- */
 
                 if (
-                    Number.isFinite(
-                        latitude
-                    ) &&
-                    Number.isFinite(
-                        longitude
+                    school.fee !== null &&
+                    (
+                        school.fee <
+                        feeRange.min ||
+                        school.fee >
+                        feeRange.max
                     )
+                ) {
+
+                    return false;
+
+                }
+
+
+                /* -----------------------------------------
+                   ENROLMENT
+                   ----------------------------------------- */
+
+                if (
+                    school.enrolment !== null &&
+                    (
+                        school.enrolment <
+                        enrolmentRange.min ||
+                        school.enrolment >
+                        enrolmentRange.max
+                    )
+                ) {
+
+                    return false;
+
+                }
+
+
+                /* -----------------------------------------
+                   STUDENT / TEACHER RATIO
+                   ----------------------------------------- */
+
+                if (
+                    school.student_teacher_ratio !== null &&
+                    (
+                        school.student_teacher_ratio <
+                        ratioRange.min ||
+                        school.student_teacher_ratio >
+                        ratioRange.max
+                    )
+                ) {
+
+                    return false;
+
+                }
+
+
+                /* -----------------------------------------
+                   DISTANCE
+                   ----------------------------------------- */
+
+                if (
+                    userLatitude !== null &&
+                    userLongitude !== null &&
+                    school.latitude !== null &&
+                    school.longitude !== null
                 ) {
 
                     const distance =
                         calculateDistance(
                             userLatitude,
                             userLongitude,
-                            latitude,
-                            longitude
+                            school.latitude,
+                            school.longitude
                         );
 
 
@@ -1438,17 +1866,18 @@ function applyFilters() {
                         distance >
                         distanceRange.max
                     ) {
+
                         return false;
+
                     }
 
                 }
 
+
+                return true;
+
             }
-
-
-            return true;
-
-        });
+        );
 
 
     renderSchoolMarkers();
@@ -1464,12 +1893,15 @@ function applyFilters() {
    GET RANGE
    ========================================================= */
 
-function getRange(name) {
+function getRange(
+    name
+) {
 
     const min =
         document.getElementById(
             `${name}-min-slider`
         );
+
 
     const max =
         document.getElementById(
@@ -1478,13 +1910,21 @@ function getRange(name) {
 
 
     return {
-        min: min
-            ? Number(min.value)
-            : FILTER_LIMITS[name].min,
 
-        max: max
-            ? Number(max.value)
-            : FILTER_LIMITS[name].max
+        min:
+            min
+                ? Number(
+                    min.value
+                )
+                : FILTER_LIMITS[name].min,
+
+        max:
+            max
+                ? Number(
+                    max.value
+                )
+                : FILTER_LIMITS[name].max
+
     };
 
 }
@@ -1511,8 +1951,13 @@ function ageMatches(
         );
 
 
-    if (!numbers || numbers.length === 0) {
+    if (
+        !numbers ||
+        numbers.length === 0
+    ) {
+
         return true;
+
     }
 
 
@@ -1523,10 +1968,15 @@ function ageMatches(
 
 
     const schoolMin =
-        Math.min(...ages);
+        Math.min(
+            ...ages
+        );
+
 
     const schoolMax =
-        Math.max(...ages);
+        Math.max(
+            ...ages
+        );
 
 
     return (
@@ -1538,7 +1988,7 @@ function ageMatches(
 
 
 /* =========================================================
-   DISTANCE
+   DISTANCE CALCULATION
    ========================================================= */
 
 function calculateDistance(
@@ -1548,12 +1998,15 @@ function calculateDistance(
     lon2
 ) {
 
-    const earthRadius = 6371;
+    const earthRadius =
+        6371;
+
 
     const dLat =
         toRadians(
             lat2 - lat1
         );
+
 
     const dLon =
         toRadians(
@@ -1562,25 +2015,37 @@ function calculateDistance(
 
 
     const a =
-        Math.sin(dLat / 2) ** 2 +
+        Math.sin(
+            dLat / 2
+        ) ** 2 +
+
         Math.cos(
             toRadians(lat1)
         ) *
+
         Math.cos(
             toRadians(lat2)
         ) *
-        Math.sin(dLon / 2) ** 2;
+
+        Math.sin(
+            dLon / 2
+        ) ** 2;
 
 
     const c =
         2 *
         Math.atan2(
             Math.sqrt(a),
-            Math.sqrt(1 - a)
+            Math.sqrt(
+                1 - a
+            )
         );
 
 
-    return earthRadius * c;
+    return (
+        earthRadius *
+        c
+    );
 
 }
 
@@ -1589,23 +2054,28 @@ function toRadians(
     degrees
 ) {
 
-    return degrees *
+    return (
+        degrees *
         Math.PI /
-        180;
+        180
+    );
 
 }
 
 
 /* =========================================================
-   RENDER MARKERS
+   RENDER SCHOOL MARKERS
    ========================================================= */
 
 function renderSchoolMarkers() {
 
     markers.forEach(
         marker =>
-            map.removeLayer(marker)
+            map.removeLayer(
+                marker
+            )
     );
+
 
     markers = [];
 
@@ -1617,6 +2087,7 @@ function renderSchoolMarkers() {
                 Number(
                     school.latitude
                 );
+
 
             const longitude =
                 Number(
@@ -1632,7 +2103,9 @@ function renderSchoolMarkers() {
                     longitude
                 )
             ) {
+
                 return;
+
             }
 
 
@@ -1644,22 +2117,27 @@ function renderSchoolMarkers() {
 
                     html: `
                         <div class="school-marker">
+
                             <span class="school-marker-dot"></span>
+
                             <span class="school-marker-label">
                                 ${escapeHTML(
                                     school.name ||
                                     "School"
                                 )}
                             </span>
+
                         </div>
                     `,
 
-                    iconSize: null,
+                    iconSize:
+                        null,
 
-                    iconAnchor: [
-                        0,
-                        0
-                    ]
+                    iconAnchor:
+                        [
+                            0,
+                            0
+                        ]
 
                 });
 
@@ -1682,9 +2160,14 @@ function renderSchoolMarkers() {
                     school
                 ),
                 {
-                    closeButton: true,
-                    maxWidth: 320,
-                    minWidth: 260
+                    closeButton:
+                        true,
+
+                    maxWidth:
+                        320,
+
+                    minWidth:
+                        260
                 }
             );
 
@@ -1703,15 +2186,15 @@ function renderSchoolMarkers() {
                     }
 
 
-                    const button =
+                    const viewButton =
                         popup.querySelector(
                             ".view-school-button"
                         );
 
 
-                    if (button) {
+                    if (viewButton) {
 
-                        button.addEventListener(
+                        viewButton.addEventListener(
                             "click",
                             () => {
 
@@ -1769,11 +2252,13 @@ function createSchoolPopup(
 ) {
 
     return `
+
         <div class="school-popup">
 
             <div class="school-popup-header">
 
                 <div>
+
                     <h3>
                         ${escapeHTML(
                             school.name ||
@@ -1788,7 +2273,9 @@ function createSchoolPopup(
                             "Location unavailable"
                         )}
                     </p>
+
                 </div>
+
 
                 <button
                     type="button"
@@ -1800,12 +2287,16 @@ function createSchoolPopup(
 
             </div>
 
+
             <p class="school-popup-description">
+
                 ${escapeHTML(
                     school.description ||
                     "No overview is available for this school."
                 )}
+
             </p>
+
 
             <button
                 type="button"
@@ -1815,6 +2306,7 @@ function createSchoolPopup(
             </button>
 
         </div>
+
     `;
 
 }
@@ -1853,6 +2345,7 @@ function openSchoolDetails(
             "school-details"
         );
 
+
     const content =
         document.getElementById(
             "school-details-content"
@@ -1863,7 +2356,9 @@ function openSchoolDetails(
         !panel ||
         !content
     ) {
+
         return;
+
     }
 
 
@@ -1876,12 +2371,16 @@ function openSchoolDetails(
             )}
         </h2>
 
+
         <p class="details-description">
+
             ${escapeHTML(
                 school.description ||
                 "No description available."
             )}
+
         </p>
+
 
         <div class="detail-list">
 
@@ -1957,6 +2456,7 @@ function openSchoolDetails(
             )}
 
         </div>
+
     `;
 
 
@@ -2000,15 +2500,20 @@ function createDetail(
         value === undefined ||
         String(value).trim() === ""
     ) {
+
         return "";
+
     }
 
 
     return `
+
         <div class="detail-item">
 
             <span class="detail-label">
-                ${escapeHTML(label)}
+                ${escapeHTML(
+                    label
+                )}
             </span>
 
             <span class="detail-value">
@@ -2018,6 +2523,7 @@ function createDetail(
             </span>
 
         </div>
+
     `;
 
 }
@@ -2031,24 +2537,35 @@ function createWebsiteDetail(
         !website ||
         String(website).trim() === ""
     ) {
+
         return "";
+
     }
 
 
     let url =
-        String(website).trim();
+        String(
+            website
+        ).trim();
 
 
     if (
-        !url.startsWith("http://") &&
-        !url.startsWith("https://")
+        !url.startsWith(
+            "http://"
+        ) &&
+        !url.startsWith(
+            "https://"
+        )
     ) {
+
         url =
             `https://${url}`;
+
     }
 
 
     return `
+
         <div class="detail-item">
 
             <span class="detail-label">
@@ -2058,7 +2575,9 @@ function createWebsiteDetail(
             <span class="detail-value">
 
                 <a
-                    href="${escapeAttribute(url)}"
+                    href="${escapeAttribute(
+                        url
+                    )}"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -2068,6 +2587,7 @@ function createWebsiteDetail(
             </span>
 
         </div>
+
     `;
 
 }
@@ -2082,9 +2602,7 @@ function openSchoolTags(
 ) {
 
     /*
-       Tag storage has not been connected yet.
-       This keeps the button functional without
-       pretending tags are already stored in Supabase.
+       Tags have not yet been connected to Supabase.
     */
 
     console.log(
@@ -2096,32 +2614,64 @@ function openSchoolTags(
 
 
 /* =========================================================
-   CURRENT LOCATION
+   LOCATION INITIALISATION
    ========================================================= */
 
 function initialiseLocation() {
 
-    const button =
+    const currentLocationButton =
         document.getElementById(
             "current-location-button"
         );
 
 
-    if (!button) {
-        return;
+    const locationInput =
+        document.getElementById(
+            "location-input"
+        );
+
+
+    if (
+        currentLocationButton
+    ) {
+
+        currentLocationButton.addEventListener(
+            "click",
+            requestCurrentLocation
+        );
+
     }
 
 
-    button.addEventListener(
-        "click",
-        requestCurrentLocation
-    );
+    if (
+        locationInput
+    ) {
+
+        locationInput.addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key ===
+                    "Enter"
+                ) {
+
+                    event.preventDefault();
+
+                    geocodeAddress();
+
+                }
+
+            }
+        );
+
+    }
 
 }
 
 
 /* =========================================================
-   REQUEST BROWSER LOCATION
+   CURRENT LOCATION
    ========================================================= */
 
 function requestCurrentLocation() {
@@ -2135,6 +2685,7 @@ function requestCurrentLocation() {
         );
 
         return;
+
     }
 
 
@@ -2146,7 +2697,8 @@ function requestCurrentLocation() {
 
     if (button) {
 
-        button.disabled = true;
+        button.disabled =
+            true;
 
         button.textContent =
             "Getting location...";
@@ -2158,100 +2710,16 @@ function requestCurrentLocation() {
 
         position => {
 
-            userLatitude =
-                position.coords.latitude;
-
-            userLongitude =
-                position.coords.longitude;
-
-
-            console.log(
-                "User location:",
-                userLatitude,
-                userLongitude
+            setUserLocation(
+                position.coords.latitude,
+                position.coords.longitude
             );
-
-
-            if (map) {
-
-                map.setView(
-                    [
-                        userLatitude,
-                        userLongitude
-                    ],
-                    13
-                );
-
-            }
-
-
-            if (
-                userLocationMarker
-            ) {
-
-                userLocationMarker.setLatLng(
-                    [
-                        userLatitude,
-                        userLongitude
-                    ]
-                );
-
-            } else {
-
-                const locationIcon =
-                    L.divIcon({
-
-                        className:
-                            "user-location-icon",
-
-                        html: `
-                            <div class="user-location-marker">
-                                <div class="user-location-dot"></div>
-                            </div>
-                        `,
-
-                        iconSize: [
-                            24,
-                            24
-                        ],
-
-                        iconAnchor: [
-                            12,
-                            12
-                        ]
-
-                    });
-
-
-                userLocationMarker =
-                    L.marker(
-                        [
-                            userLatitude,
-                            userLongitude
-                        ],
-                        {
-                            icon:
-                                locationIcon,
-                            zIndexOffset:
-                                1000
-                        }
-                    )
-                    .addTo(map)
-                    .bindPopup(
-                        "Your current location"
-                    );
-
-            }
-
-
-            updateLocationInput();
-
-            applyFilters();
 
 
             if (button) {
 
-                button.disabled = false;
+                button.disabled =
+                    false;
 
                 button.textContent =
                     "Current Location";
@@ -2270,7 +2738,8 @@ function requestCurrentLocation() {
 
             if (button) {
 
-                button.disabled = false;
+                button.disabled =
+                    false;
 
                 button.textContent =
                     "Current Location";
@@ -2316,9 +2785,14 @@ function requestCurrentLocation() {
         },
 
         {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
+            enableHighAccuracy:
+                true,
+
+            timeout:
+                10000,
+
+            maximumAge:
+                0
         }
 
     );
@@ -2327,7 +2801,131 @@ function requestCurrentLocation() {
 
 
 /* =========================================================
-   LOCATION INPUT
+   SET USER LOCATION
+   ========================================================= */
+
+function setUserLocation(
+    latitude,
+    longitude
+) {
+
+    userLatitude =
+        Number(
+            latitude
+        );
+
+
+    userLongitude =
+        Number(
+            longitude
+        );
+
+
+    if (
+        !Number.isFinite(
+            userLatitude
+        ) ||
+        !Number.isFinite(
+            userLongitude
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    updateLocationInput();
+
+
+    /* Move map */
+
+    map.setView(
+        [
+            userLatitude,
+            userLongitude
+        ],
+        13
+    );
+
+
+    /* User marker */
+
+    if (
+        userLocationMarker
+    ) {
+
+        userLocationMarker.setLatLng(
+            [
+                userLatitude,
+                userLongitude
+            ]
+        );
+
+    } else {
+
+        const locationIcon =
+            L.divIcon({
+
+                className:
+                    "user-location-icon",
+
+                html: `
+
+                    <div class="user-location-marker">
+
+                        <div class="user-location-dot"></div>
+
+                    </div>
+
+                `,
+
+                iconSize:
+                    [
+                        24,
+                        24
+                    ],
+
+                iconAnchor:
+                    [
+                        12,
+                        12
+                    ]
+
+            });
+
+
+        userLocationMarker =
+            L.marker(
+                [
+                    userLatitude,
+                    userLongitude
+                ],
+                {
+                    icon:
+                        locationIcon,
+
+                    zIndexOffset:
+                        1000
+                }
+            )
+            .addTo(map)
+            .bindPopup(
+                "Your location"
+            );
+
+    }
+
+
+    updateDistanceCircle();
+
+    applyFilters();
+
+}
+
+
+/* =========================================================
+   UPDATE LOCATION INPUT
    ========================================================= */
 
 function updateLocationInput() {
@@ -2350,16 +2948,263 @@ function updateLocationInput() {
 
 
 /* =========================================================
+   GEOCODE TYPED ADDRESS
+   ========================================================= */
+
+async function geocodeAddress() {
+
+    const input =
+        document.getElementById(
+            "location-input"
+        );
+
+
+    if (!input) {
+        return;
+    }
+
+
+    const address =
+        input.value.trim();
+
+
+    if (!address) {
+
+        alert(
+            "Please enter an address or location."
+        );
+
+        return;
+
+    }
+
+
+    const originalValue =
+        input.value;
+
+
+    input.disabled =
+        true;
+
+
+    input.value =
+        "Finding location...";
+
+
+    try {
+
+        const url =
+            `${GEOCODING_URL}?format=jsonv2&limit=1&q=${encodeURIComponent(
+                address
+            )}`;
+
+
+        const response =
+            await fetch(
+                url,
+                {
+                    headers: {
+                        "Accept":
+                            "application/json"
+                    }
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Geocoding request failed: ${response.status}`
+            );
+
+        }
+
+
+        const results =
+            await response.json();
+
+
+        if (
+            !results ||
+            results.length === 0
+        ) {
+
+            throw new Error(
+                "No matching location found."
+            );
+
+        }
+
+
+        const result =
+            results[0];
+
+
+        const latitude =
+            Number(
+                result.lat
+            );
+
+
+        const longitude =
+            Number(
+                result.lon
+            );
+
+
+        if (
+            !Number.isFinite(
+                latitude
+            ) ||
+            !Number.isFinite(
+                longitude
+            )
+        ) {
+
+            throw new Error(
+                "The location returned invalid coordinates."
+            );
+
+        }
+
+
+        userLatitude =
+            latitude;
+
+        userLongitude =
+            longitude;
+
+
+        input.value =
+            result.display_name ||
+            originalValue;
+
+
+        setUserLocation(
+            latitude,
+            longitude
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Address geocoding error:",
+            error
+        );
+
+
+        input.value =
+            originalValue;
+
+
+        alert(
+            "We couldn't find that location. Please try entering a more specific address."
+        );
+
+
+    } finally {
+
+        input.disabled =
+            false;
+
+    }
+
+}
+
+
+/* =========================================================
+   DISTANCE CIRCLE
+   ========================================================= */
+
+function updateDistanceCircle() {
+
+    if (
+        !map ||
+        userLatitude === null ||
+        userLongitude === null
+    ) {
+
+        return;
+
+    }
+
+
+    const distanceRange =
+        getRange(
+            "distance"
+        );
+
+
+    /*
+       The maximum distance is used as
+       the radius of the visible circle.
+    */
+
+    const radiusMetres =
+        distanceRange.max *
+        1000;
+
+
+    if (
+        distanceCircle
+    ) {
+
+        distanceCircle.setLatLng(
+            [
+                userLatitude,
+                userLongitude
+            ]
+        );
+
+
+        distanceCircle.setRadius(
+            radiusMetres
+        );
+
+    } else {
+
+        distanceCircle =
+            L.circle(
+                [
+                    userLatitude,
+                    userLongitude
+                ],
+                {
+                    radius:
+                        radiusMetres,
+
+                    className:
+                        "distance-circle",
+
+                    weight:
+                        2,
+
+                    fillOpacity:
+                        0.08
+                }
+            )
+            .addTo(map);
+
+    }
+
+}
+
+
+/* =========================================================
    CLEAR FILTERS
    ========================================================= */
 
 function clearFilters() {
 
-    selectedStates = [];
+    selectedStates =
+        [];
 
-    selectedSectors = [];
+    selectedSectors =
+        [];
 
-    selectedGenders = [];
+    selectedGenders =
+        [];
 
 
     const searchInput =
@@ -2369,7 +3214,10 @@ function clearFilters() {
 
 
     if (searchInput) {
-        searchInput.value = "";
+
+        searchInput.value =
+            "";
+
     }
 
 
@@ -2381,7 +3229,8 @@ function clearFilters() {
 
     if (stateInput) {
 
-        stateInput.value = "";
+        stateInput.value =
+            "";
 
         stateInput.placeholder =
             "Search states / regions worldwide...";
@@ -2395,7 +3244,8 @@ function clearFilters() {
         )
         .forEach(
             checkbox =>
-                checkbox.checked = false
+                checkbox.checked =
+                    false
         );
 
 
@@ -2405,7 +3255,8 @@ function clearFilters() {
         )
         .forEach(
             checkbox =>
-                checkbox.checked = false
+                checkbox.checked =
+                    false
         );
 
 
@@ -2419,15 +3270,18 @@ function clearFilters() {
                     `${name}-min-slider`
                 );
 
+
             const maxSlider =
                 document.getElementById(
                     `${name}-max-slider`
                 );
 
+
             const minInput =
                 document.getElementById(
                     `${name}-min`
                 );
+
 
             const maxInput =
                 document.getElementById(
@@ -2436,23 +3290,40 @@ function clearFilters() {
 
 
             if (minSlider) {
+
                 minSlider.value =
                     limits.min;
+
             }
+
 
             if (maxSlider) {
+
                 maxSlider.value =
                     limits.max;
+
             }
+
 
             if (minInput) {
+
                 minInput.value =
-                    limits.min;
+                    formatNumber(
+                        limits.min,
+                        limits.step
+                    );
+
             }
 
+
             if (maxInput) {
+
                 maxInput.value =
-                    limits.max;
+                    formatNumber(
+                        limits.max,
+                        limits.step
+                    );
+
             }
 
 
@@ -2470,6 +3341,8 @@ function clearFilters() {
     updateGenderDisplay();
 
     updateStateDisplay();
+
+    updateDistanceCircle();
 
     applyFilters();
 
@@ -2496,7 +3369,11 @@ function updateResultsCount(
 
 
     result.textContent =
-        `${count} school${count === 1 ? "" : "s"} found`;
+        `${count} school${
+            count === 1
+                ? ""
+                : "s"
+        } found`;
 
 }
 
@@ -2509,7 +3386,9 @@ function escapeHTML(
     value
 ) {
 
-    return String(value)
+    return String(
+        value
+    )
         .replace(
             /&/g,
             "&amp;"
