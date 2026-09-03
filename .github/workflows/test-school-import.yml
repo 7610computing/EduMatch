@@ -46,4 +46,4 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
 
-        run: node scripts/import-schools.js
+        run: node js/import-schools.js
