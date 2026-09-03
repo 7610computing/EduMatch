@@ -2,19 +2,6 @@
    EDUMATCH SCHOOL MAP
    ========================================================= */
 
-
-/* =========================================================
-   SUPABASE CONFIGURATION
-   =========================================================
-
-   IMPORTANT:
-
-   Replace SUPABASE_ANON_KEY with your project's public
-   anon key.
-
-   NEVER put the Supabase service-role key here.
-   ========================================================= */
-
 const SUPABASE_URL =
     "https://lwamtnocbxgostdrqhhz.supabase.co";
 
@@ -22,21 +9,17 @@ const SUPABASE_ANON_KEY =
     "YOUR_SUPABASE_ANON_KEY";
 
 
-/* =========================================================
-   GLOBAL VARIABLES
-   ========================================================= */
-
 let schools = [];
 let filteredSchools = [];
 
 let map = null;
-
 let markerLayer = null;
 
 let selectedStates = [];
 let selectedSectors = [];
+let selectedGenders = [];
 
-let selectedSchool = null;
+let userLocation = null;
 
 
 /* =========================================================
@@ -50,8 +33,8 @@ const rangeConfig = {
         maxInput: "age-max",
         minSlider: "age-slider-min",
         maxSlider: "age-slider-max",
-        minimum: 0,
-        maximum: 100
+        minimum: 3,
+        maximum: 25
     },
 
     fee: {
@@ -69,7 +52,7 @@ const rangeConfig = {
         minSlider: "enrolment-slider-min",
         maxSlider: "enrolment-slider-max",
         minimum: 0,
-        maximum: 10000
+        maximum: 5000
     },
 
     ratio: {
@@ -77,6 +60,15 @@ const rangeConfig = {
         maxInput: "ratio-max",
         minSlider: "ratio-slider-min",
         maxSlider: "ratio-slider-max",
+        minimum: 1,
+        maximum: 50
+    },
+
+    distance: {
+        minInput: "distance-min",
+        maxInput: "distance-max",
+        minSlider: "distance-slider-min",
+        maxSlider: "distance-slider-max",
         minimum: 0,
         maximum: 100
     }
@@ -85,26 +77,33 @@ const rangeConfig = {
 
 
 /* =========================================================
-   PAGE INITIALISATION
+   INITIALISE
    ========================================================= */
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener(
+    "DOMContentLoaded",
+    async () => {
 
-    initialiseMap();
+        initialiseMap();
 
-    initialiseRangeFilters();
+        initialiseRangeFilters();
 
-    initialiseSearchFilters();
+        initialiseDropdowns();
 
-    initialiseSearch();
+        initialiseStateSearch();
 
-    initialiseClearButton();
+        initialiseSchoolSearch();
 
-    initialiseDetailsPanel();
+        initialiseLocation();
 
-    await loadSchools();
+        initialiseClearButton();
 
-});
+        initialiseDetailsPanel();
+
+        await loadSchools();
+
+    }
+);
 
 
 /* =========================================================
@@ -113,31 +112,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 function initialiseMap() {
 
-    map = L.map("school-map", {
+    map = L.map(
+        "school-map",
+        {
+            worldCopyJump: false,
 
-        /*
-         * Prevent Leaflet from endlessly wrapping the
-         * world horizontally.
-         */
+            maxBounds: [
+                [-60, 100],
+                [15, 180]
+            ],
 
-        worldCopyJump: false,
+            maxBoundsViscosity: 1
+        }
+    );
 
-        maxBounds: [
-            [-60, 100],
-            [15, 180]
-        ],
-
-        maxBoundsViscosity: 1.0
-
-    });
-
-
-    /*
-     * Start around Australia / Asia-Pacific.
-     *
-     * This can later be changed to automatically centre
-     * around the user's location or selected schools.
-     */
 
     map.setView(
         [-25.2744, 133.7751],
@@ -149,95 +137,86 @@ function initialiseMap() {
         "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         {
             maxZoom: 19,
+
             noWrap: true,
 
             attribution:
-                '&copy; OpenStreetMap contributors'
+                "&copy; OpenStreetMap contributors"
         }
     ).addTo(map);
 
 
-    markerLayer = L.layerGroup().addTo(map);
+    markerLayer =
+        L.layerGroup().addTo(map);
 
 }
 
 
 /* =========================================================
-   LOAD SCHOOLS FROM SUPABASE
+   LOAD SCHOOLS
    ========================================================= */
 
 async function loadSchools() {
 
-    const resultsText =
-        document.getElementById("results-count");
+    const results =
+        document.getElementById(
+            "results-count"
+        );
 
-    resultsText.textContent =
+
+    results.textContent =
         "Loading schools...";
 
 
     try {
 
-        const response = await fetch(
-            `${SUPABASE_URL}/rest/v1/Schools?select=*`,
-            {
-                method: "GET",
+        const response =
+            await fetch(
+                `${SUPABASE_URL}/rest/v1/Schools?select=*`,
+                {
+                    headers: {
+                        "apikey":
+                            SUPABASE_ANON_KEY,
 
-                headers: {
-                    "apikey": SUPABASE_ANON_KEY,
-                    "Authorization":
-                        `Bearer ${SUPABASE_ANON_KEY}`,
+                        "Authorization":
+                            `Bearer ${SUPABASE_ANON_KEY}`,
 
-                    "Content-Type":
-                        "application/json"
+                        "Content-Type":
+                            "application/json"
+                    }
                 }
-            }
-        );
+            );
 
 
         if (!response.ok) {
 
             throw new Error(
-                `Supabase returned ${response.status}`
+                `Supabase error ${response.status}`
             );
 
         }
 
 
-        schools = await response.json();
+        schools =
+            await response.json();
 
 
-        /*
-         * Convert numeric values into actual numbers.
-         */
+        schools =
+            schools.map(
+                normaliseSchool
+            );
 
-        schools = schools.map(normaliseSchool);
-
-
-        /*
-         * Generate filter options from the actual
-         * database values.
-         */
 
         createStateOptions();
-
-        createSectorOptions();
-
-
-        /*
-         * Display schools.
-         */
 
         applyFilters();
 
 
     } catch (error) {
 
-        console.error(
-            "Unable to load schools:",
-            error
-        );
+        console.error(error);
 
-        resultsText.textContent =
+        results.textContent =
             "Unable to load schools.";
 
     }
@@ -246,23 +225,31 @@ async function loadSchools() {
 
 
 /* =========================================================
-   NORMALISE SCHOOL
+   NORMALISE
    ========================================================= */
 
-function normaliseSchool(school) {
+function normaliseSchool(
+    school
+) {
 
     return {
 
         ...school,
 
         school_id:
-            Number(school.school_id),
-
-        enrolment:
-            toNumber(school.enrolment),
+            Number(
+                school.school_id
+            ),
 
         fee:
-            toNumber(school.fee),
+            toNumber(
+                school.fee
+            ),
+
+        enrolment:
+            toNumber(
+                school.enrolment
+            ),
 
         student_teacher_ratio:
             toNumber(
@@ -273,10 +260,6 @@ function normaliseSchool(school) {
 
 }
 
-
-/* =========================================================
-   NUMBER HELPER
-   ========================================================= */
 
 function toNumber(value) {
 
@@ -301,7 +284,7 @@ function toNumber(value) {
 
 
 /* =========================================================
-   SEARCHABLE STATE OPTIONS
+   STATE SEARCH
    ========================================================= */
 
 function createStateOptions() {
@@ -309,9 +292,15 @@ function createStateOptions() {
     const states = [
         ...new Set(
             schools
-                .map(school => school.state)
+                .map(
+                    school =>
+                        school.state
+                )
                 .filter(Boolean)
-                .map(value => value.trim())
+                .map(
+                    value =>
+                        value.trim()
+                )
         )
     ];
 
@@ -322,154 +311,71 @@ function createStateOptions() {
     );
 
 
-    renderSearchOptions(
-        "state-options",
-        states,
-        "state"
-    );
-
-}
-
-
-/* =========================================================
-   SEARCHABLE SECTOR OPTIONS
-   ========================================================= */
-
-function createSectorOptions() {
-
-    const sectors = [
-        ...new Set(
-            schools
-                .map(school => school.sector)
-                .filter(Boolean)
-                .map(value => value.trim())
-        )
-    ];
-
-
-    sectors.sort(
-        (a, b) =>
-            a.localeCompare(b)
-    );
-
-
-    renderSearchOptions(
-        "sector-options",
-        sectors,
-        "sector"
-    );
-
-}
-
-
-/* =========================================================
-   RENDER SEARCH OPTIONS
-   ========================================================= */
-
-function renderSearchOptions(
-    containerId,
-    options,
-    type
-) {
-
     const container =
-        document.getElementById(containerId);
+        document.getElementById(
+            "state-options"
+        );
 
 
     container.innerHTML = "";
 
 
-    if (options.length === 0) {
+    states.forEach(
+        state => {
 
-        container.innerHTML =
-            `<div class="no-options">
-                No options available
-             </div>`;
-
-        return;
-
-    }
-
-
-    options.forEach(option => {
-
-        const element =
-            document.createElement("div");
-
-
-        element.className =
-            "search-option";
-
-
-        element.textContent =
-            option;
-
-
-        element.dataset.value =
-            option;
-
-
-        element.addEventListener(
-            "click",
-            () => {
-
-                addSelectedFilter(
-                    type,
-                    option
+            const option =
+                document.createElement(
+                    "div"
                 );
 
-            }
-        );
+
+            option.className =
+                "search-option";
 
 
-        container.appendChild(element);
-
-    });
-
-}
+            option.textContent =
+                state;
 
 
-/* =========================================================
-   SEARCH FILTER INPUTS
-   ========================================================= */
-
-function initialiseSearchFilters() {
-
-    setupSearchFilter(
-        "state-filter",
-        "state-options",
-        "state"
-    );
+            option.dataset.value =
+                state;
 
 
-    setupSearchFilter(
-        "sector-filter",
-        "sector-options",
-        "sector"
-    );
+            option.addEventListener(
+                "click",
+                () => {
+
+                    if (
+                        !selectedStates
+                            .includes(state)
+                    ) {
+
+                        selectedStates
+                            .push(state);
+
+                    }
 
 
-    document.addEventListener(
-        "click",
-        event => {
+                    document.getElementById(
+                        "state-filter"
+                    ).value = "";
 
-            if (
-                !event.target.closest(
-                    ".search-select"
-                )
-            ) {
 
-                document
-                    .querySelectorAll(
-                        ".search-options"
-                    )
-                    .forEach(
-                        option =>
-                            option.classList
-                                .remove("visible")
-                    );
+                    container.classList
+                        .remove(
+                            "visible"
+                        );
 
-            }
+
+                    applyFilters();
+
+                }
+            );
+
+
+            container.appendChild(
+                option
+            );
 
         }
     );
@@ -478,30 +384,25 @@ function initialiseSearchFilters() {
 
 
 /* =========================================================
-   SETUP SEARCH FILTER
+   STATE SEARCH INPUT
    ========================================================= */
 
-function setupSearchFilter(
-    inputId,
-    optionsId,
-    type
-) {
+function initialiseStateSearch() {
 
     const input =
-        document.getElementById(inputId);
+        document.getElementById(
+            "state-filter"
+        );
 
     const options =
-        document.getElementById(optionsId);
+        document.getElementById(
+            "state-options"
+        );
 
 
     input.addEventListener(
         "focus",
         () => {
-
-            filterOptionList(
-                input,
-                options
-            );
 
             options.classList.add(
                 "visible"
@@ -515,10 +416,32 @@ function setupSearchFilter(
         "input",
         () => {
 
-            filterOptionList(
-                input,
-                options
-            );
+            const search =
+                input.value
+                    .toLowerCase();
+
+
+            options
+                .querySelectorAll(
+                    ".search-option"
+                )
+                .forEach(
+                    option => {
+
+                        const matches =
+                            option.dataset.value
+                                .toLowerCase()
+                                .includes(search);
+
+
+                        option.style.display =
+                            matches
+                                ? "block"
+                                : "none";
+
+                    }
+                );
+
 
             options.classList.add(
                 "visible"
@@ -527,269 +450,355 @@ function setupSearchFilter(
         }
     );
 
-}
 
-
-/* =========================================================
-   FILTER OPTION LIST
-   ========================================================= */
-
-function filterOptionList(
-    input,
-    optionsContainer
-) {
-
-    const search =
-        input.value
-            .trim()
-            .toLowerCase();
-
-
-    const options =
-        optionsContainer
-            .querySelectorAll(
-                ".search-option"
-            );
-
-
-    let visibleCount = 0;
-
-
-    options.forEach(option => {
-
-        const value =
-            option.dataset.value
-                .toLowerCase();
-
-
-        const alreadySelected =
-            selectedStates
-                .includes(option.dataset.value) ||
-            selectedSectors
-                .includes(option.dataset.value);
-
-
-        const matches =
-            value.includes(search) &&
-            !alreadySelected;
-
-
-        option.style.display =
-            matches
-                ? "block"
-                : "none";
-
-
-        if (matches) {
-            visibleCount++;
-        }
-
-    });
-
-
-    let emptyMessage =
-        optionsContainer
-            .querySelector(".no-search-results");
-
-
-    if (visibleCount === 0) {
-
-        if (!emptyMessage) {
-
-            emptyMessage =
-                document.createElement("div");
-
-            emptyMessage.className =
-                "no-options no-search-results";
-
-            emptyMessage.textContent =
-                "No matching options.";
-
-            optionsContainer.appendChild(
-                emptyMessage
-            );
-
-        }
-
-    } else if (emptyMessage) {
-
-        emptyMessage.remove();
-
-    }
-
-}
-
-
-/* =========================================================
-   ADD SELECTED FILTER
-   ========================================================= */
-
-function addSelectedFilter(
-    type,
-    value
-) {
-
-    if (type === "state") {
-
-        if (!selectedStates.includes(value)) {
-
-            selectedStates.push(value);
-
-        }
-
-        document.getElementById(
-            "state-filter"
-        ).value = "";
-
-
-        document.getElementById(
-            "state-options"
-        ).classList.remove(
-            "visible"
-        );
-
-
-        renderSelectedItems(
-            "selected-states",
-            selectedStates,
-            "state"
-        );
-
-    }
-
-
-    if (type === "sector") {
-
-        if (!selectedSectors.includes(value)) {
-
-            selectedSectors.push(value);
-
-        }
-
-        document.getElementById(
-            "sector-filter"
-        ).value = "";
-
-
-        document.getElementById(
-            "sector-options"
-        ).classList.remove(
-            "visible"
-        );
-
-
-        renderSelectedItems(
-            "selected-sectors",
-            selectedSectors,
-            "sector"
-        );
-
-    }
-
-
-    applyFilters();
-
-}
-
-
-/* =========================================================
-   RENDER SELECTED ITEMS
-   ========================================================= */
-
-function renderSelectedItems(
-    containerId,
-    values,
-    type
-) {
-
-    const container =
-        document.getElementById(
-            containerId
-        );
-
-
-    container.innerHTML = "";
-
-
-    values.forEach(value => {
-
-        const item =
-            document.createElement("div");
-
-
-        item.className =
-            "selected-item";
-
-
-        item.innerHTML = `
-            <span>${escapeHtml(value)}</span>
-            <button type="button">×</button>
-        `;
-
-
-        item.querySelector("button")
-            .addEventListener(
-                "click",
-                () => {
-
-                    removeSelectedFilter(
-                        type,
-                        value
+    document.addEventListener(
+        "click",
+        event => {
+
+            if (
+                !event.target.closest(
+                    ".search-select"
+                )
+            ) {
+
+                options.classList
+                    .remove(
+                        "visible"
                     );
 
-                }
-            );
+            }
 
-
-        container.appendChild(item);
-
-    });
+        }
+    );
 
 }
 
 
 /* =========================================================
-   REMOVE SELECTED FILTER
+   DROPDOWNS
    ========================================================= */
 
-function removeSelectedFilter(
-    type,
-    value
-) {
+function initialiseDropdowns() {
 
-    if (type === "state") {
+    setupDropdown(
+        "sector-dropdown-button",
+        "sector-options"
+    );
 
-        selectedStates =
-            selectedStates.filter(
-                item => item !== value
-            );
+    setupDropdown(
+        "gender-dropdown-button",
+        "gender-options"
+    );
 
-        renderSelectedItems(
-            "selected-states",
-            selectedStates,
-            "state"
+
+    document
+        .querySelectorAll(
+            '.checkbox-options input[type="checkbox"]'
+        )
+        .forEach(
+            checkbox => {
+
+                checkbox.addEventListener(
+                    "change",
+                    () => {
+
+                        updateCheckboxFilters();
+
+                    }
+                );
+
+            }
         );
 
-    }
+}
 
 
-    if (type === "sector") {
+function setupDropdown(
+    buttonId,
+    optionsId
+) {
 
-        selectedSectors =
-            selectedSectors.filter(
-                item => item !== value
+    const button =
+        document.getElementById(
+            buttonId
+        );
+
+    const options =
+        document.getElementById(
+            optionsId
+        );
+
+
+    button.addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+            options.classList.toggle(
+                "open"
             );
 
-        renderSelectedItems(
-            "selected-sectors",
-            selectedSectors,
+        }
+    );
+
+
+    document.addEventListener(
+        "click",
+        event => {
+
+            if (
+                !event.target.closest(
+                    ".checkbox-dropdown"
+                )
+            ) {
+
+                options.classList.remove(
+                    "open"
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   CHECKBOX FILTERS
+   ========================================================= */
+
+function updateCheckboxFilters() {
+
+    selectedSectors =
+        getCheckedValues(
             "sector"
         );
 
-    }
+
+    selectedGenders =
+        getCheckedValues(
+            "gender"
+        );
+
+
+    updateDropdownText(
+        "sector-dropdown-button",
+        selectedSectors,
+        "Select sector"
+    );
+
+
+    updateDropdownText(
+        "gender-dropdown-button",
+        selectedGenders,
+        "Select gender"
+    );
 
 
     applyFilters();
+
+}
+
+
+function getCheckedValues(
+    filterType
+) {
+
+    return [
+        ...document.querySelectorAll(
+            `input[data-filter="${filterType}"]:checked`
+        )
+    ]
+        .map(
+            checkbox =>
+                checkbox.value
+        );
+
+}
+
+
+function updateDropdownText(
+    buttonId,
+    values,
+    defaultText
+) {
+
+    const button =
+        document.getElementById(
+            buttonId
+        );
+
+
+    const text =
+        button.querySelector(
+            "span"
+        );
+
+
+    if (values.length === 0) {
+
+        text.textContent =
+            defaultText;
+
+    } else {
+
+        text.textContent =
+            values.join(", ");
+
+    }
+
+}
+
+
+/* =========================================================
+   SCHOOL SEARCH
+   ========================================================= */
+
+function initialiseSchoolSearch() {
+
+    const input =
+        document.getElementById(
+            "school-search"
+        );
+
+
+    input.addEventListener(
+        "input",
+        applyFilters
+    );
+
+
+    document
+        .getElementById(
+            "search-button"
+        )
+        .addEventListener(
+            "click",
+            applyFilters
+        );
+
+}
+
+
+/* =========================================================
+   LOCATION
+   ========================================================= */
+
+function initialiseLocation() {
+
+    document
+        .getElementById(
+            "current-location-button"
+        )
+        .addEventListener(
+            "click",
+            getCurrentLocation
+        );
+
+
+    document
+        .getElementById(
+            "location-input"
+        )
+        .addEventListener(
+            "change",
+            () => {
+
+                /*
+                 * Geocoding will be connected here.
+                 *
+                 * The address should eventually be converted
+                 * into latitude/longitude and stored in
+                 * userLocation.
+                 */
+
+                console.log(
+                    "Location entered:",
+                    document.getElementById(
+                        "location-input"
+                    ).value
+                );
+
+            }
+        );
+
+}
+
+
+function getCurrentLocation() {
+
+    if (
+        !navigator.geolocation
+    ) {
+
+        alert(
+            "Location services are not supported by this browser."
+        );
+
+        return;
+
+    }
+
+
+    const button =
+        document.getElementById(
+            "current-location-button"
+        );
+
+
+    button.textContent =
+        "Finding location...";
+
+
+    navigator.geolocation.getCurrentPosition(
+
+        position => {
+
+            userLocation = {
+
+                latitude:
+                    position.coords.latitude,
+
+                longitude:
+                    position.coords.longitude
+
+            };
+
+
+            button.textContent =
+                "Location Found";
+
+
+            map.setView(
+                [
+                    userLocation.latitude,
+                    userLocation.longitude
+                ],
+                12
+            );
+
+
+            applyFilters();
+
+        },
+
+        error => {
+
+            console.error(error);
+
+            button.textContent =
+                "Current Location";
+
+
+            alert(
+                "Unable to access your current location."
+            );
+
+        }
+
+    );
 
 }
 
@@ -800,10 +809,10 @@ function removeSelectedFilter(
 
 function initialiseRangeFilters() {
 
-    Object.entries(
+    Object.values(
         rangeConfig
     ).forEach(
-        ([name, config]) => {
+        config => {
 
             const minSlider =
                 document.getElementById(
@@ -826,10 +835,6 @@ function initialiseRangeFilters() {
                 );
 
 
-            /*
-             * Slider → text box
-             */
-
             minSlider.addEventListener(
                 "input",
                 () => {
@@ -846,10 +851,8 @@ function initialiseRangeFilters() {
 
 
                     minInput.value =
-                        isAtMinimum(
-                            minSlider,
-                            config
-                        )
+                        Number(minSlider.value) ===
+                        config.minimum
                             ? ""
                             : minSlider.value;
 
@@ -882,10 +885,8 @@ function initialiseRangeFilters() {
 
 
                     maxInput.value =
-                        isAtMaximum(
-                            maxSlider,
-                            config
-                        )
+                        Number(maxSlider.value) ===
+                        config.maximum
                             ? ""
                             : maxSlider.value;
 
@@ -902,12 +903,8 @@ function initialiseRangeFilters() {
             );
 
 
-            /*
-             * Text box → slider
-             */
-
             minInput.addEventListener(
-                "input",
+                "change",
                 () => {
 
                     let value =
@@ -920,26 +917,26 @@ function initialiseRangeFilters() {
                         Number.isNaN(value)
                     ) {
 
-                        minSlider.value =
+                        value =
                             config.minimum;
 
-                    } else {
-
-                        value =
-                            Math.max(
-                                config.minimum,
-                                Math.min(
-                                    value,
-                                    Number(
-                                        maxSlider.value
-                                    )
-                                )
-                            );
-
-                        minSlider.value =
-                            value;
-
                     }
+
+
+                    value =
+                        Math.max(
+                            config.minimum,
+                            Math.min(
+                                value,
+                                Number(
+                                    maxSlider.value
+                                )
+                            )
+                        );
+
+
+                    minSlider.value =
+                        value;
 
 
                     updateSliderTrack(
@@ -955,7 +952,7 @@ function initialiseRangeFilters() {
 
 
             maxInput.addEventListener(
-                "input",
+                "change",
                 () => {
 
                     let value =
@@ -968,26 +965,26 @@ function initialiseRangeFilters() {
                         Number.isNaN(value)
                     ) {
 
-                        maxSlider.value =
+                        value =
                             config.maximum;
 
-                    } else {
-
-                        value =
-                            Math.min(
-                                config.maximum,
-                                Math.max(
-                                    value,
-                                    Number(
-                                        minSlider.value
-                                    )
-                                )
-                            );
-
-                        maxSlider.value =
-                            value;
-
                     }
+
+
+                    value =
+                        Math.min(
+                            config.maximum,
+                            Math.max(
+                                value,
+                                Number(
+                                    minSlider.value
+                                )
+                            )
+                        );
+
+
+                    maxSlider.value =
+                        value;
 
 
                     updateSliderTrack(
@@ -1014,33 +1011,7 @@ function initialiseRangeFilters() {
 
 
 /* =========================================================
-   CHECK SLIDER EXTREMES
-   ========================================================= */
-
-function isAtMinimum(
-    slider,
-    config
-) {
-
-    return Number(slider.value) <=
-        config.minimum;
-
-}
-
-
-function isAtMaximum(
-    slider,
-    config
-) {
-
-    return Number(slider.value) >=
-        config.maximum;
-
-}
-
-
-/* =========================================================
-   UPDATE SLIDER TRACK
+   SLIDER TRACK
    ========================================================= */
 
 function updateSliderTrack(
@@ -1092,39 +1063,7 @@ function updateSliderTrack(
 
 
 /* =========================================================
-   SCHOOL SEARCH
-   ========================================================= */
-
-function initialiseSearch() {
-
-    const input =
-        document.getElementById(
-            "school-search"
-        );
-
-
-    const button =
-        document.getElementById(
-            "search-button"
-        );
-
-
-    input.addEventListener(
-        "input",
-        applyFilters
-    );
-
-
-    button.addEventListener(
-        "click",
-        applyFilters
-    );
-
-}
-
-
-/* =========================================================
-   APPLY ALL FILTERS
+   APPLY FILTERS
    ========================================================= */
 
 function applyFilters() {
@@ -1139,47 +1078,63 @@ function applyFilters() {
 
 
     const ageRange =
-        getRangeValues("age");
+        getRange("age");
 
     const feeRange =
-        getRangeValues("fee");
+        getRange("fee");
 
     const enrolmentRange =
-        getRangeValues("enrolment");
+        getRange("enrolment");
 
     const ratioRange =
-        getRangeValues("ratio");
+        getRange("ratio");
+
+    const distanceRange =
+        getRange("distance");
 
 
     filteredSchools =
-        schools.filter(school => {
+        schools.filter(
+            school => {
 
 
-            /* -------------------------
-               SEARCH
-               ------------------------- */
+                /* SEARCH */
 
-            if (search) {
+                if (search) {
 
-                const searchableText = [
+                    const text = [
 
-                    school.name,
+                        school.name,
 
-                    school.address,
+                        school.address,
 
-                    school.state,
+                        school.state,
 
-                    school.description
+                        school.description
 
-                ]
-                    .filter(Boolean)
-                    .join(" ")
-                    .toLowerCase();
+                    ]
+                        .filter(Boolean)
+                        .join(" ")
+                        .toLowerCase();
 
+
+                    if (
+                        !text.includes(search)
+                    ) {
+
+                        return false;
+
+                    }
+
+                }
+
+
+                /* STATE */
 
                 if (
-                    !searchableText.includes(
-                        search
+                    selectedStates.length > 0 &&
+                    !selectedStates.includes(
+                        school.state
                     )
                 ) {
 
@@ -1187,108 +1142,115 @@ function applyFilters() {
 
                 }
 
+
+                /* SECTOR */
+
+                if (
+                    selectedSectors.length > 0 &&
+                    !selectedSectors.includes(
+                        school.sector
+                    )
+                ) {
+
+                    return false;
+
+                }
+
+
+                /* GENDER */
+
+                if (
+                    selectedGenders.length > 0 &&
+                    !selectedGenders.includes(
+                        school.gender
+                    )
+                ) {
+
+                    return false;
+
+                }
+
+
+                /* AGE */
+
+                if (
+                    !schoolMatchesAge(
+                        school,
+                        ageRange
+                    )
+                ) {
+
+                    return false;
+
+                }
+
+
+                /* FEE */
+
+                if (
+                    !matchesRange(
+                        school.fee,
+                        feeRange
+                    )
+                ) {
+
+                    return false;
+
+                }
+
+
+                /* ENROLMENT */
+
+                if (
+                    !matchesRange(
+                        school.enrolment,
+                        enrolmentRange
+                    )
+                ) {
+
+                    return false;
+
+                }
+
+
+                /* RATIO */
+
+                if (
+                    !matchesRange(
+                        school.student_teacher_ratio,
+                        ratioRange
+                    )
+                ) {
+
+                    return false;
+
+                }
+
+
+                /*
+                 * DISTANCE
+                 *
+                 * This only activates once userLocation
+                 * and school coordinates are available.
+                 */
+
+                if (
+                    userLocation &&
+                    !matchesDistance(
+                        school,
+                        distanceRange
+                    )
+                ) {
+
+                    return false;
+
+                }
+
+
+                return true;
+
             }
-
-
-            /* -------------------------
-               STATE
-               ------------------------- */
-
-            if (
-                selectedStates.length > 0 &&
-                !selectedStates.includes(
-                    school.state
-                )
-            ) {
-
-                return false;
-
-            }
-
-
-            /* -------------------------
-               SECTOR
-               ------------------------- */
-
-            if (
-                selectedSectors.length > 0 &&
-                !selectedSectors.includes(
-                    school.sector
-                )
-            ) {
-
-                return false;
-
-            }
-
-
-            /* -------------------------
-               AGE
-               ------------------------- */
-
-            if (
-                !schoolMatchesAge(
-                    school,
-                    ageRange
-                )
-            ) {
-
-                return false;
-
-            }
-
-
-            /* -------------------------
-               FEE
-               ------------------------- */
-
-            if (
-                !matchesNumericRange(
-                    school.fee,
-                    feeRange
-                )
-            ) {
-
-                return false;
-
-            }
-
-
-            /* -------------------------
-               ENROLMENT
-               ------------------------- */
-
-            if (
-                !matchesNumericRange(
-                    school.enrolment,
-                    enrolmentRange
-                )
-            ) {
-
-                return false;
-
-            }
-
-
-            /* -------------------------
-               STUDENT TEACHER RATIO
-               ------------------------- */
-
-            if (
-                !matchesNumericRange(
-                    school.student_teacher_ratio,
-                    ratioRange
-                )
-            ) {
-
-                return false;
-
-            }
-
-
-            return true;
-
-        });
+        );
 
 
     renderSchools();
@@ -1297,10 +1259,10 @@ function applyFilters() {
 
 
 /* =========================================================
-   GET RANGE VALUES
+   RANGE
    ========================================================= */
 
-function getRangeValues(name) {
+function getRange(name) {
 
     const config =
         rangeConfig[name];
@@ -1340,19 +1302,20 @@ function getRangeValues(name) {
    NUMERIC RANGE MATCH
    ========================================================= */
 
-function matchesNumericRange(
+function matchesRange(
     value,
     range
 ) {
 
-    /*
-     * Missing database values cannot be confidently
-     * included in a numerical range.
-     */
+    if (
+        value === null
+    ) {
 
-    if (value === null) {
-        return range.min === null &&
-               range.max === null;
+        return (
+            range.min === null &&
+            range.max === null
+        );
+
     }
 
 
@@ -1382,26 +1345,13 @@ function matchesNumericRange(
 
 
 /* =========================================================
-   AGE FILTER
+   AGE
    ========================================================= */
 
 function schoolMatchesAge(
     school,
     range
 ) {
-
-    /*
-     * allowed_ages is currently TEXT in Supabase.
-     *
-     * This function extracts numbers from values such as:
-     *
-     * "5-18"
-     * "Ages 5 to 18"
-     * "Prep - Year 12"
-     *
-     * The data should eventually be normalised for perfect
-     * accuracy.
-     */
 
     if (
         range.min === null &&
@@ -1429,10 +1379,7 @@ function schoolMatchesAge(
             );
 
 
-    if (
-        !numbers ||
-        numbers.length === 0
-    ) {
+    if (!numbers) {
 
         return false;
 
@@ -1476,7 +1423,115 @@ function schoolMatchesAge(
 
 
 /* =========================================================
-   RENDER SCHOOLS
+   DISTANCE
+   ========================================================= */
+
+function matchesDistance(
+    school,
+    range
+) {
+
+    const latitude =
+        Number(
+            school.latitude
+        );
+
+    const longitude =
+        Number(
+            school.longitude
+        );
+
+
+    if (
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude)
+    ) {
+
+        return false;
+
+    }
+
+
+    const distance =
+        calculateDistance(
+            userLocation.latitude,
+            userLocation.longitude,
+            latitude,
+            longitude
+        );
+
+
+    return matchesRange(
+        distance,
+        range
+    );
+
+}
+
+
+/* =========================================================
+   HAVERSINE DISTANCE
+   ========================================================= */
+
+function calculateDistance(
+    lat1,
+    lon1,
+    lat2,
+    lon2
+) {
+
+    const earthRadius =
+        6371;
+
+
+    const dLat =
+        toRadians(
+            lat2 - lat1
+        );
+
+    const dLon =
+        toRadians(
+            lon2 - lon1
+        );
+
+
+    const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(
+            toRadians(lat1)
+        ) *
+        Math.cos(
+            toRadians(lat2)
+        ) *
+        Math.sin(dLon / 2) ** 2;
+
+
+    const c =
+        2 *
+        Math.atan2(
+            Math.sqrt(a),
+            Math.sqrt(1 - a)
+        );
+
+
+    return earthRadius * c;
+
+}
+
+
+function toRadians(
+    degrees
+) {
+
+    return degrees *
+        Math.PI /
+        180;
+
+}
+
+
+/* =========================================================
+   RENDER
    ========================================================= */
 
 function renderSchools() {
@@ -1484,13 +1539,9 @@ function renderSchools() {
     markerLayer.clearLayers();
 
 
-    const resultsCount =
-        document.getElementById(
-            "results-count"
-        );
-
-
-    resultsCount.textContent =
+    document.getElementById(
+        "results-count"
+    ).textContent =
         `${filteredSchools.length} school${
             filteredSchools.length === 1
                 ? ""
@@ -1499,55 +1550,34 @@ function renderSchools() {
 
 
     filteredSchools.forEach(
-        school => {
-
-            createSchoolMarker(
-                school
-            );
-
-        }
+        createSchoolMarker
     );
 
 }
 
 
 /* =========================================================
-   CREATE SCHOOL MARKER
+   MARKERS
    ========================================================= */
 
 function createSchoolMarker(
     school
 ) {
 
-    /*
-     * The current database schema does not contain
-     * latitude/longitude.
-     *
-     * This supports them if they are later added or
-     * supplied by the geocoding system.
-     */
-
     const latitude =
-        getCoordinate(
-            school,
-            "latitude"
+        Number(
+            school.latitude
         );
 
     const longitude =
-        getCoordinate(
-            school,
-            "longitude"
+        Number(
+            school.longitude
         );
 
 
-    /*
-     * Without coordinates there is nowhere to place the
-     * marker yet.
-     */
-
     if (
-        latitude === null ||
-        longitude === null
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude)
     ) {
 
         return;
@@ -1555,28 +1585,30 @@ function createSchoolMarker(
     }
 
 
-    const markerHtml = `
-        <div class="school-marker">
-
-            <div class="school-marker-dot"></div>
-
-            <div class="school-marker-label">
-                ${escapeHtml(
-                    school.name ||
-                    "Unnamed school"
-                )}
-            </div>
-
-        </div>
-    `;
-
-
     const icon =
         L.divIcon({
 
             className: "",
 
-            html: markerHtml,
+            html: `
+                <div class="school-marker">
+
+                    <div
+                        class="school-marker-dot">
+                    </div>
+
+                    <div
+                        class="school-marker-label">
+
+                        ${escapeHtml(
+                            school.name ||
+                            "Unnamed school"
+                        )}
+
+                    </div>
+
+                </div>
+            `,
 
             iconSize: [0, 0],
 
@@ -1587,7 +1619,10 @@ function createSchoolMarker(
 
     const marker =
         L.marker(
-            [latitude, longitude],
+            [
+                latitude,
+                longitude
+            ],
             {
                 icon
             }
@@ -1595,28 +1630,18 @@ function createSchoolMarker(
 
 
     marker.bindPopup(
-        createSchoolPopup(
+        createPopup(
             school
         ),
         {
-            maxWidth: 320,
-            minWidth: 300,
+            minWidth: 280,
+
+            maxWidth: 300,
 
             offset: [
-                15,
+                12,
                 -5
             ]
-        }
-    );
-
-
-    marker.on(
-        "click",
-        () => {
-
-            selectedSchool =
-                school;
-
         }
     );
 
@@ -1629,106 +1654,56 @@ function createSchoolMarker(
 
 
 /* =========================================================
-   GET COORDINATE
+   POPUP
    ========================================================= */
 
-function getCoordinate(
-    school,
-    field
-) {
-
-    if (
-        school[field] !== undefined &&
-        school[field] !== null
-    ) {
-
-        const value =
-            Number(
-                school[field]
-            );
-
-
-        if (
-            Number.isFinite(value)
-        ) {
-
-            return value;
-
-        }
-
-    }
-
-
-    return null;
-
-}
-
-
-/* =========================================================
-   SCHOOL POPUP
-   ========================================================= */
-
-function createSchoolPopup(
+function createPopup(
     school
 ) {
 
-    const name =
-        escapeHtml(
-            school.name ||
-            "Unnamed school"
-        );
-
-
-    const description =
-        school.description
-            ? escapeHtml(
-                truncate(
-                    school.description,
-                    130
-                )
-            )
-            : "No overview available.";
-
-
-    const address =
-        school.address
-            ? escapeHtml(
-                school.address
-            )
-            : "Address unavailable";
-
-
     return `
+
         <div class="school-popup">
 
             <h3>
-                ${name}
+                ${escapeHtml(
+                    school.name ||
+                    "Unnamed school"
+                )}
             </h3>
 
             <p>
-                ${description}
+                ${
+                    escapeHtml(
+                        school.description ||
+                        "No overview available."
+                    )
+                }
             </p>
 
             <p>
-                <strong>Location:</strong>
-                ${address}
+                ${
+                    escapeHtml(
+                        school.address ||
+                        "Address unavailable"
+                    )
+                }
             </p>
 
             <div class="popup-actions">
 
                 <button
-                    class="popup-details-button"
-                    onclick="openSchoolDetails(${school.school_id})"
-                    type="button"
+                    onclick="openSchoolDetails(
+                        ${school.school_id}
+                    )"
                 >
                     View details
                 </button>
 
                 <button
-                    class="popup-tag-button"
-                    onclick="openSchoolTags(${school.school_id})"
-                    type="button"
-                    title="Add tag"
+                    onclick="openSchoolTags(
+                        ${school.school_id}
+                    )"
                 >
                     +
                 </button>
@@ -1736,13 +1711,14 @@ function createSchoolPopup(
             </div>
 
         </div>
+
     `;
 
 }
 
 
 /* =========================================================
-   OPEN SCHOOL DETAILS
+   DETAILS
    ========================================================= */
 
 function openSchoolDetails(
@@ -1752,8 +1728,9 @@ function openSchoolDetails(
     const school =
         schools.find(
             item =>
-                Number(item.school_id) ===
-                Number(schoolId)
+                Number(
+                    item.school_id
+                ) === Number(schoolId)
         );
 
 
@@ -1762,60 +1739,9 @@ function openSchoolDetails(
     }
 
 
-    selectedSchool =
-        school;
-
-
-    const panel =
-        document.getElementById(
-            "school-details"
-        );
-
-
-    const content =
-        document.getElementById(
-            "school-details-content"
-        );
-
-
-    content.innerHTML =
-        createSchoolDetails(
-            school
-        );
-
-
-    panel.classList.add(
-        "open"
-    );
-
-}
-
-
-/* =========================================================
-   SCHOOL DETAILS HTML
-   ========================================================= */
-
-function createSchoolDetails(
-    school
-) {
-
-    const website =
-        school.website
-            ? `
-                <a
-                    href="${escapeAttribute(
-                        school.website
-                    )}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Visit website
-                </a>
-              `
-            : "Not provided";
-
-
-    return `
+    document.getElementById(
+        "school-details-content"
+    ).innerHTML = `
 
         <h2>
             ${escapeHtml(
@@ -1833,225 +1759,119 @@ function createSchoolDetails(
             }
         </p>
 
-
         <div class="detail-list">
 
+            ${detail(
+                "Address",
+                school.address
+            )}
 
-            <div class="detail-item">
+            ${detail(
+                "State / Province / Region",
+                school.state
+            )}
 
-                <span class="detail-label">
-                    Address
-                </span>
+            ${detail(
+                "Sector",
+                school.sector
+            )}
 
-                <span class="detail-value">
-                    ${
-                        escapeHtml(
-                            school.address ||
-                            "Not provided"
-                        )
-                    }
-                </span>
+            ${detail(
+                "Gender",
+                school.gender
+            )}
 
-            </div>
+            ${detail(
+                "Ages",
+                school.allowed_ages
+            )}
 
+            ${detail(
+                "Fees",
+                school.fee
+            )}
 
-            <div class="detail-item">
+            ${detail(
+                "Enrolment",
+                school.enrolment
+            )}
 
-                <span class="detail-label">
-                    State / Province / Region
-                </span>
+            ${detail(
+                "Student–Teacher Ratio",
+                school.student_teacher_ratio
+            )}
 
-                <span class="detail-value">
-                    ${
-                        escapeHtml(
-                            school.state ||
-                            "Not provided"
-                        )
-                    }
-                </span>
+            ${detail(
+                "Uniform",
+                school.uniform
+            )}
 
-            </div>
+            ${detail(
+                "Enrolment Information",
+                school.enrolment_info
+            )}
 
-
-            <div class="detail-item">
-
-                <span class="detail-label">
-                    Sector
-                </span>
-
-                <span class="detail-value">
-                    ${
-                        escapeHtml(
-                            school.sector ||
-                            "Not provided"
-                        )
-                    }
-                </span>
-
-            </div>
-
-
-            <div class="detail-item">
-
-                <span class="detail-label">
-                    Gender
-                </span>
-
-                <span class="detail-value">
-                    ${
-                        escapeHtml(
-                            school.gender ||
-                            "Not provided"
-                        )
-                    }
-                </span>
-
-            </div>
-
-
-            <div class="detail-item">
-
-                <span class="detail-label">
-                    Ages
-                </span>
-
-                <span class="detail-value">
-                    ${
-                        escapeHtml(
-                            school.allowed_ages ||
-                            "Not provided"
-                        )
-                    }
-                </span>
-
-            </div>
-
-
-            <div class="detail-item">
-
-                <span class="detail-label">
-                    Fees
-                </span>
-
-                <span class="detail-value">
-                    ${
-                        school.fee !== null
-                            ? formatNumber(
-                                school.fee
-                            )
-                            : "Not provided"
-                    }
-                </span>
-
-            </div>
-
-
-            <div class="detail-item">
-
-                <span class="detail-label">
-                    Enrolment
-                </span>
-
-                <span class="detail-value">
-                    ${
-                        school.enrolment !== null
-                            ? formatNumber(
-                                school.enrolment
-                            )
-                            : "Not provided"
-                    }
-                </span>
-
-            </div>
-
-
-            <div class="detail-item">
-
-                <span class="detail-label">
-                    Student–Teacher Ratio
-                </span>
-
-                <span class="detail-value">
-                    ${
-                        school.student_teacher_ratio !== null
-                            ? school.student_teacher_ratio
-                            : "Not provided"
-                    }
-                </span>
-
-            </div>
-
-
-            <div class="detail-item">
-
-                <span class="detail-label">
-                    Uniform
-                </span>
-
-                <span class="detail-value">
-                    ${
-                        escapeHtml(
-                            school.uniform ||
-                            "Not provided"
-                        )
-                    }
-                </span>
-
-            </div>
-
-
-            <div class="detail-item">
-
-                <span class="detail-label">
-                    Enrolment Information
-                </span>
-
-                <span class="detail-value">
-                    ${
-                        escapeHtml(
-                            school.enrolment_info ||
-                            "Not provided"
-                        )
-                    }
-                </span>
-
-            </div>
-
-
-            <div class="detail-item">
-
-                <span class="detail-label">
-                    Contact
-                </span>
-
-                <span class="detail-value">
-                    ${
-                        escapeHtml(
-                            school.contact ||
-                            "Not provided"
-                        )
-                    }
-                </span>
-
-            </div>
-
-
-            <div class="detail-item">
-
-                <span class="detail-label">
-                    Website
-                </span>
-
-                <span class="detail-value">
-                    ${website}
-                </span>
-
-            </div>
-
+            ${detail(
+                "Contact",
+                school.contact
+            )}
 
         </div>
 
     `;
+
+
+    document.getElementById(
+        "school-details"
+    ).classList.add(
+        "open"
+    );
+
+}
+
+
+function detail(
+    label,
+    value
+) {
+
+    return `
+
+        <div class="detail-item">
+
+            <span class="detail-label">
+                ${label}
+            </span>
+
+            <span class="detail-value">
+                ${
+                    value === null ||
+                    value === undefined ||
+                    value === ""
+                        ? "Not provided"
+                        : escapeHtml(value)
+                }
+            </span>
+
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   TAGS
+   ========================================================= */
+
+function openSchoolTags(
+    schoolId
+) {
+
+    console.log(
+        "Open tags for school:",
+        schoolId
+    );
 
 }
 
@@ -2062,212 +1882,126 @@ function createSchoolDetails(
 
 function initialiseDetailsPanel() {
 
-    document
-        .getElementById(
-            "close-details"
-        )
-        .addEventListener(
-            "click",
-            () => {
-
-                document
-                    .getElementById(
-                        "school-details"
-                    )
-                    .classList
-                    .remove("open");
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   TAG SYSTEM
-   ========================================================= */
-
-function openSchoolTags(
-    schoolId
-) {
-
-    /*
-     * Temporary implementation.
-     *
-     * The current Schools table does not contain tags.
-     *
-     * Once we create the tag tables, this button can open
-     * the persistent Supabase tag interface.
-     */
-
-    const school =
-        schools.find(
-            item =>
-                Number(item.school_id) ===
-                Number(schoolId)
-        );
-
-
-    if (!school) {
-        return;
-    }
-
-
-    alert(
-        `Tags for ${school.name || "this school"} will be added here.`
-    );
-
-}
-
-
-/* =========================================================
-   CLEAR FILTERS
-   ========================================================= */
-
-function initialiseClearButton() {
-
-    document
-        .getElementById(
-            "clear-filters"
-        )
-        .addEventListener(
-            "click",
-            clearFilters
-        );
-
-}
-
-
-function clearFilters() {
-
-    selectedStates = [];
-
-    selectedSectors = [];
-
-
     document.getElementById(
-        "state-filter"
-    ).value = "";
+        "close-details"
+    ).addEventListener(
+        "click",
+        () => {
 
-
-    document.getElementById(
-        "sector-filter"
-    ).value = "";
-
-
-    document.getElementById(
-        "school-search"
-    ).value = "";
-
-
-    renderSelectedItems(
-        "selected-states",
-        [],
-        "state"
-    );
-
-
-    renderSelectedItems(
-        "selected-sectors",
-        [],
-        "sector"
-    );
-
-
-    Object.entries(
-        rangeConfig
-    ).forEach(
-        ([name, config]) => {
-
-            const minSlider =
-                document.getElementById(
-                    config.minSlider
-                );
-
-            const maxSlider =
-                document.getElementById(
-                    config.maxSlider
-                );
-
-            const minInput =
-                document.getElementById(
-                    config.minInput
-                );
-
-            const maxInput =
-                document.getElementById(
-                    config.maxInput
-                );
-
-
-            minSlider.value =
-                config.minimum;
-
-            maxSlider.value =
-                config.maximum;
-
-
-            minInput.value = "";
-
-            maxInput.value = "";
-
-
-            updateSliderTrack(
-                minSlider,
-                maxSlider
+            document.getElementById(
+                "school-details"
+            ).classList.remove(
+                "open"
             );
 
         }
     );
 
-
-    applyFilters();
-
 }
 
 
 /* =========================================================
-   FORMATTING
+   CLEAR
    ========================================================= */
 
-function formatNumber(
-    value
-) {
+function initialiseClearButton() {
 
-    return Number(value)
-        .toLocaleString();
+    document.getElementById(
+        "clear-filters"
+    ).addEventListener(
+        "click",
+        () => {
+
+            selectedStates = [];
+
+            selectedSectors = [];
+
+            selectedGenders = [];
+
+
+            document.getElementById(
+                "state-filter"
+            ).value = "";
+
+
+            document.querySelectorAll(
+                '.checkbox-options input[type="checkbox"]'
+            ).forEach(
+                checkbox => {
+                    checkbox.checked = false;
+                }
+            );
+
+
+            updateDropdownText(
+                "sector-dropdown-button",
+                [],
+                "Select sector"
+            );
+
+
+            updateDropdownText(
+                "gender-dropdown-button",
+                [],
+                "Select gender"
+            );
+
+
+            document.getElementById(
+                "school-search"
+            ).value = "";
+
+
+            Object.values(
+                rangeConfig
+            ).forEach(
+                config => {
+
+                    document.getElementById(
+                        config.minSlider
+                    ).value =
+                        config.minimum;
+
+
+                    document.getElementById(
+                        config.maxSlider
+                    ).value =
+                        config.maximum;
+
+
+                    document.getElementById(
+                        config.minInput
+                    ).value = "";
+
+
+                    document.getElementById(
+                        config.maxInput
+                    ).value = "";
+
+
+                    updateSliderTrack(
+                        document.getElementById(
+                            config.minSlider
+                        ),
+                        document.getElementById(
+                            config.maxSlider
+                        )
+                    );
+
+                }
+            );
+
+
+            applyFilters();
+
+        }
+    );
 
 }
 
 
 /* =========================================================
-   TRUNCATE
-   ========================================================= */
-
-function truncate(
-    text,
-    length
-) {
-
-    if (
-        text.length <= length
-    ) {
-
-        return text;
-
-    }
-
-
-    return text.substring(
-        0,
-        length
-    ) + "...";
-
-}
-
-
-/* =========================================================
-   HTML ESCAPING
+   ESCAPE HTML
    ========================================================= */
 
 function escapeHtml(
@@ -2295,14 +2029,5 @@ function escapeHtml(
             /'/g,
             "&#039;"
         );
-
-}
-
-
-function escapeAttribute(
-    value
-) {
-
-    return escapeHtml(value);
 
 }
