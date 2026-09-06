@@ -15,6 +15,45 @@ const SUPABASE_ANON_KEY =
 
 
 /* =========================================================
+   DEBUG / TEST SETTINGS
+   ========================================================= */
+
+/*
+   Set this to true while testing.
+
+   It will:
+   - print useful information to the browser console
+   - check that Supabase is returning schools
+   - check that Parade College exists
+   - check Parade's coordinates
+   - check whether Parade passes the filters
+   - report how many markers were created
+   - temporarily zoom to Parade if it exists
+*/
+
+const DEBUG_MODE = true;
+
+
+/*
+   Parade College's Victorian Government school number.
+
+   This is only used for testing.
+*/
+
+const TEST_SCHOOL_NO = "20";
+
+
+/*
+   Set this to true if you want the map to automatically
+   zoom to Parade College after the data loads.
+
+   Set to false once you are finished testing.
+*/
+
+const ZOOM_TO_TEST_SCHOOL = true;
+
+
+/* =========================================================
    GEOCODING
    ========================================================= */
 
@@ -103,6 +142,19 @@ document.addEventListener(
     "DOMContentLoaded",
     () => {
 
+        console.log(
+            "=========================================="
+        );
+
+        console.log(
+            "EduMatch map starting..."
+        );
+
+        console.log(
+            "=========================================="
+        );
+
+
         initialiseMap();
 
         initialiseFilters();
@@ -124,6 +176,41 @@ document.addEventListener(
    ========================================================= */
 
 function initialiseMap() {
+
+    console.log(
+        "[TEST] Initialising Leaflet map..."
+    );
+
+
+    const mapElement =
+        document.getElementById(
+            "school-map"
+        );
+
+
+    if (!mapElement) {
+
+        console.error(
+            "[TEST FAILED] #school-map does not exist."
+        );
+
+        return;
+
+    }
+
+
+    if (
+        typeof L === "undefined"
+    ) {
+
+        console.error(
+            "[TEST FAILED] Leaflet has not loaded."
+        );
+
+        return;
+
+    }
+
 
     map = L.map(
         "school-map",
@@ -147,9 +234,9 @@ function initialiseMap() {
 
 
     /*
-       Start centred on Australia because that is
-       currently where the project data is expected.
-       The map itself is no longer restricted to Australia.
+       Start centred on Melbourne.
+
+       The map itself is not restricted to Australia.
     */
 
     map.setView(
@@ -158,6 +245,11 @@ function initialiseMap() {
             144.9631
         ],
         6
+    );
+
+
+    console.log(
+        "[TEST PASSED] Leaflet map initialised."
     );
 
 }
@@ -169,12 +261,37 @@ function initialiseMap() {
 
 async function loadSchools() {
 
+    console.log(
+        "=========================================="
+    );
+
+    console.log(
+        "[TEST] Loading schools from Supabase..."
+    );
+
+    console.log(
+        "=========================================="
+    );
+
+
     try {
+
+        const url =
+            `${SUPABASE_URL}/rest/v1/Schools?select=*`;
+
+
+        console.log(
+            "[TEST] Supabase URL:",
+            url
+        );
+
 
         const response =
             await fetch(
-                `${SUPABASE_URL}/rest/v1/Schools?select=*`,
+                url,
                 {
+                    method: "GET",
+
                     headers: {
                         "apikey":
                             SUPABASE_ANON_KEY,
@@ -183,24 +300,103 @@ async function loadSchools() {
                             `Bearer ${SUPABASE_ANON_KEY}`,
 
                         "Content-Type":
+                            "application/json",
+
+                        "Accept":
                             "application/json"
                     }
                 }
             );
 
 
+        console.log(
+            "[TEST] Supabase HTTP status:",
+            response.status
+        );
+
+
+        /*
+           Read the response as text first.
+
+           This makes errors much easier to diagnose.
+        */
+
+        const responseText =
+            await response.text();
+
+
+        console.log(
+            "[TEST] Supabase raw response:",
+            responseText
+        );
+
+
         if (!response.ok) {
 
             throw new Error(
-                `Supabase request failed: ${response.status}`
+                `Supabase request failed: ${response.status} ${response.statusText}\n${responseText}`
+            );
+
+        }
+
+
+        let data;
+
+
+        try {
+
+            data =
+                JSON.parse(
+                    responseText
+                );
+
+        } catch (parseError) {
+
+            throw new Error(
+                "Supabase returned data that was not valid JSON."
+            );
+
+        }
+
+
+        if (!Array.isArray(data)) {
+
+            throw new Error(
+                "Supabase response was not an array of schools."
             );
 
         }
 
 
         schools =
-            await response.json();
+            data;
 
+
+        console.log(
+            "[TEST PASSED] Supabase request succeeded."
+        );
+
+
+        console.log(
+            "[TEST] Number of schools returned:",
+            schools.length
+        );
+
+
+        if (
+            schools.length === 0
+        ) {
+
+            console.warn(
+                "[TEST WARNING] Supabase returned zero schools."
+            );
+
+        }
+
+
+        /*
+           Normalise all school data.
+        */
 
         schools =
             schools.map(
@@ -208,16 +404,83 @@ async function loadSchools() {
             );
 
 
+        console.log(
+            "[TEST] Normalised schools:",
+            schools
+        );
+
+
+        /*
+           Run database/data tests.
+        */
+
+        runSchoolDataTests();
+
+
+        /*
+           Populate filters.
+        */
+
         populateStateOptions();
 
+
+        /*
+           Apply the current filters.
+        */
+
         applyFilters();
+
+
+        /*
+           Test the rendered markers.
+        */
+
+        runMarkerTests();
+
+
+        /*
+           Zoom to Parade while testing.
+        */
+
+        if (
+            DEBUG_MODE &&
+            ZOOM_TO_TEST_SCHOOL
+        ) {
+
+            zoomToTestSchool();
+
+        }
+
+
+        console.log(
+            "=========================================="
+        );
+
+        console.log(
+            "[TEST] School loading complete."
+        );
+
+        console.log(
+            "=========================================="
+        );
 
 
     } catch (error) {
 
         console.error(
-            "Unable to load schools:",
+            "=========================================="
+        );
+
+        console.error(
+            "[TEST FAILED] Unable to load schools."
+        );
+
+        console.error(
             error
+        );
+
+        console.error(
+            "=========================================="
         );
 
 
@@ -286,6 +549,443 @@ function normaliseSchool(
                 : null
 
     };
+
+}
+
+
+/* =========================================================
+   SCHOOL DATA TESTS
+   ========================================================= */
+
+function runSchoolDataTests() {
+
+    if (!DEBUG_MODE) {
+        return;
+    }
+
+
+    console.log(
+        "=========================================="
+    );
+
+    console.log(
+        "[TEST] Running school data tests..."
+    );
+
+    console.log(
+        "=========================================="
+    );
+
+
+    /*
+       TEST 1
+       At least one school was returned.
+    */
+
+    if (
+        schools.length > 0
+    ) {
+
+        console.log(
+            "[TEST PASSED] Supabase returned at least one school."
+        );
+
+    } else {
+
+        console.error(
+            "[TEST FAILED] Supabase returned zero schools."
+        );
+
+        return;
+
+    }
+
+
+    /*
+       TEST 2
+       Parade College exists.
+    */
+
+    const parade =
+        schools.find(
+            school =>
+                String(
+                    school.government_school_no
+                ) === TEST_SCHOOL_NO
+        );
+
+
+    if (parade) {
+
+        console.log(
+            "[TEST PASSED] Parade College was found."
+        );
+
+        console.log(
+            "[TEST] Parade College:",
+            parade
+        );
+
+    } else {
+
+        console.error(
+            "[TEST FAILED] Parade College was NOT found."
+        );
+
+        console.error(
+            "[TEST] Looking for government_school_no:",
+            TEST_SCHOOL_NO
+        );
+
+        return;
+
+    }
+
+
+    /*
+       TEST 3
+       Parade has a valid latitude.
+    */
+
+    if (
+        Number.isFinite(
+            parade.latitude
+        )
+    ) {
+
+        console.log(
+            "[TEST PASSED] Parade latitude is valid:",
+            parade.latitude
+        );
+
+    } else {
+
+        console.error(
+            "[TEST FAILED] Parade latitude is invalid:",
+            parade.latitude
+        );
+
+    }
+
+
+    /*
+       TEST 4
+       Parade has a valid longitude.
+    */
+
+    if (
+        Number.isFinite(
+            parade.longitude
+        )
+    ) {
+
+        console.log(
+            "[TEST PASSED] Parade longitude is valid:",
+            parade.longitude
+        );
+
+    } else {
+
+        console.error(
+            "[TEST FAILED] Parade longitude is invalid:",
+            parade.longitude
+        );
+
+    }
+
+
+    /*
+       TEST 5
+       Check the expected Parade coordinates.
+
+       Victorian Government data:
+       Latitude  = -37.6902
+       Longitude = 145.067
+    */
+
+    const expectedLatitude =
+        -37.6902;
+
+    const expectedLongitude =
+        145.067;
+
+
+    const latitudeMatches =
+        Math.abs(
+            parade.latitude -
+            expectedLatitude
+        ) < 0.001;
+
+
+    const longitudeMatches =
+        Math.abs(
+            parade.longitude -
+            expectedLongitude
+        ) < 0.001;
+
+
+    if (
+        latitudeMatches &&
+        longitudeMatches
+    ) {
+
+        console.log(
+            "[TEST PASSED] Parade coordinates match the expected location."
+        );
+
+    } else {
+
+        console.warn(
+            "[TEST WARNING] Parade coordinates differ from the expected test coordinates."
+        );
+
+        console.warn(
+            "Expected:",
+            expectedLatitude,
+            expectedLongitude
+        );
+
+        console.warn(
+            "Actual:",
+            parade.latitude,
+            parade.longitude
+        );
+
+    }
+
+
+    /*
+       TEST 6
+       Check that the school can pass the current filters.
+    */
+
+    const passesFilters =
+        filteredSchools.includes(
+            parade
+        );
+
+
+    if (
+        passesFilters
+    ) {
+
+        console.log(
+            "[TEST PASSED] Parade College passes the current filters."
+        );
+
+    } else {
+
+        console.warn(
+            "[TEST WARNING] Parade College is being removed by one or more filters."
+        );
+
+        console.warn(
+            "[TEST] Current filter ranges:",
+            {
+                age: getRange("age"),
+                fee: getRange("fee"),
+                enrolment: getRange("enrolment"),
+                ratio: getRange("ratio"),
+                distance: getRange("distance")
+            }
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   MARKER TESTS
+   ========================================================= */
+
+function runMarkerTests() {
+
+    if (!DEBUG_MODE) {
+        return;
+    }
+
+
+    console.log(
+        "=========================================="
+    );
+
+    console.log(
+        "[TEST] Running marker tests..."
+    );
+
+    console.log(
+        "=========================================="
+    );
+
+
+    /*
+       TEST 1
+       At least one filtered school exists.
+    */
+
+    if (
+        filteredSchools.length > 0
+    ) {
+
+        console.log(
+            "[TEST PASSED] At least one school passed the filters."
+        );
+
+    } else {
+
+        console.error(
+            "[TEST FAILED] No schools passed the filters."
+        );
+
+        return;
+
+    }
+
+
+    /*
+       TEST 2
+       Markers were created.
+    */
+
+    if (
+        markers.length > 0
+    ) {
+
+        console.log(
+            "[TEST PASSED] School markers were created:",
+            markers.length
+        );
+
+    } else {
+
+        console.error(
+            "[TEST FAILED] No school markers were created."
+        );
+
+    }
+
+
+    /*
+       TEST 3
+       Check Parade's marker.
+    */
+
+    const parade =
+        schools.find(
+            school =>
+                String(
+                    school.government_school_no
+                ) === TEST_SCHOOL_NO
+        );
+
+
+    if (!parade) {
+        return;
+    }
+
+
+    const paradeMarker =
+        markers.find(
+            marker => {
+
+                const position =
+                    marker.getLatLng();
+
+
+                return (
+                    Math.abs(
+                        position.lat -
+                        parade.latitude
+                    ) < 0.0001 &&
+
+                    Math.abs(
+                        position.lng -
+                        parade.longitude
+                    ) < 0.0001
+                );
+
+            }
+        );
+
+
+    if (
+        paradeMarker
+    ) {
+
+        console.log(
+            "[TEST PASSED] Parade College marker was created."
+        );
+
+    } else {
+
+        console.error(
+            "[TEST FAILED] Parade College has no marker."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   ZOOM TO TEST SCHOOL
+   ========================================================= */
+
+function zoomToTestSchool() {
+
+    const testSchool =
+        schools.find(
+            school =>
+                String(
+                    school.government_school_no
+                ) === TEST_SCHOOL_NO
+        );
+
+
+    if (!testSchool) {
+
+        console.warn(
+            "[TEST] Cannot zoom to Parade because it was not found."
+        );
+
+        return;
+
+    }
+
+
+    if (
+        !Number.isFinite(
+            testSchool.latitude
+        ) ||
+        !Number.isFinite(
+            testSchool.longitude
+        )
+    ) {
+
+        console.warn(
+            "[TEST] Cannot zoom to Parade because its coordinates are invalid."
+        );
+
+        return;
+
+    }
+
+
+    console.log(
+        "[TEST] Zooming map to Parade College:",
+        testSchool.latitude,
+        testSchool.longitude
+    );
+
+
+    map.setView(
+        [
+            testSchool.latitude,
+            testSchool.longitude
+        ],
+        15
+    );
 
 }
 
@@ -1420,6 +2120,8 @@ function updateStateDisplay() {
         0
     ) {
 
+        input.value = "";
+
         input.placeholder =
             "Search states / regions worldwide...";
 
@@ -2069,6 +2771,10 @@ function toRadians(
 
 function renderSchoolMarkers() {
 
+    /*
+       Remove existing markers.
+    */
+
     markers.forEach(
         marker =>
             map.removeLayer(
@@ -2079,6 +2785,10 @@ function renderSchoolMarkers() {
 
     markers = [];
 
+
+    /*
+       Create a marker for every filtered school.
+    */
 
     filteredSchools.forEach(
         school => {
@@ -2095,6 +2805,11 @@ function renderSchoolMarkers() {
                 );
 
 
+            /*
+               Do not create a marker if the coordinates
+               are invalid.
+            */
+
             if (
                 !Number.isFinite(
                     latitude
@@ -2103,6 +2818,19 @@ function renderSchoolMarkers() {
                     longitude
                 )
             ) {
+
+                if (
+                    DEBUG_MODE
+                ) {
+
+                    console.warn(
+                        "[MARKER SKIPPED] Invalid coordinates:",
+                        school.name,
+                        latitude,
+                        longitude
+                    );
+
+                }
 
                 return;
 
@@ -2239,6 +2967,18 @@ function renderSchoolMarkers() {
 
         }
     );
+
+
+    if (
+        DEBUG_MODE
+    ) {
+
+        console.log(
+            "[TEST] Markers currently rendered:",
+            markers.length
+        );
+
+    }
 
 }
 
@@ -2429,7 +3169,7 @@ function openSchoolDetails(
 
             ${createDetail(
                 "Student–Teacher Ratio",
-                school.student_teacher_ratio
+                school.student_teacher_ratio !== null
                     ? String(
                         school.student_teacher_ratio
                     )
@@ -2830,6 +3570,12 @@ function setUserLocation(
         )
     ) {
 
+        console.error(
+            "Invalid user location:",
+            latitude,
+            longitude
+        );
+
         return;
 
     }
@@ -2920,6 +3666,19 @@ function setUserLocation(
     updateDistanceCircle();
 
     applyFilters();
+
+
+    if (
+        DEBUG_MODE
+    ) {
+
+        console.log(
+            "[TEST] User location set:",
+            userLatitude,
+            userLongitude
+        );
+
+    }
 
 }
 
@@ -3068,13 +3827,6 @@ async function geocodeAddress() {
         }
 
 
-        userLatitude =
-            latitude;
-
-        userLongitude =
-            longitude;
-
-
         input.value =
             result.display_name ||
             originalValue;
@@ -3135,11 +3887,6 @@ function updateDistanceCircle() {
             "distance"
         );
 
-
-    /*
-       The maximum distance is used as
-       the radius of the visible circle.
-    */
 
     const radiusMetres =
         distanceRange.max *
