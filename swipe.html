@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -11,9 +12,34 @@
 
     <title>EduMatch - Saved Schools</title>
 
+
+    <!-- =========================
+         UNIVERSAL / THEME CSS
+         ========================= -->
+
+    <link
+        rel="stylesheet"
+        href="css/theme.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="css/navbar.css"
+    >
+
+
+    <!-- =========================
+         SUPABASE
+         ========================= -->
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+
     <style>
+
+        /* =========================
+           RESET
+           ========================= */
 
         * {
             box-sizing: border-box;
@@ -21,74 +47,65 @@
             padding: 0;
         }
 
+
+        /* =========================
+           BODY
+           ========================= */
+
         body {
             font-family: Arial, sans-serif;
+
             background-color: #f7f7f7;
+
             color: #333;
+
             min-height: 100vh;
         }
 
-        .navbar {
-            min-height: 70px;
-            background-color: #FFB7A7;
 
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            padding: 0 50px;
-        }
-
-        .logo {
-            font-size: 26px;
-            font-weight: bold;
-            color: #222;
-            text-decoration: none;
-        }
-
-        .navbar nav {
-            display: flex;
-            align-items: center;
-            gap: 25px;
-        }
-
-        .navbar nav a {
-            color: #222;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .navbar nav a:hover {
-            text-decoration: underline;
-        }
-
-        .login-button {
-            background-color: white;
-            padding: 10px 18px;
-            border-radius: 8px;
-        }
+        /* =========================
+           SAVED PAGE
+           ========================= */
 
         .saved-page {
             width: 100%;
+
             max-width: 1200px;
+
             margin: 0 auto;
+
             padding: 45px 20px 70px;
         }
 
+
+        /* =========================
+           PAGE HEADING
+           ========================= */
+
         .page-heading {
             text-align: center;
+
             margin-bottom: 35px;
         }
 
+
         .page-heading h1 {
             font-size: 34px;
+
             margin-bottom: 8px;
         }
 
+
         .page-heading p {
             color: #777;
+
             line-height: 1.5;
         }
+
+
+        /* =========================
+           SAVED SCHOOL GRID
+           ========================= */
 
         .saved-grid {
             display: grid;
@@ -102,78 +119,124 @@
             gap: 25px;
         }
 
+
+        /* =========================
+           SCHOOL CARD
+           ========================= */
+
         .saved-school-card {
             background-color: white;
+
             border-radius: 18px;
+
             overflow: hidden;
 
             box-shadow:
-                0 8px 25px rgba(0, 0, 0, 0.10);
+                0 8px 25px
+                rgba(0, 0, 0, 0.10);
 
             display: flex;
+
             flex-direction: column;
         }
+
+
+        /* =========================
+           SCHOOL CONTENT
+           ========================= */
 
         .school-content {
             padding: 20px;
 
             display: flex;
+
             flex-direction: column;
+
             flex-grow: 1;
         }
+
 
         .school-content h2 {
             font-size: 22px;
+
             margin-bottom: 8px;
         }
 
+
         .school-location {
             color: #777;
+
             margin-bottom: 15px;
         }
 
+
         .school-description {
             color: #555;
+
             line-height: 1.5;
+
             margin-bottom: 20px;
+
             flex-grow: 1;
         }
 
+
+        /* =========================
+           SCHOOL ACTIONS
+           ========================= */
+
         .school-actions {
             display: flex;
+
             gap: 10px;
+
             flex-wrap: wrap;
         }
 
+
         .school-button {
             border: none;
+
             border-radius: 9px;
 
             padding: 11px 15px;
 
             font-size: 14px;
+
             font-weight: bold;
 
             cursor: pointer;
 
             text-decoration: none;
+
             text-align: center;
         }
 
+
         .website-button {
             background-color: #FFB7A7;
+
             color: #222;
+
             flex: 1;
         }
 
+
         .remove-button {
-            background-color: #eee;
+            background-color: #eeeeee;
+
             color: #444;
         }
 
+
         .remove-button:hover {
-            background-color: #ddd;
+            background-color: #dddddd;
         }
+
+
+        /* =========================
+           MESSAGE BOX
+           ========================= */
 
         .message-box {
             grid-column: 1 / -1;
@@ -187,22 +250,28 @@
             text-align: center;
 
             box-shadow:
-                0 8px 25px rgba(0, 0, 0, 0.08);
+                0 8px 25px
+                rgba(0, 0, 0, 0.08);
         }
+
 
         .message-box h2 {
             margin-bottom: 10px;
         }
 
+
         .message-box p {
             color: #777;
+
             margin-bottom: 20px;
         }
+
 
         .message-box a {
             display: inline-block;
 
             background-color: #FFB7A7;
+
             color: #222;
 
             padding: 12px 20px;
@@ -210,82 +279,51 @@
             border-radius: 9px;
 
             text-decoration: none;
+
             font-weight: bold;
         }
 
+
+        /* =========================
+           MOBILE
+           ========================= */
+
         @media (max-width: 700px) {
 
-            .navbar {
-                padding: 15px 18px;
-                flex-wrap: wrap;
-                gap: 15px;
-            }
-
-            .navbar nav {
-                width: 100%;
-                flex-wrap: wrap;
-                gap: 12px;
-            }
-
-            .navbar nav a {
-                font-size: 13px;
-            }
-
             .saved-page {
-                padding: 30px 15px 50px;
+                padding:
+                    30px 15px
+                    50px;
             }
+
 
             .page-heading h1 {
                 font-size: 28px;
             }
+
         }
 
     </style>
+
 </head>
+
 
 <body>
 
-    <header class="navbar">
 
-        <a href="index.html" class="logo">
-            EduMatch
-        </a>
+    <!-- =========================
+         UNIVERSAL NAVBAR
+         ========================= -->
 
-        <nav>
+    <div data-universal="navbar"></div>
 
-            <a href="index.html">
-                Home
-            </a>
 
-            <a href="map.html">
-                Map
-            </a>
-
-            <a href="swipe.html">
-                Swipe
-            </a>
-
-            <a href="saved.html">
-                Saved Schools
-            </a>
-
-            <a href="about.html">
-                About
-            </a>
-
-            <a
-                href="login.html"
-                class="login-button"
-            >
-                Login
-            </a>
-
-        </nav>
-
-    </header>
-
+    <!-- =========================
+         MAIN PAGE
+         ========================= -->
 
     <main class="saved-page">
+
 
         <section class="page-heading">
 
@@ -299,6 +337,10 @@
 
         </section>
 
+
+        <!-- =========================
+             SAVED SCHOOLS
+             ========================= -->
 
         <section
             id="saved-schools"
@@ -319,8 +361,20 @@
 
         </section>
 
+
     </main>
 
+
+    <!-- =========================
+         UNIVERSAL LOADER
+         ========================= -->
+
+    <script src="js/universal.js"></script>
+
+
+    <!-- =========================
+         SAVED SCHOOLS JAVASCRIPT
+         ========================= -->
 
     <script>
 
@@ -331,8 +385,10 @@
         const SUPABASE_URL =
             "YOUR_SUPABASE_URL";
 
+
         const SUPABASE_ANON_KEY =
             "YOUR_SUPABASE_ANON_KEY";
+
 
         const supabaseClient =
             supabase.createClient(
@@ -341,6 +397,10 @@
             );
 
 
+        /* =========================
+           CONTAINER
+           ========================= */
+
         const savedSchoolsContainer =
             document.getElementById(
                 "saved-schools"
@@ -348,7 +408,7 @@
 
 
         /* =========================
-           ESCAPE TEXT
+           ESCAPE HTML
            ========================= */
 
         function escapeHTML(value) {
@@ -357,15 +417,39 @@
                 value === null ||
                 value === undefined
             ) {
+
                 return "";
+
             }
 
+
             return String(value)
-                .replaceAll("&", "&amp;")
-                .replaceAll("<", "&lt;")
-                .replaceAll(">", "&gt;")
-                .replaceAll('"', "&quot;")
-                .replaceAll("'", "&#039;");
+
+                .replaceAll(
+                    "&",
+                    "&amp;"
+                )
+
+                .replaceAll(
+                    "<",
+                    "&lt;"
+                )
+
+                .replaceAll(
+                    ">",
+                    "&gt;"
+                )
+
+                .replaceAll(
+                    '"',
+                    "&quot;"
+                )
+
+                .replaceAll(
+                    "'",
+                    "&#039;"
+                );
+
         }
 
 
@@ -382,6 +466,7 @@
 
             savedSchoolsContainer.innerHTML =
                 `
+
                 <div class="message-box">
 
                     <h2>
@@ -392,25 +477,35 @@
                         ${escapeHTML(message)}
                     </p>
 
+
                     ${
-                        buttonText && buttonLink
+                        buttonText &&
+                        buttonLink
+
                             ?
+
                             `
+
                             <a href="${buttonLink}">
                                 ${escapeHTML(buttonText)}
                             </a>
+
                             `
+
                             :
+
                             ""
                     }
 
                 </div>
+
                 `;
+
         }
 
 
         /* =========================
-           GET USER
+           GET CURRENT USER
            ========================= */
 
         async function getCurrentUser() {
@@ -423,6 +518,7 @@
                     .auth
                     .getUser();
 
+
             if (error) {
 
                 console.error(
@@ -431,9 +527,12 @@
                 );
 
                 return null;
+
             }
 
+
             return data.user;
+
         }
 
 
@@ -443,22 +542,39 @@
 
         async function loadSavedSchools() {
 
+
             const user =
                 await getCurrentUser();
 
 
+            /* =========================
+               NOT LOGGED IN
+               ========================= */
+
             if (!user) {
 
+
                 showMessage(
+
                     "Login Required",
+
                     "Please log in to view your saved schools.",
+
                     "Log In",
+
                     "login.html"
+
                 );
 
+
                 return;
+
             }
 
+
+            /* =========================
+               DATABASE QUERY
+               ========================= */
 
             const {
                 data,
@@ -472,18 +588,29 @@
 
                     .select(
                         `
+
                         id,
+
                         school_id,
+
                         created_at,
 
                         schools (
+
                             school_id,
+
                             name,
+
                             description,
+
                             address,
+
                             state,
+
                             website
+
                         )
+
                         `
                     )
 
@@ -500,51 +627,85 @@
                     );
 
 
+            /* =========================
+               DATABASE ERROR
+               ========================= */
+
             if (error) {
+
 
                 console.error(
                     "Saved schools error:",
                     error
                 );
 
+
                 showMessage(
-                    "Could not load schools",
+
+                    "Could Not Load Schools",
+
                     "There was a problem loading your saved schools."
+
                 );
 
+
                 return;
+
             }
 
+
+            /* =========================
+               NOTHING SAVED
+               ========================= */
 
             if (
                 !data ||
                 data.length === 0
             ) {
 
+
                 showMessage(
+
                     "No Saved Schools Yet",
+
                     "Swipe right on schools to save them here.",
+
                     "Start Swiping",
+
                     "swipe.html"
+
                 );
 
+
                 return;
+
             }
 
+
+            /* =========================
+               CLEAR LOADING MESSAGE
+               ========================= */
 
             savedSchoolsContainer.innerHTML =
                 "";
 
 
+            /* =========================
+               BUILD SCHOOL CARDS
+               ========================= */
+
             data.forEach(
                 function(savedItem) {
+
 
                     const school =
                         savedItem.schools;
 
 
                     if (!school) {
+
                         return;
+
                     }
 
 
@@ -587,41 +748,62 @@
 
 
                     const website =
-                        school.website || "";
+                        school.website ||
+                        "";
 
+
+                    /* =========================
+                       CARD CONTENT
+                       ========================= */
 
                     card.innerHTML =
                         `
+
                         <div class="school-content">
+
 
                             <h2>
                                 ${name}
                             </h2>
+
 
                             <p class="school-location">
 
                                 ${address}
 
                                 ${
-                                    address && state
-                                        ? " • "
-                                        : ""
+                                    address &&
+                                    state
+
+                                        ?
+
+                                        " • "
+
+                                        :
+
+                                        ""
                                 }
 
                                 ${state}
 
                             </p>
 
+
                             <p class="school-description">
                                 ${description}
                             </p>
 
+
                             <div class="school-actions">
+
 
                                 ${
                                     website
+
                                         ?
+
                                         `
+
                                         <a
                                             href="${escapeHTML(website)}"
                                             target="_blank"
@@ -633,10 +815,14 @@
                                         >
                                             View Website
                                         </a>
+
                                         `
+
                                         :
+
                                         ""
                                 }
+
 
                                 <button
                                     type="button"
@@ -649,9 +835,12 @@
                                     Remove
                                 </button>
 
+
                             </div>
 
+
                         </div>
+
                         `;
 
 
@@ -659,9 +848,14 @@
                         .appendChild(
                             card
                         );
+
                 }
             );
 
+
+            /* =========================
+               REMOVE BUTTON EVENTS
+               ========================= */
 
             document
                 .querySelectorAll(
@@ -670,38 +864,48 @@
                 .forEach(
                     function(button) {
 
+
                         button.addEventListener(
                             "click",
                             async function() {
 
+
                                 const savedId =
                                     button.dataset.savedId;
+
 
                                 await removeSavedSchool(
                                     savedId
                                 );
+
+
                             }
                         );
 
+
                     }
                 );
+
         }
 
 
         /* =========================
-           REMOVE SCHOOL
+           REMOVE SAVED SCHOOL
            ========================= */
 
         async function removeSavedSchool(
             savedId
         ) {
 
+
             const user =
                 await getCurrentUser();
 
 
             if (!user) {
+
                 return;
+
             }
 
 
@@ -729,20 +933,27 @@
 
             if (error) {
 
+
                 console.error(
                     "Remove error:",
                     error
                 );
 
+
                 alert(
                     "Could not remove this school."
                 );
 
+
                 return;
+
             }
 
 
+            /* REFRESH LIST */
+
             loadSavedSchools();
+
         }
 
 
@@ -753,6 +964,7 @@
         loadSavedSchools();
 
     </script>
+
 
 </body>
 
