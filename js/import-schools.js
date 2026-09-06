@@ -13,9 +13,11 @@ const VICTORIAN_API =
 const RESOURCE_ID =
     "d26bf015-a1e5-48dd-a1d6-8edd4b0a511b";
 
-// TEST ONLY
-// Parade College has School_No 20
-const SCHOOL_NO = "20";
+// Number of Victorian API records requested per page
+const API_PAGE_SIZE = 1000;
+
+// Number of schools sent to Supabase at once
+const SUPABASE_BATCH_SIZE = 500;
 
 
 // ============================================================
@@ -34,51 +36,82 @@ const supabase = createClient(
 
 
 // ============================================================
-// GET SCHOOL FROM VICTORIAN GOVERNMENT API
+// GET ALL SCHOOLS FROM VICTORIAN GOVERNMENT API
 // ============================================================
 
-async function getSchool() {
+async function getAllSchools() {
 
-    const params = new URLSearchParams({
-        resource_id: RESOURCE_ID,
-        limit: "1",
+    const allRecords = [];
 
-        filters: JSON.stringify({
-            School_No: SCHOOL_NO
-        })
-    });
+    let offset = 0;
 
-    const url = `${VICTORIAN_API}?${params}`;
+    console.log("");
+    console.log("=================================");
+    console.log("FETCHING VICTORIAN SCHOOL DATA");
+    console.log("=================================");
+    console.log("");
 
-    console.log("Fetching school from Victorian Government API...");
-    console.log(`School_No: ${SCHOOL_NO}`);
+    while (true) {
 
-    const response = await fetch(url);
+        const params = new URLSearchParams({
+            resource_id: RESOURCE_ID,
+            limit: String(API_PAGE_SIZE),
+            offset: String(offset)
+        });
 
-    if (!response.ok) {
-        throw new Error(
-            `Victorian API returned HTTP ${response.status}`
+        const url = `${VICTORIAN_API}?${params}`;
+
+        console.log(
+            `Fetching records ${offset + 1} to ${offset + API_PAGE_SIZE}...`
         );
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(
+                `Victorian API returned HTTP ${response.status}`
+            );
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(
+                "Victorian API returned an unsuccessful response."
+            );
+        }
+
+        if (
+            !data.result ||
+            !Array.isArray(data.result.records)
+        ) {
+            throw new Error(
+                "Victorian API returned an invalid records response."
+            );
+        }
+
+        const records = data.result.records;
+
+        allRecords.push(...records);
+
+        console.log(
+            `Received ${records.length} records. Total: ${allRecords.length}`
+        );
+
+        // No more records
+        if (records.length < API_PAGE_SIZE) {
+            break;
+        }
+
+        offset += API_PAGE_SIZE;
     }
 
-    const data = await response.json();
+    console.log("");
+    console.log(
+        `Total Victorian records retrieved: ${allRecords.length}`
+    );
 
-    if (!data.success) {
-        throw new Error(
-            "Victorian API returned an unsuccessful response."
-        );
-    }
-
-    if (
-        !data.result.records ||
-        data.result.records.length === 0
-    ) {
-        throw new Error(
-            `No school found with School_No ${SCHOOL_NO}`
-        );
-    }
-
-    return data.result.records[0];
+    return allRecords;
 }
 
 
@@ -97,146 +130,241 @@ function convertSchool(row) {
         row.Address_Postcode
     ].filter(Boolean);
 
+    const latitude = Number(row.Y);
+    const longitude = Number(row.X);
+
     return {
 
+        // ----------------------------------------------------
         // Government identifier
-        government_school_no: String(row.School_No),
+        // ----------------------------------------------------
 
+        government_school_no:
+            row.School_No !== undefined &&
+            row.School_No !== null
+                ? String(row.School_No)
+                : null,
+
+
+        // ----------------------------------------------------
         // Basic school information
-        name: row.School_Name || null,
+        // ----------------------------------------------------
 
-        school_type: row.School_Type || null,
+        name:
+            row.School_Name || null,
 
-        sector: row.Education_Sector || null,
+        school_type:
+            row.School_Type || null,
 
+        sector:
+            row.Education_Sector || null,
+
+
+        // ----------------------------------------------------
         // Address
-        address: addressParts.join(", "),
+        // ----------------------------------------------------
 
-        state: row.Address_State || null,
+        address:
+            addressParts.length > 0
+                ? addressParts.join(", ")
+                : null,
 
+        state:
+            row.Address_State || null,
+
+
+        // ----------------------------------------------------
         // Contact
-        contact: row.Full_Phone_No || null,
+        // ----------------------------------------------------
 
+        contact:
+            row.Full_Phone_No || null,
+
+
+        // ----------------------------------------------------
         // Coordinates
-        // Victorian API:
+        //
+        // Victorian dataset:
         // X = longitude
         // Y = latitude
-        latitude: Number(row.Y),
-        longitude: Number(row.X)
+        // ----------------------------------------------------
+
+        latitude,
+
+        longitude
     };
 }
 
 
 // ============================================================
-// VALIDATE CONVERTED SCHOOL
+// VALIDATE SCHOOL
 // ============================================================
 
 function validateSchool(school) {
 
     if (!school.government_school_no) {
-        throw new Error(
-            "School is missing government_school_no."
-        );
+        return {
+            valid: false,
+            reason: "Missing government school number."
+        };
     }
 
     if (!school.name) {
-        throw new Error(
-            "School is missing a name."
-        );
+        return {
+            valid: false,
+            reason: "Missing school name."
+        };
     }
 
     if (
         !Number.isFinite(school.latitude) ||
         !Number.isFinite(school.longitude)
     ) {
-        throw new Error(
-            "School has invalid latitude or longitude."
-        );
+        return {
+            valid: false,
+            reason: "Invalid latitude or longitude."
+        };
     }
+
+    return {
+        valid: true
+    };
 }
 
 
 // ============================================================
-// SAVE SCHOOL TO SUPABASE
+// SAVE BATCH OF SCHOOLS TO SUPABASE
 // ============================================================
 
-async function saveSchool(school) {
+async function saveSchoolBatch(schools, batchNumber, totalBatches) {
 
+    console.log("");
     console.log(
-        "Checking whether school already exists..."
+        `Uploading batch ${batchNumber}/${totalBatches} (${schools.length} schools)...`
     );
 
+    /*
+     * government_school_no has a UNIQUE constraint in Supabase.
+     *
+     * Therefore upsert will:
+     *
+     * - INSERT a school if it doesn't exist
+     * - UPDATE the school if it already exists
+     *
+     * This prevents duplicate schools.
+     */
+
     const {
-        data: existingSchool,
-        error: lookupError
+        error
     } = await supabase
         .from("Schools")
-        .select("school_id")
-        .eq(
-            "government_school_no",
-            school.government_school_no
-        )
-        .maybeSingle();
-
-    if (lookupError) {
-        throw lookupError;
-    }
-
-
-    // ========================================================
-    // UPDATE EXISTING SCHOOL
-    // ========================================================
-
-    if (existingSchool) {
-
-        console.log(
-            `School already exists with school_id ${existingSchool.school_id}.`
+        .upsert(
+            schools,
+            {
+                onConflict: "government_school_no"
+            }
         );
 
-        const {
-            error: updateError
-        } = await supabase
-            .from("Schools")
-            .update(school)
-            .eq(
-                "school_id",
-                existingSchool.school_id
+    if (error) {
+        throw error;
+    }
+
+    console.log(
+        `Batch ${batchNumber}/${totalBatches} uploaded successfully.`
+    );
+}
+
+
+// ============================================================
+// IMPORT ALL SCHOOLS
+// ============================================================
+
+async function importSchools(rows) {
+
+    const schools = [];
+
+    let skipped = 0;
+
+    console.log("");
+    console.log("=================================");
+    console.log("CONVERTING SCHOOL DATA");
+    console.log("=================================");
+    console.log("");
+
+    for (const row of rows) {
+
+        const school = convertSchool(row);
+
+        const validation = validateSchool(school);
+
+        if (!validation.valid) {
+
+            skipped++;
+
+            console.warn(
+                `Skipping ${row.School_Name || "unknown school"}: ${validation.reason}`
             );
 
-        if (updateError) {
-            throw updateError;
+            continue;
         }
 
-        console.log("Existing school updated.");
-
-        return;
+        schools.push(school);
     }
 
 
-    // ========================================================
-    // INSERT NEW SCHOOL
-    // ========================================================
+    console.log("");
+    console.log(`Valid schools: ${schools.length}`);
+    console.log(`Skipped schools: ${skipped}`);
 
-    console.log(
-        "School does not exist. Creating new school..."
-    );
 
-    const {
-        data,
-        error: insertError
-    } = await supabase
-        .from("Schools")
-        .insert(school)
-        .select()
-        .single();
+    // --------------------------------------------------------
+    // Split schools into batches
+    // --------------------------------------------------------
 
-    if (insertError) {
-        throw insertError;
+    const batches = [];
+
+    for (
+        let i = 0;
+        i < schools.length;
+        i += SUPABASE_BATCH_SIZE
+    ) {
+
+        batches.push(
+            schools.slice(
+                i,
+                i + SUPABASE_BATCH_SIZE
+            )
+        );
     }
 
+
     console.log(
-        `School created with school_id ${data.school_id}.`
+        `Supabase batches required: ${batches.length}`
     );
+
+
+    // --------------------------------------------------------
+    // Upload each batch
+    // --------------------------------------------------------
+
+    for (
+        let i = 0;
+        i < batches.length;
+        i++
+    ) {
+
+        await saveSchoolBatch(
+            batches[i],
+            i + 1,
+            batches.length
+        );
+    }
+
+
+    return {
+        imported: schools.length,
+        skipped
+    };
 }
 
 
@@ -248,31 +376,57 @@ async function main() {
 
     try {
 
-        // Get Parade College
-        const row = await getSchool();
-
         console.log("");
-        console.log("School found:");
-        console.log(`Name: ${row.School_Name}`);
-        console.log(`School No: ${row.School_No}`);
+        console.log("=================================");
+        console.log("EDUMATCH SCHOOL IMPORT");
+        console.log("=================================");
 
-        // Convert government data
-        const school = convertSchool(row);
 
-        // Validate data
-        validateSchool(school);
+        // ----------------------------------------------------
+        // Get all Victorian schools
+        // ----------------------------------------------------
 
-        console.log("");
-        console.log("Data being sent to Supabase:");
-        console.log(school);
+        const rows = await getAllSchools();
 
-        // Save to database
-        await saveSchool(school);
+
+        if (rows.length === 0) {
+
+            throw new Error(
+                "Victorian Government API returned zero schools."
+            );
+        }
+
+
+        // ----------------------------------------------------
+        // Import schools into Supabase
+        // ----------------------------------------------------
+
+        const result = await importSchools(rows);
+
+
+        // ----------------------------------------------------
+        // Finished
+        // ----------------------------------------------------
 
         console.log("");
         console.log("=================================");
         console.log("IMPORT COMPLETED SUCCESSFULLY");
         console.log("=================================");
+        console.log("");
+
+        console.log(
+            `Schools imported/updated: ${result.imported}`
+        );
+
+        console.log(
+            `Schools skipped: ${result.skipped}`
+        );
+
+        console.log("");
+        console.log(
+            "Victorian school data is now in Supabase."
+        );
+        console.log("");
 
     } catch (error) {
 
@@ -280,8 +434,11 @@ async function main() {
         console.error("=================================");
         console.error("IMPORT FAILED");
         console.error("=================================");
+        console.error("");
 
         console.error(error);
+
+        console.error("");
 
         process.exit(1);
     }
