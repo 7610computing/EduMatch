@@ -13,10 +13,10 @@ const VICTORIAN_API =
 const RESOURCE_ID =
     "d26bf015-a1e5-48dd-a1d6-8edd4b0a511b";
 
-// Number of Victorian API records requested per page
+// Number of records requested from the Victorian API at once
 const API_PAGE_SIZE = 1000;
 
-// Number of schools sent to Supabase at once
+// Number of schools uploaded to Supabase at once
 const SUPABASE_BATCH_SIZE = 500;
 
 
@@ -95,10 +95,12 @@ async function getAllSchools() {
         allRecords.push(...records);
 
         console.log(
-            `Received ${records.length} records. Total: ${allRecords.length}`
+            `Received ${records.length} records. ` +
+            `Total retrieved: ${allRecords.length}`
         );
 
-        // No more records
+        // If fewer than the requested page size were returned,
+        // there are no more records.
         if (records.length < API_PAGE_SIZE) {
             break;
         }
@@ -184,13 +186,12 @@ function convertSchool(row) {
         // ----------------------------------------------------
         // Coordinates
         //
-        // Victorian dataset:
+        // Victorian Government dataset:
         // X = longitude
         // Y = latitude
         // ----------------------------------------------------
 
         latitude,
-
         longitude
     };
 }
@@ -203,6 +204,7 @@ function convertSchool(row) {
 function validateSchool(school) {
 
     if (!school.government_school_no) {
+
         return {
             valid: false,
             reason: "Missing government school number."
@@ -210,6 +212,7 @@ function validateSchool(school) {
     }
 
     if (!school.name) {
+
         return {
             valid: false,
             reason: "Missing school name."
@@ -220,6 +223,7 @@ function validateSchool(school) {
         !Number.isFinite(school.latitude) ||
         !Number.isFinite(school.longitude)
     ) {
+
         return {
             valid: false,
             reason: "Invalid latitude or longitude."
@@ -233,25 +237,122 @@ function validateSchool(school) {
 
 
 // ============================================================
-// SAVE BATCH OF SCHOOLS TO SUPABASE
+// DEDUPLICATE SCHOOLS
 // ============================================================
 
-async function saveSchoolBatch(schools, batchNumber, totalBatches) {
+function deduplicateSchools(schools) {
+
+    const uniqueSchools = new Map();
+
+    let duplicateCount = 0;
+
+    console.log("");
+    console.log("=================================");
+    console.log("CHECKING FOR DUPLICATES");
+    console.log("=================================");
+    console.log("");
+
+    for (const school of schools) {
+
+        const schoolNo =
+            school.government_school_no;
+
+        if (uniqueSchools.has(schoolNo)) {
+
+            duplicateCount++;
+
+            console.warn(
+                `Duplicate School_No ${schoolNo} found. ` +
+                `Keeping the first record.`
+            );
+
+            continue;
+        }
+
+        uniqueSchools.set(
+            schoolNo,
+            school
+        );
+    }
+
+    const result =
+        Array.from(uniqueSchools.values());
+
+    console.log(
+        `Schools before deduplication: ${schools.length}`
+    );
+
+    console.log(
+        `Duplicate records removed: ${duplicateCount}`
+    );
+
+    console.log(
+        `Unique schools: ${result.length}`
+    );
+
+    return {
+        schools: result,
+        duplicateCount
+    };
+}
+
+
+// ============================================================
+// SPLIT SCHOOLS INTO BATCHES
+// ============================================================
+
+function createBatches(schools) {
+
+    const batches = [];
+
+    for (
+        let i = 0;
+        i < schools.length;
+        i += SUPABASE_BATCH_SIZE
+    ) {
+
+        batches.push(
+            schools.slice(
+                i,
+                i + SUPABASE_BATCH_SIZE
+            )
+        );
+    }
+
+    return batches;
+}
+
+
+// ============================================================
+// SAVE A BATCH TO SUPABASE
+// ============================================================
+
+async function saveSchoolBatch(
+    schools,
+    batchNumber,
+    totalBatches
+) {
 
     console.log("");
     console.log(
-        `Uploading batch ${batchNumber}/${totalBatches} (${schools.length} schools)...`
+        `Uploading batch ${batchNumber}/${totalBatches}...`
     );
 
+    console.log(
+        `Schools in this batch: ${schools.length}`
+    );
+
+
     /*
-     * government_school_no has a UNIQUE constraint in Supabase.
+     * government_school_no has a UNIQUE constraint.
      *
-     * Therefore upsert will:
+     * Therefore:
      *
-     * - INSERT a school if it doesn't exist
-     * - UPDATE the school if it already exists
+     * - If the school does not exist, it is INSERTED.
      *
-     * This prevents duplicate schools.
+     * - If the school already exists, it is UPDATED.
+     *
+     * This makes the importer safe to run repeatedly.
      */
 
     const {
@@ -276,14 +377,19 @@ async function saveSchoolBatch(schools, batchNumber, totalBatches) {
 
 
 // ============================================================
-// IMPORT ALL SCHOOLS
+// IMPORT SCHOOLS
 // ============================================================
 
 async function importSchools(rows) {
 
-    const schools = [];
+    const validSchools = [];
 
     let skipped = 0;
+
+
+    // --------------------------------------------------------
+    // Convert and validate
+    // --------------------------------------------------------
 
     console.log("");
     console.log("=================================");
@@ -293,50 +399,58 @@ async function importSchools(rows) {
 
     for (const row of rows) {
 
-        const school = convertSchool(row);
+        const school =
+            convertSchool(row);
 
-        const validation = validateSchool(school);
+        const validation =
+            validateSchool(school);
 
         if (!validation.valid) {
 
             skipped++;
 
             console.warn(
-                `Skipping ${row.School_Name || "unknown school"}: ${validation.reason}`
+                `Skipping ${row.School_Name || "unknown school"}: ` +
+                validation.reason
             );
 
             continue;
         }
 
-        schools.push(school);
+        validSchools.push(school);
     }
 
 
     console.log("");
-    console.log(`Valid schools: ${schools.length}`);
-    console.log(`Skipped schools: ${skipped}`);
+    console.log(
+        `Valid schools before deduplication: ${validSchools.length}`
+    );
+
+    console.log(
+        `Invalid schools skipped: ${skipped}`
+    );
 
 
     // --------------------------------------------------------
-    // Split schools into batches
+    // Remove duplicate government school numbers
     // --------------------------------------------------------
 
-    const batches = [];
+    const {
+        schools,
+        duplicateCount
+    } = deduplicateSchools(
+        validSchools
+    );
 
-    for (
-        let i = 0;
-        i < schools.length;
-        i += SUPABASE_BATCH_SIZE
-    ) {
 
-        batches.push(
-            schools.slice(
-                i,
-                i + SUPABASE_BATCH_SIZE
-            )
-        );
-    }
+    // --------------------------------------------------------
+    // Create Supabase batches
+    // --------------------------------------------------------
 
+    const batches =
+        createBatches(schools);
+
+    console.log("");
 
     console.log(
         `Supabase batches required: ${batches.length}`
@@ -361,9 +475,19 @@ async function importSchools(rows) {
     }
 
 
+    // --------------------------------------------------------
+    // Return import statistics
+    // --------------------------------------------------------
+
     return {
-        imported: schools.length,
-        skipped
+
+        imported:
+            schools.length,
+
+        skipped,
+
+        duplicates:
+            duplicateCount
     };
 }
 
@@ -380,14 +504,20 @@ async function main() {
         console.log("=================================");
         console.log("EDUMATCH SCHOOL IMPORT");
         console.log("=================================");
+        console.log("");
 
 
         // ----------------------------------------------------
-        // Get all Victorian schools
+        // Get all Victorian Government school records
         // ----------------------------------------------------
 
-        const rows = await getAllSchools();
+        const rows =
+            await getAllSchools();
 
+
+        // ----------------------------------------------------
+        // Make sure data was actually returned
+        // ----------------------------------------------------
 
         if (rows.length === 0) {
 
@@ -401,7 +531,8 @@ async function main() {
         // Import schools into Supabase
         // ----------------------------------------------------
 
-        const result = await importSchools(rows);
+        const result =
+            await importSchools(rows);
 
 
         // ----------------------------------------------------
@@ -419,7 +550,11 @@ async function main() {
         );
 
         console.log(
-            `Schools skipped: ${result.skipped}`
+            `Invalid schools skipped: ${result.skipped}`
+        );
+
+        console.log(
+            `Duplicate records removed: ${result.duplicates}`
         );
 
         console.log("");
@@ -446,7 +581,7 @@ async function main() {
 
 
 // ============================================================
-// START
+// START IMPORT
 // ============================================================
 
 main();
