@@ -772,30 +772,16 @@ body {
    map doesn't look like it belongs to a different site.
 */
 
-.marker-cluster-small {
-    background-color: rgba(255, 241, 236, 0.9);
-}
-
-.marker-cluster-small div {
-    background-color: rgba(255, 183, 167, 0.95);
-    color: #7a3a1a;
-}
-
-.marker-cluster-medium {
-    background-color: rgba(255, 199, 163, 0.9);
-}
-
-.marker-cluster-medium div {
-    background-color: rgba(255, 149, 87, 0.95);
-    color: white;
-}
-
+.marker-cluster-small,
+.marker-cluster-medium,
 .marker-cluster-large {
-    background-color: rgba(255, 167, 110, 0.9);
+    background-color: rgba(255, 255, 255, 0.6);
 }
 
+.marker-cluster-small div,
+.marker-cluster-medium div,
 .marker-cluster-large div {
-    background-color: rgba(255, 119, 0, 0.95);
+    background-color: #ff7700;
     color: white;
 }
 
