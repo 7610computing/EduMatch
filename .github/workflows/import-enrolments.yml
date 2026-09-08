@@ -1,0 +1,26 @@
+name: Import Victorian School Enrolments
+
+on:
+  workflow_dispatch:
+
+jobs:
+  import-enrolments:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install @supabase/supabase-js csv-parse
+
+      - name: Import school enrolments
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: node js/import-enrolments.js
