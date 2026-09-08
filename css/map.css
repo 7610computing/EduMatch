@@ -8,55 +8,34 @@
 
 body {
     margin: 0;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
+    font-family: Arial, Helvetica, sans-serif;
     background: #f7f7f7;
-
     color: #222;
 }
 
 .map-page {
     width: 100%;
-
     padding: 22px 40px 35px;
 }
 
-
-/* =========================================================
-   SEARCH
-   ========================================================= */
+/* SEARCH */
 
 .search-section {
     display: flex;
-
     width: 100%;
-
     gap: 10px;
-
     margin-bottom: 10px;
 }
 
 .search-box {
     flex: 1;
-
     min-width: 0;
-
     height: 46px;
-
     display: flex;
-
     align-items: center;
-
     background: white;
-
     border: 1px solid #ddd;
-
     border-radius: 8px;
-
     padding: 0 13px;
 }
 
@@ -66,45 +45,29 @@ body {
 
 .search-icon {
     flex-shrink: 0;
-
     font-size: 20px;
-
     color: #777;
-
     margin-right: 8px;
 }
 
 .search-box input {
     width: 100%;
-
     min-width: 0;
-
     border: none;
-
     outline: none;
-
     background: transparent;
-
     font-size: 14px;
 }
 
 .search-button {
     flex-shrink: 0;
-
     width: 110px;
-
     height: 46px;
-
     border: none;
-
     border-radius: 8px;
-
     background: #ff7700;
-
     color: white;
-
     font-weight: 600;
-
     cursor: pointer;
 }
 
@@ -112,38 +75,24 @@ body {
     background: #e06800;
 }
 
-
-/* =========================================================
-   LOCATION
-   ========================================================= */
+/* LOCATION */
 
 .location-section {
     display: flex;
-
     width: 100%;
-
     gap: 10px;
-
     margin-bottom: 15px;
 }
 
 .location-input {
     flex: 1;
-
     min-width: 0;
-
     height: 42px;
-
     display: flex;
-
     align-items: center;
-
     background: white;
-
     border: 1px solid #ddd;
-
     border-radius: 8px;
-
     padding: 0 13px;
 }
 
@@ -153,130 +102,86 @@ body {
 
 .location-icon {
     flex-shrink: 0;
-
     color: #ff7700;
-
     font-size: 13px;
-
     margin-right: 9px;
 }
 
 .location-input input {
     width: 100%;
-
     min-width: 0;
-
     border: none;
-
     outline: none;
-
     background: transparent;
-
     font-size: 13px;
 }
 
 .location-input input:disabled {
     color: #777;
-
     cursor: wait;
 }
 
 .current-location-button {
     flex-shrink: 0;
-
     height: 42px;
-
     padding: 0 18px;
-
     border: 1px solid #ddd;
-
     background: white;
-
     border-radius: 8px;
-
     font-size: 13px;
-
     cursor: pointer;
-
-    transition:
-        background 0.15s ease,
-        border-color 0.15s ease;
+    transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .current-location-button:hover {
     background: #fff1ec;
-
     border-color: #ffb7a7;
 }
 
 .current-location-button:disabled {
     opacity: 0.65;
-
     cursor: wait;
 }
 
-
-/* =========================================================
-   FILTER PANEL
-   ========================================================= */
+/* FILTER PANEL */
 
 .filter-panel {
     position: relative;
-
     z-index: 50;
-
     width: 100%;
-
     background: white;
-
     border: 1px solid #ddd;
-
     border-radius: 10px;
-
     padding: 18px 20px;
-
     margin-bottom: 12px;
 }
 
 .filter-header {
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
-
     gap: 15px;
-
     margin-bottom: 18px;
 }
 
 .filter-header h2 {
     margin: 0 0 4px;
-
     font-size: 18px;
 }
 
 .filter-header p {
     margin: 0;
-
     color: #777;
-
     font-size: 12px;
 }
 
 .clear-filters {
     flex-shrink: 0;
-
     border: 1px solid #ddd;
-
     background: white;
-
     border-radius: 6px;
-
     padding: 7px 11px;
-
     font-size: 12px;
-
     cursor: pointer;
 }
 
@@ -284,64 +189,42 @@ body {
     background: #f5f5f5;
 }
 
-
-/* =========================================================
-   SELECT FILTERS
-   ========================================================= */
+/* SELECT FILTERS */
 
 .select-filters {
     display: grid;
-
-    grid-template-columns:
-        repeat(3, minmax(0, 1fr));
-
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 15px;
-
     margin-bottom: 20px;
 }
 
 .filter-field {
     position: relative;
-
     min-width: 0;
 }
 
 .filter-field > label {
     display: block;
-
     margin-bottom: 6px;
-
     font-size: 12px;
-
     font-weight: 600;
 }
 
-
-/* =========================================================
-   STATE SEARCH
-   ========================================================= */
+/* STATE SEARCH */
 
 .search-select {
     position: relative;
-
     z-index: 60;
 }
 
 .search-select input {
     width: 100%;
-
     height: 38px;
-
     padding: 0 10px;
-
     border: 1px solid #d5d5d5;
-
     border-radius: 7px;
-
     outline: none;
-
     background: white;
-
     font-size: 12px;
 }
 
@@ -351,30 +234,17 @@ body {
 
 .search-options {
     display: none;
-
     position: absolute;
-
     left: 0;
-
     right: 0;
-
     top: calc(100% + 4px);
-
     max-height: 180px;
-
     overflow-y: auto;
-
     background: white;
-
     border: 1px solid #ddd;
-
     border-radius: 7px;
-
     z-index: 5000;
-
-    box-shadow:
-        0 5px 18px
-        rgba(0, 0, 0, 0.12);
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.12);
 }
 
 .search-options.visible {
@@ -383,9 +253,7 @@ body {
 
 .search-option {
     padding: 9px 10px;
-
     font-size: 12px;
-
     cursor: pointer;
 }
 
@@ -393,44 +261,27 @@ body {
     background: #fff1ec;
 }
 
-
-/* =========================================================
-   CHECKBOX DROPDOWNS
-   ========================================================= */
+/* CHECKBOX DROPDOWNS */
 
 .checkbox-dropdown {
     position: relative;
-
     z-index: 60;
 }
 
 .dropdown-button {
     width: 100%;
-
     height: 38px;
-
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
-
     gap: 8px;
-
     padding: 0 10px;
-
     border: 1px solid #d5d5d5;
-
     border-radius: 7px;
-
     background: white;
-
     font-size: 12px;
-
     cursor: pointer;
-
     color: #555;
-
     text-align: left;
 }
 
@@ -440,44 +291,28 @@ body {
 
 .dropdown-text {
     overflow: hidden;
-
     white-space: nowrap;
-
     text-overflow: ellipsis;
 }
 
 .dropdown-arrow {
     flex-shrink: 0;
-
     color: #777;
-
     font-size: 10px;
 }
 
 .checkbox-options {
     display: none;
-
     position: absolute;
-
     left: 0;
-
     right: 0;
-
     top: calc(100% + 4px);
-
     padding: 8px;
-
     background: white;
-
     border: 1px solid #ddd;
-
     border-radius: 7px;
-
     z-index: 5000;
-
-    box-shadow:
-        0 5px 18px
-        rgba(0, 0, 0, 0.12);
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.12);
 }
 
 .checkbox-options.open {
@@ -486,21 +321,13 @@ body {
 
 .checkbox-options label {
     display: flex;
-
     align-items: center;
-
     gap: 8px;
-
     padding: 7px;
-
     margin: 0;
-
     border-radius: 4px;
-
     font-size: 12px;
-
     font-weight: normal;
-
     cursor: pointer;
 }
 
@@ -510,27 +337,17 @@ body {
 
 .checkbox-options input {
     width: 14px;
-
     height: 14px;
-
     margin: 0;
-
     accent-color: #ff7700;
-
     cursor: pointer;
 }
 
-
-/* =========================================================
-   RANGE FILTERS
-   ========================================================= */
+/* RANGE FILTERS */
 
 .range-filters {
     display: grid;
-
-    grid-template-columns:
-        repeat(3, minmax(0, 1fr));
-
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 20px 25px;
 }
 
@@ -540,51 +357,33 @@ body {
 
 .range-filter h3 {
     margin: 0 0 8px;
-
     font-size: 13px;
 }
 
-
-/* =========================================================
-   RANGE INPUTS
-   ========================================================= */
+/* RANGE INPUTS */
 
 .range-inputs {
     display: grid;
-
-    grid-template-columns:
-        1fr 1fr;
-
+    grid-template-columns: 1fr 1fr;
     gap: 7px;
-
     margin-bottom: 5px;
 }
 
 .range-inputs label {
     display: block;
-
     margin-bottom: 2px;
-
     font-size: 9px;
-
     color: #888;
 }
 
 .range-inputs input {
     width: 100%;
-
     height: 29px;
-
     padding: 0 7px;
-
     border: 1px solid #d5d5d5;
-
     border-radius: 5px;
-
     outline: none;
-
     background: white;
-
     font-size: 11px;
 }
 
@@ -592,205 +391,120 @@ body {
     border-color: #ff7700;
 }
 
-
-/* =========================================================
-   COMPACT DUAL SLIDER
-   ========================================================= */
+/* COMPACT DUAL SLIDER */
 
 .dual-slider {
     position: relative;
-
     width: 100%;
-
     height: 18px;
-
     margin-top: 1px;
 }
 
-
 /*
-   The track is grey everywhere first.
-   The orange section is painted between the
-   two handles using the CSS variables supplied
-   by map.js.
+   The track is grey everywhere first. The orange section is
+   painted between the two handles using the CSS variables
+   supplied by map.js.
 */
 
 .slider-track {
     position: absolute;
-
     left: 0;
-
     right: 0;
-
     top: 50%;
-
     height: 3px;
-
-    transform:
-        translateY(-50%);
-
+    transform: translateY(-50%);
     border-radius: 5px;
-
-    background:
-        linear-gradient(
-            to right,
-
-            #ddd 0%,
-
-            #ddd
-            var(--range-start, 0%),
-
-            #ff7700
-            var(--range-start, 0%),
-
-            #ff7700
-            var(--range-end, 100%),
-
-            #ddd
-            var(--range-end, 100%),
-
-            #ddd 100%
-        );
+    background: linear-gradient(
+        to right,
+        #ddd 0%,
+        #ddd var(--range-start, 0%),
+        #ff7700 var(--range-start, 0%),
+        #ff7700 var(--range-end, 100%),
+        #ddd var(--range-end, 100%),
+        #ddd 100%
+    );
 }
-
 
 /* Both sliders occupy the exact same space */
 
 .dual-slider input[type="range"] {
     position: absolute;
-
     left: 0;
-
     top: 0;
-
     width: 100%;
-
     height: 18px;
-
     margin: 0;
-
     appearance: none;
-
     -webkit-appearance: none;
-
     background: transparent;
-
     pointer-events: none;
-
     outline: none;
 }
 
-
 /* Transparent browser track */
 
-.dual-slider
-input[type="range"]::-webkit-slider-runnable-track {
+.dual-slider input[type="range"]::-webkit-slider-runnable-track {
     width: 100%;
-
     height: 3px;
-
     background: transparent;
-
     border: none;
 }
 
-.dual-slider
-input[type="range"]::-moz-range-track {
+.dual-slider input[type="range"]::-moz-range-track {
     width: 100%;
-
     height: 3px;
-
     background: transparent;
-
     border: none;
 }
-
 
 /* Slider handles */
 
-.dual-slider
-input[type="range"]::-webkit-slider-thumb {
-
+.dual-slider input[type="range"]::-webkit-slider-thumb {
     appearance: none;
-
     -webkit-appearance: none;
-
     width: 13px;
-
     height: 13px;
-
     margin-top: -5px;
-
     border-radius: 50%;
-
     background: #ff7700;
-
     border: 2px solid white;
-
-    box-shadow:
-        0 0 0 1px #ff7700;
-
+    box-shadow: 0 0 0 1px #ff7700;
     cursor: pointer;
-
     pointer-events: auto;
 }
 
-.dual-slider
-input[type="range"]::-moz-range-thumb {
-
+.dual-slider input[type="range"]::-moz-range-thumb {
     width: 13px;
-
     height: 13px;
-
     border-radius: 50%;
-
     background: #ff7700;
-
     border: 2px solid white;
-
-    box-shadow:
-        0 0 0 1px #ff7700;
-
+    box-shadow: 0 0 0 1px #ff7700;
     cursor: pointer;
-
     pointer-events: auto;
 }
 
-
-/* =========================================================
-   SELECTED ITEMS
-   ========================================================= */
+/* SELECTED ITEMS */
 
 .selected-items {
     display: flex;
-
     flex-wrap: wrap;
-
     gap: 5px;
-
     margin-top: 6px;
 }
 
 .selected-item {
     padding: 4px 7px;
-
     border-radius: 12px;
-
     background: #fff1ec;
-
     font-size: 10px;
 }
 
-
-/* =========================================================
-   RESULTS
-   ========================================================= */
+/* RESULTS */
 
 .results-bar {
     margin-bottom: 7px;
-
     font-size: 12px;
-
     color: #666;
 }
 
@@ -798,251 +512,156 @@ input[type="range"]::-moz-range-thumb {
     font-weight: 600;
 }
 
-
-/* =========================================================
-   MAP
-   ========================================================= */
+/* MAP */
 
 .map-workspace {
     position: relative;
-
     width: 100%;
-
     height: 650px;
-
     overflow: hidden;
-
     border: 1px solid #ddd;
-
     border-radius: 10px;
-
     background: #e5e5e5;
-
     z-index: 1;
 }
 
 .school-map {
     width: 100%;
-
     height: 100%;
 }
 
 .leaflet-container {
     width: 100%;
-
     height: 100%;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
-
-/* =========================================================
-   DISTANCE CIRCLE
-   ========================================================= */
+/* DISTANCE CIRCLE */
 
 .distance-circle {
     pointer-events: none;
 }
 
-
-/* =========================================================
-   USER LOCATION MARKER
-   ========================================================= */
+/* USER LOCATION MARKER */
 
 .user-location-icon {
     background: transparent;
-
     border: none;
 }
 
 .user-location-marker {
     width: 24px;
-
     height: 24px;
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
 }
 
 .user-location-dot {
     width: 15px;
-
     height: 15px;
-
     border-radius: 50%;
-
     background: #4285f4;
-
     border: 3px solid white;
-
-    box-shadow:
-        0 1px 7px
-        rgba(0, 0, 0, 0.35);
+    box-shadow: 0 1px 7px rgba(0, 0, 0, 0.35);
 }
 
-
-/* =========================================================
-   SCHOOL MARKER
-   ========================================================= */
+/* SCHOOL MARKER */
 
 .custom-school-icon {
     background: transparent;
-
     border: none;
 }
 
 .school-marker {
     display: flex;
-
     align-items: center;
-
     width: max-content;
-
     white-space: nowrap;
-
-    transform:
-        translate(-50%, -50%);
+    transform: translate(-50%, -50%);
 }
 
 .school-marker-dot {
     flex-shrink: 0;
-
     width: 15px;
-
     height: 15px;
-
     border-radius: 50%;
-
     background: #ff7700;
-
     border: 2px solid white;
-
-    box-shadow:
-        0 1px 5px
-        rgba(0, 0, 0, 0.3);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
 }
 
 .school-marker-label {
     margin-left: 6px;
-
     padding: 3px 6px;
-
     border-radius: 4px;
-
     background: white;
-
-    box-shadow:
-        0 1px 5px
-        rgba(0, 0, 0, 0.18);
-
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.18);
     font-size: 10px;
-
     font-weight: 600;
 }
 
-
-/* =========================================================
-   SCHOOL POPUP
-   ========================================================= */
+/* SCHOOL POPUP */
 
 .school-popup {
     width: 260px;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 .school-popup-header {
     display: flex;
-
     align-items: flex-start;
-
     justify-content: space-between;
-
     gap: 10px;
 }
 
 .school-popup h3 {
     margin: 0 0 4px;
-
     font-size: 15px;
-
     line-height: 1.25;
 }
 
 .school-popup-header p {
     margin: 0;
-
     color: #777;
-
     font-size: 10px;
-
     line-height: 1.35;
 }
 
 .school-popup-description {
     margin: 10px 0;
-
     color: #555;
-
     font-size: 11px;
-
     line-height: 1.4;
 }
 
 .school-tag-button {
     flex-shrink: 0;
-
     width: 27px;
-
     height: 27px;
-
     border: 1px solid #ddd;
-
     border-radius: 50%;
-
     background: white;
-
     color: #ff7700;
-
     font-size: 18px;
-
     line-height: 23px;
-
     cursor: pointer;
 }
 
 .school-tag-button:hover {
     background: #fff1ec;
-
     border-color: #ffb7a7;
 }
 
 .view-school-button {
     width: 100%;
-
     height: 32px;
-
     border: none;
-
     border-radius: 6px;
-
     background: #ff7700;
-
     color: white;
-
     font-size: 11px;
-
     font-weight: 600;
-
     cursor: pointer;
 }
 
@@ -1050,65 +669,37 @@ input[type="range"]::-moz-range-thumb {
     background: #e06800;
 }
 
-
-/* =========================================================
-   DETAILS PANEL
-   ========================================================= */
+/* DETAILS PANEL */
 
 .school-details {
     position: absolute;
-
     top: 0;
-
     right: 0;
-
     bottom: 0;
-
     width: 380px;
-
     background: white;
-
     z-index: 1000;
-
-    transform:
-        translateX(100%);
-
-    transition:
-        transform 0.25s ease;
-
-    box-shadow:
-        -4px 0 20px
-        rgba(0, 0, 0, 0.12);
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.12);
 }
 
 .school-details.open {
-    transform:
-        translateX(0);
+    transform: translateX(0);
 }
 
 .close-details {
     position: absolute;
-
     top: 12px;
-
     right: 12px;
-
     width: 30px;
-
     height: 30px;
-
     border: none;
-
     border-radius: 50%;
-
     background: #f2f2f2;
-
     font-size: 20px;
-
     line-height: 30px;
-
     cursor: pointer;
-
     z-index: 2;
 }
 
@@ -1118,71 +709,52 @@ input[type="range"]::-moz-range-thumb {
 
 .school-details-content {
     height: 100%;
-
     overflow-y: auto;
-
     padding: 30px 22px;
 }
 
 .school-details-content h2 {
     margin: 0 40px 10px 0;
-
     font-size: 21px;
 }
 
 .details-description {
     color: #666;
-
     font-size: 13px;
-
     line-height: 1.5;
 }
 
 .detail-list {
     display: flex;
-
     flex-direction: column;
-
     gap: 12px;
-
     margin-top: 20px;
 }
 
 .detail-item {
     padding-bottom: 10px;
-
     border-bottom: 1px solid #eee;
 }
 
 .detail-label {
     display: block;
-
     margin-bottom: 3px;
-
     color: #888;
-
     font-size: 10px;
-
     text-transform: uppercase;
-
     letter-spacing: 0.3px;
 }
 
 .detail-value {
     display: block;
-
     font-size: 13px;
-
     line-height: 1.4;
-
     overflow-wrap: anywhere;
 }
 
 .detail-value a {
     color: #ff7700;
-
     text-decoration: none;
-
     font-weight: 600;
 }
 
@@ -1190,106 +762,75 @@ input[type="range"]::-moz-range-thumb {
     text-decoration: underline;
 }
 
-
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
+/* RESPONSIVE */
 
 @media (max-width: 1000px) {
-
     .select-filters,
     .range-filters {
-        grid-template-columns:
-            repeat(
-                2,
-                minmax(0, 1fr)
-            );
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-
 }
 
-
 @media (max-width: 700px) {
-
     .map-page {
         padding: 15px;
     }
 
-
     .select-filters,
     .range-filters {
-        grid-template-columns:
-            1fr;
+        grid-template-columns: 1fr;
     }
-
 
     .location-section {
         flex-direction: column;
     }
 
-
     .current-location-button {
         width: 100%;
-
         height: 40px;
     }
-
 
     .search-section {
         flex-direction: column;
     }
 
-
     .search-button {
         width: 100%;
-
         height: 42px;
     }
 
-
     .filter-header {
         align-items: flex-start;
-
         flex-direction: column;
     }
-
 
     .clear-filters {
         width: 100%;
     }
 
-
     .school-details {
         width: 100%;
     }
 
-
     .map-workspace {
         height: 550px;
     }
-
 }
 
-
 @media (max-width: 450px) {
-
     .map-page {
         padding: 10px;
     }
-
 
     .filter-panel {
         padding: 15px;
     }
 
-
     .range-filters {
         gap: 18px;
     }
 
-
     .school-popup {
         width: 230px;
     }
-
 }
