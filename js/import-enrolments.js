@@ -19,6 +19,7 @@ Updates:
 Schools.enrolment
 
 Only existing schools are updated.
+No new schools are created.
 =========================================================
 */
 
@@ -67,7 +68,7 @@ if (!fs.existsSync(CSV_PATH)) {
 }
 
 // =========================================================
-// SUPABASE
+// SUPABASE CLIENT
 // =========================================================
 
 const supabase = createClient(
@@ -94,90 +95,6 @@ function normaliseHeader(header) {
 }
 
 // =========================================================
-// READ CSV
-// =========================================================
-
-function readCsv() {
-
-    console.log("Reading CSV:");
-    console.log(CSV_PATH);
-    console.log("");
-
-    const csvText = fs.readFileSync(
-        CSV_PATH,
-        "utf8"
-    );
-
-    const rows = parse(csvText, {
-
-        /*
-        Normalise every column name.
-
-        This changes:
-
-            "Grand Total"
-
-        into:
-
-            Grand Total
-        */
-
-        columns: headers =>
-            headers.map(normaliseHeader),
-
-        skip_empty_lines: true,
-
-        bom: true,
-
-        relax_column_count: true,
-
-        trim: true
-    });
-
-    console.log(
-        `CSV rows found: ${rows.length}`
-    );
-
-    console.log("");
-
-    if (rows.length === 0) {
-        throw new Error(
-            "The CSV contains no rows."
-        );
-    }
-
-    // -----------------------------------------------------
-    // Show actual columns
-    // -----------------------------------------------------
-
-    console.log("CSV columns:");
-
-    console.log(
-        Object.keys(rows[0]).join(", ")
-    );
-
-    console.log("");
-
-    // -----------------------------------------------------
-    // Show first row
-    // -----------------------------------------------------
-
-    console.log("First CSV row:");
-
-    console.log(
-        JSON.stringify(
-            rows[0],
-            null,
-            2
-        )
-    );
-
-    console.log("");
-
-    return rows;
-}
-
-// =========================================================
 // NORMALISE SCHOOL NUMBER
 // =========================================================
 
@@ -200,10 +117,11 @@ function normaliseSchoolNumber(value) {
     Handles values such as:
 
         1527
-
-    and:
-
         1527.0
+
+    Both become:
+
+        1527
     */
 
     if (/^\d+\.0+$/.test(text)) {
@@ -248,13 +166,97 @@ function parseEnrolment(value) {
 }
 
 // =========================================================
+// READ CSV
+// =========================================================
+
+function readCsv() {
+
+    console.log("Reading enrolment CSV...");
+    console.log(`File: ${CSV_PATH}`);
+    console.log("");
+
+    const csvText = fs.readFileSync(
+        CSV_PATH,
+        "utf8"
+    );
+
+    const rows = parse(csvText, {
+
+        /*
+        The source CSV has some headers which may appear
+        with quotation marks, for example:
+
+            "Grand Total"
+
+        Remove those quotation marks so the resulting
+        property is simply:
+
+            Grand Total
+        */
+
+        columns: headers =>
+            headers.map(normaliseHeader),
+
+        skip_empty_lines: true,
+
+        bom: true,
+
+        relax_column_count: true,
+
+        trim: true
+    });
+
+    console.log(
+        `CSV rows found: ${rows.length}`
+    );
+
+    console.log("");
+
+    if (rows.length === 0) {
+        throw new Error(
+            "The CSV contains no rows."
+        );
+    }
+
+    // -----------------------------------------------------
+    // Check required columns
+    // -----------------------------------------------------
+
+    const columns = Object.keys(rows[0]);
+
+    const requiredColumns = [
+        "School_No",
+        "Grand Total",
+        "Year"
+    ];
+
+    for (const column of requiredColumns) {
+
+        if (!columns.includes(column)) {
+
+            throw new Error(
+                `Required CSV column "${column}" was not found.`
+            );
+        }
+    }
+
+    console.log(
+        "Required CSV columns found successfully."
+    );
+
+    console.log("");
+
+    return rows;
+}
+
+// =========================================================
 // PROCESS CSV
 // =========================================================
 
 function processRows(rows) {
 
     console.log(
-        "Processing CSV..."
+        "Processing enrolment records..."
     );
 
     console.log("");
@@ -318,42 +320,22 @@ function processRows(rows) {
             continue;
         }
 
-        // -------------------------------------------------
-        // DUPLICATE SCHOOL NUMBER
-        // -------------------------------------------------
+        /*
+        IMPORTANT:
 
-        if (
-            enrolments.has(
-                schoolNumber
-            )
-        ) {
+        We use Grand Total only.
 
-            const existing =
-                enrolments.get(
-                    schoolNumber
-                );
+        For example, this row:
 
-            /*
-            If the duplicate has the same
-            enrolment value, ignore it.
-            */
+            Year 3 Total   = 15
+            Primary Total  = 161.4
+            Grand Total    = 161.4
 
-            if (
-                existing.enrolment ===
-                enrolment
-            ) {
-                continue;
-            }
+        means the school's total enrolment is 161.4.
 
-            throw new Error(
-                `Conflicting enrolment values found for School_No ${schoolNumber}: ` +
-                `${existing.enrolment} and ${enrolment}`
-            );
-        }
-
-        // -------------------------------------------------
-        // STORE RECORD
-        // -------------------------------------------------
+        We must NOT accidentally use the 15 from
+        "Year 3 Total".
+        */
 
         enrolments.set(
             schoolNumber,
@@ -380,13 +362,13 @@ function processRows(rows) {
     );
 
     console.log(
-        `Wrong year: ${wrongYear}`
+        `Wrong-year records: ${wrongYear}`
     );
 
     console.log("");
 
     // -----------------------------------------------------
-    // EXAMPLES
+    // Show examples
     // -----------------------------------------------------
 
     console.log(
@@ -417,13 +399,12 @@ function processRows(rows) {
 async function getExistingSchools() {
 
     console.log(
-        "Getting schools from Supabase..."
+        "Getting existing schools from Supabase..."
     );
 
     console.log("");
 
-    const existingSchools =
-        new Set();
+    const existingSchools = new Set();
 
     let offset = 0;
 
@@ -484,8 +465,7 @@ async function getExistingSchools() {
             break;
         }
 
-        offset +=
-            SUPABASE_PAGE_SIZE;
+        offset += SUPABASE_PAGE_SIZE;
     }
 
     console.log("");
@@ -496,23 +476,11 @@ async function getExistingSchools() {
 
     console.log("");
 
-    console.log(
-        "Example Supabase school numbers:"
-    );
-
-    console.log(
-        Array.from(existingSchools)
-            .slice(0, 20)
-            .join(", ")
-    );
-
-    console.log("");
-
     return existingSchools;
 }
 
 // =========================================================
-// MATCH SCHOOLS
+// MATCH CSV SCHOOLS TO SUPABASE SCHOOLS
 // =========================================================
 
 function matchSchools(
@@ -521,7 +489,7 @@ function matchSchools(
 ) {
 
     console.log(
-        "Matching enrolment records to schools..."
+        "Matching enrolments to existing schools..."
     );
 
     console.log("");
@@ -531,9 +499,12 @@ function matchSchools(
 
     for (const record of enrolments) {
 
+        const schoolNumber =
+            record.government_school_no;
+
         if (
             existingSchools.has(
-                record.government_school_no
+                schoolNumber
             )
         ) {
 
@@ -542,7 +513,7 @@ function matchSchools(
         } else {
 
             missingSchools.push(
-                record.government_school_no
+                schoolNumber
             );
         }
     }
@@ -562,7 +533,7 @@ function matchSchools(
     ) {
 
         console.log(
-            "Example missing school numbers:"
+            "First missing school numbers:"
         );
 
         console.log(
@@ -584,7 +555,7 @@ function matchSchools(
 async function updateEnrolments(updates) {
 
     console.log(
-        "Updating Supabase..."
+        "Updating enrolments in Supabase..."
     );
 
     console.log("");
@@ -625,7 +596,7 @@ async function updateEnrolments(updates) {
         updated += batch.length;
 
         console.log(
-            `Updated ${updated}/${updates.length}`
+            `Updated ${updated}/${updates.length} schools...`
         );
     }
 
@@ -647,7 +618,7 @@ async function main() {
         "=============================================="
     );
     console.log(
-        "EduMatch - Victorian Enrolment Import"
+        "EduMatch - Victorian School Enrolment Import"
     );
     console.log(
         "=============================================="
@@ -655,13 +626,13 @@ async function main() {
     console.log("");
 
     // -----------------------------------------------------
-    // 1. Read CSV
+    // STEP 1: Read CSV
     // -----------------------------------------------------
 
     const rows = readCsv();
 
     // -----------------------------------------------------
-    // 2. Process CSV
+    // STEP 2: Process CSV
     // -----------------------------------------------------
 
     const enrolments =
@@ -677,7 +648,7 @@ async function main() {
     }
 
     // -----------------------------------------------------
-    // 3. Get existing schools
+    // STEP 3: Get schools from Supabase
     // -----------------------------------------------------
 
     const existingSchools =
@@ -693,7 +664,7 @@ async function main() {
     }
 
     // -----------------------------------------------------
-    // 4. Match schools
+    // STEP 4: Match schools
     // -----------------------------------------------------
 
     const updates =
@@ -712,7 +683,7 @@ async function main() {
     }
 
     // -----------------------------------------------------
-    // 5. Update Supabase
+    // STEP 5: Update Supabase
     // -----------------------------------------------------
 
     await updateEnrolments(
@@ -720,7 +691,7 @@ async function main() {
     );
 
     // -----------------------------------------------------
-    // DONE
+    // COMPLETE
     // -----------------------------------------------------
 
     console.log("");
