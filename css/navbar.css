@@ -10,8 +10,8 @@
 .navbar {
     height: 70px;
 
-    background-color: var(--color-navbar);
-    border-bottom: var(--border-width) solid var(--color-border);
+    background-color: white;
+    border-bottom: 1px solid #ddd;
 
     display: flex;
     align-items: center;
@@ -26,12 +26,18 @@
    ========================= */
 
 .logo {
-    color: var(--color-brand);
+    color: #ff7700;
 
     font-size: 24px;
     font-weight: 800;
 
     text-decoration: none;
+
+    transition: color 0.2s ease;
+}
+
+.logo:hover {
+    color: #e06800;
 }
 
 
@@ -46,19 +52,19 @@
     gap: 30px;
 }
 
-
 .navbar nav a {
-    color: var(--color-nav-text);
+    color: #333333;
 
     text-decoration: none;
 
-    font-size: var(--font-size-small);
-    font-weight: var(--font-weight-medium);
+    font-size: 16px;
+    font-weight: 500;
+
+    transition: color 0.2s ease;
 }
 
-
 .navbar nav a:hover {
-    color: var(--color-primary-dark);
+    color: #e06800;
 }
 
 
@@ -67,18 +73,58 @@
    ========================= */
 
 .login-button {
-    background-color: var(--color-login);
+    background-color: #ff7700;
 
-    color: var(--color-text-on-primary) !important;
+    color: white !important;
 
     padding: 9px 22px;
 
-    border-radius: var(--radius-small);
+    border-radius: 8px;
 
-    font-weight: var(--font-weight-medium) !important;
+    font-weight: 600 !important;
+
+    transition: background-color 0.2s ease;
+}
+
+.login-button:hover {
+    background-color: #e06800;
 }
 
 
-.login-button:hover {
-    background-color: var(--color-login-hover);
+/* =========================
+   MOBILE
+   ========================= */
+
+@media (max-width: 800px) {
+
+    .navbar {
+        padding: 0 20px;
+    }
+
+    .navbar nav {
+        gap: 10px;
+    }
+
+    .navbar nav a:not(.login-button) {
+        display: none;
+    }
+
+}
+
+
+/* =========================
+   SMALL MOBILE
+   ========================= */
+
+@media (max-width: 550px) {
+
+    .navbar {
+        height: auto;
+        min-height: 70px;
+    }
+
+    .navbar nav {
+        display: none;
+    }
+
 }
