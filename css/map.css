@@ -775,13 +775,13 @@ body {
 .marker-cluster-small,
 .marker-cluster-medium,
 .marker-cluster-large {
-    background-color: rgba(255, 255, 255, 0.6);
+    background-color: rgba(255, 255, 255, 0.8);
 }
 
 .marker-cluster-small div,
 .marker-cluster-medium div,
 .marker-cluster-large div {
-    background-color: #ff7700;
+    background-color: #ff8a24;
     color: white;
 }
 
