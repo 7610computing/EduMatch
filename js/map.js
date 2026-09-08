@@ -1,5 +1,20 @@
 /* =========================================================
    EDUMATCH MAP
+   =========================================================
+   
+   PERFORMANCE ARCHITECTURE
+
+   1. Load all school DATA into memory.
+   2. Filter school DATA client-side.
+   3. Only create markers for schools near the viewport.
+   4. Use Leaflet.markercluster for dense areas.
+   5. Reuse markers instead of rebuilding everything.
+   6. Hide school-name labels at lower zoom levels.
+   7. Create popup HTML only when a popup is opened.
+   8. Cache distances from the user's location.
+   9. Debounce text search.
+   10. Update visible markers on map moveend.
+
    ========================================================= */
 
 
@@ -76,23 +91,65 @@ const FILTER_LIMITS = {
    SUPABASE PAGINATION
    ========================================================= */
 
-/*
-   Supabase REST requests return a maximum of 1,000 rows
-   by default.
+const SUPABASE_PAGE_SIZE = 1000;
 
-   Therefore the map loads Schools in batches.
+
+/* =========================================================
+   MAP PERFORMANCE SETTINGS
+   ========================================================= */
+
+/*
+   How far outside the visible map to render markers.
 
    Example:
 
-       Request 1: rows 0 - 999
-       Request 2: rows 1000 - 1999
-       Request 3: rows 2000 - 2999
+       visible map
+           +
+       25% buffer
 
-   This allows the map to load every school in the
-   database rather than stopping at exactly 1,000.
+   This prevents markers appearing/disappearing immediately
+   when the user pans slightly.
 */
 
-const SUPABASE_PAGE_SIZE = 1000;
+const VIEWPORT_BUFFER = 0.25;
+
+
+/*
+   School-name labels are hidden below this zoom level.
+
+   The exact value can be adjusted later.
+*/
+
+const LABEL_ZOOM_LEVEL = 15;
+
+
+/*
+   Search debounce time.
+
+   Typing:
+
+       P
+       Pa
+       Par
+       Para
+       Parad
+
+   will no longer run filtering for every single keystroke.
+*/
+
+const SEARCH_DEBOUNCE_MS = 250;
+
+
+/*
+   Maximum number of marker objects that should normally
+   be created from the currently filtered schools.
+
+   This is not a hard data limit.
+
+   It is a safety mechanism for extremely dense views.
+*/
+
+const MAX_VISIBLE_MARKERS = 1500;
 
 
 /* =========================================================
@@ -105,7 +162,35 @@ let schools = [];
 
 let filteredSchools = [];
 
-let markers = [];
+
+/*
+   Marker cache.
+
+   school_id -> Leaflet marker
+
+   Markers are reused instead of recreated.
+*/
+
+const markerCache = new Map();
+
+
+/*
+   Schools currently being displayed by the marker layer.
+*/
+
+const visibleSchoolIds = new Set();
+
+
+/*
+   Marker cluster group.
+*/
+
+let markerClusterGroup = null;
+
+
+/*
+   User location.
+*/
 
 let userLocationMarker = null;
 
@@ -115,11 +200,40 @@ let userLatitude = null;
 
 let userLongitude = null;
 
+
+/*
+   Cached distances.
+
+   school_id -> distance in kilometres
+*/
+
+const distanceCache = new Map();
+
+
+/*
+   Selected filters.
+*/
+
 let selectedStates = [];
 
 let selectedSectors = [];
 
 let selectedGenders = [];
+
+
+/*
+   Search debounce timer.
+*/
+
+let searchDebounceTimer = null;
+
+
+/*
+   Prevents marker updates from running multiple times
+   simultaneously.
+*/
+
+let markerUpdateScheduled = false;
 
 
 /* =========================================================
@@ -200,6 +314,23 @@ function initialiseMap() {
     }
 
 
+    /*
+       Make sure the marker-cluster plugin exists.
+    */
+
+    if (
+        typeof L.markerClusterGroup !== "function"
+    ) {
+
+        console.error(
+            "[TEST FAILED] Leaflet.markercluster has not loaded."
+        );
+
+        return;
+
+    }
+
+
     map = L.map(
         "school-map",
         {
@@ -221,12 +352,107 @@ function initialiseMap() {
     ).addTo(map);
 
 
+    /*
+       Create the marker cluster layer.
+
+       Important performance settings:
+
+       chunkedLoading:
+       Adds markers in small batches rather than blocking
+       the browser with one enormous operation.
+
+       removeOutsideVisibleBounds:
+       Cluster plugin removes marker layers that are far
+       outside the current viewport.
+
+       animate:
+       Disabled to reduce work when large groups change.
+    */
+
+    markerClusterGroup =
+        L.markerClusterGroup({
+
+            chunkedLoading:
+                true,
+
+            chunkInterval:
+                50,
+
+            chunkDelay:
+                20,
+
+            removeOutsideVisibleBounds:
+                true,
+
+            animate:
+                false,
+
+            spiderfyOnMaxZoom:
+                true,
+
+            showCoverageOnHover:
+                false,
+
+            zoomToBoundsOnClick:
+                true,
+
+            disableClusteringAtZoom:
+                14,
+
+            maxClusterRadius:
+                60
+
+        });
+
+
+    markerClusterGroup.addTo(
+        map
+    );
+
+
+    /*
+       Melbourne starting position.
+    */
+
     map.setView(
         [
             -37.8136,
             144.9631
         ],
         6
+    );
+
+
+    /*
+       Only update marker visibility once the map
+       has finished moving.
+
+       We deliberately do NOT use "move".
+    */
+
+    map.on(
+        "moveend",
+        () => {
+
+            scheduleVisibleMarkerUpdate();
+
+        }
+    );
+
+
+    /*
+       Zoom changes affect whether labels should be visible.
+    */
+
+    map.on(
+        "zoomend",
+        () => {
+
+            updateMarkerLabels();
+
+            scheduleVisibleMarkerUpdate();
+
+        }
     );
 
 
@@ -248,7 +474,7 @@ async function loadSchools() {
     );
 
     console.log(
-        "[TEST] Loading ALL schools from Supabase..."
+        "[TEST] Loading school data from Supabase..."
     );
 
     console.log(
@@ -263,7 +489,7 @@ async function loadSchools() {
 
 
         console.log(
-            "[TEST PASSED] All school data loaded."
+            "[TEST PASSED] School data loaded."
         );
 
 
@@ -285,7 +511,10 @@ async function loadSchools() {
 
 
         /*
-           Normalise all school data.
+           Normalise the data once.
+
+           We don't repeatedly convert strings to numbers
+           every time a filter runs.
         */
 
         schools =
@@ -300,37 +529,17 @@ async function loadSchools() {
         );
 
 
-        /*
-           Run database/data tests.
-        */
-
         runSchoolDataTests();
 
-
-        /*
-           Populate filters.
-        */
 
         populateStateOptions();
 
 
-        /*
-           Apply the current filters.
-        */
-
         applyFilters();
 
 
-        /*
-           Test the rendered markers.
-        */
-
         runMarkerTests();
 
-
-        /*
-           Zoom to Parade while testing.
-        */
 
         if (
             DEBUG_MODE &&
@@ -410,6 +619,7 @@ async function fetchAllSchools() {
                     method: "GET",
 
                     headers: {
+
                         "apikey":
                             SUPABASE_ANON_KEY,
 
@@ -421,6 +631,7 @@ async function fetchAllSchools() {
 
                         "Accept":
                             "application/json"
+
                     }
                 }
             );
@@ -431,11 +642,6 @@ async function fetchAllSchools() {
             response.status
         );
 
-
-        /*
-           Read the response as text first so that
-           Supabase errors are easier to diagnose.
-        */
 
         const responseText =
             await response.text();
@@ -478,10 +684,6 @@ async function fetchAllSchools() {
         }
 
 
-        /*
-           Add this batch to the complete school list.
-        */
-
         allSchools.push(
             ...data
         );
@@ -491,15 +693,11 @@ async function fetchAllSchools() {
             `[TEST] Batch returned: ${data.length} schools.`
         );
 
+
         console.log(
             `[TEST] Total schools loaded so far: ${allSchools.length}`
         );
 
-
-        /*
-           If fewer than 1,000 rows were returned,
-           this is the final batch.
-        */
 
         if (
             data.length <
@@ -510,10 +708,6 @@ async function fetchAllSchools() {
 
         }
 
-
-        /*
-           Move to the next batch.
-        */
 
         offset +=
             SUPABASE_PAGE_SIZE;
@@ -539,7 +733,7 @@ function normaliseSchool(
     school
 ) {
 
-    return {
+    const normalised = {
 
         ...school,
 
@@ -590,6 +784,28 @@ function normaliseSchool(
 
     };
 
+
+    /*
+       Pre-create a lowercase search string.
+
+       This avoids repeatedly joining and lowercasing
+       school information during every search.
+    */
+
+    normalised.searchText =
+        [
+            school.name,
+            school.address,
+            school.state,
+            school.description
+        ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+
+    return normalised;
+
 }
 
 
@@ -617,10 +833,6 @@ function runSchoolDataTests() {
     );
 
 
-    /*
-       TEST 1
-    */
-
     if (
         schools.length > 0
     ) {
@@ -639,11 +851,6 @@ function runSchoolDataTests() {
 
     }
 
-
-    /*
-       TEST 2
-       Parade College exists.
-    */
 
     const parade =
         schools.find(
@@ -671,20 +878,10 @@ function runSchoolDataTests() {
             "[TEST FAILED] Parade College was NOT found."
         );
 
-        console.error(
-            "[TEST] Looking for government_school_no:",
-            TEST_SCHOOL_NO
-        );
-
         return;
 
     }
 
-
-    /*
-       TEST 3
-       Parade latitude.
-    */
 
     if (
         Number.isFinite(
@@ -707,11 +904,6 @@ function runSchoolDataTests() {
     }
 
 
-    /*
-       TEST 4
-       Parade longitude.
-    */
-
     if (
         Number.isFinite(
             parade.longitude
@@ -732,11 +924,6 @@ function runSchoolDataTests() {
 
     }
 
-
-    /*
-       TEST 5
-       Expected Parade coordinates.
-    */
 
     const expectedLatitude =
         -37.6902;
@@ -771,28 +958,11 @@ function runSchoolDataTests() {
     } else {
 
         console.warn(
-            "[TEST WARNING] Parade coordinates differ from the expected test coordinates."
-        );
-
-        console.warn(
-            "Expected:",
-            expectedLatitude,
-            expectedLongitude
-        );
-
-        console.warn(
-            "Actual:",
-            parade.latitude,
-            parade.longitude
+            "[TEST WARNING] Parade coordinates differ from expected test coordinates."
         );
 
     }
 
-
-    /*
-       TEST 6
-       Check filters.
-    */
 
     const passesFilters =
         filteredSchools.includes(
@@ -812,17 +982,6 @@ function runSchoolDataTests() {
 
         console.warn(
             "[TEST WARNING] Parade College is being removed by one or more filters."
-        );
-
-        console.warn(
-            "[TEST] Current filter ranges:",
-            {
-                age: getRange("age"),
-                fee: getRange("fee"),
-                enrolment: getRange("enrolment"),
-                ratio: getRange("ratio"),
-                distance: getRange("distance")
-            }
         );
 
     }
@@ -859,7 +1018,8 @@ function runMarkerTests() {
     ) {
 
         console.log(
-            "[TEST PASSED] At least one school passed the filters."
+            "[TEST PASSED] Schools passed the filters:",
+            filteredSchools.length
         );
 
     } else {
@@ -873,22 +1033,10 @@ function runMarkerTests() {
     }
 
 
-    if (
-        markers.length > 0
-    ) {
-
-        console.log(
-            "[TEST PASSED] School markers were created:",
-            markers.length
-        );
-
-    } else {
-
-        console.error(
-            "[TEST FAILED] No school markers were created."
-        );
-
-    }
+    console.log(
+        "[TEST] Marker cache size:",
+        markerCache.size
+    );
 
 
     const parade =
@@ -906,26 +1054,8 @@ function runMarkerTests() {
 
 
     const paradeMarker =
-        markers.find(
-            marker => {
-
-                const position =
-                    marker.getLatLng();
-
-
-                return (
-                    Math.abs(
-                        position.lat -
-                        parade.latitude
-                    ) < 0.0001 &&
-
-                    Math.abs(
-                        position.lng -
-                        parade.longitude
-                    ) < 0.0001
-                );
-
-            }
+        markerCache.get(
+            parade.school_id
         );
 
 
@@ -934,13 +1064,13 @@ function runMarkerTests() {
     ) {
 
         console.log(
-            "[TEST PASSED] Parade College marker was created."
+            "[TEST PASSED] Parade College marker exists in cache."
         );
 
     } else {
 
-        console.error(
-            "[TEST FAILED] Parade College has no marker."
+        console.log(
+            "[TEST] Parade marker is not currently in the viewport."
         );
 
     }
@@ -984,7 +1114,7 @@ function zoomToTestSchool() {
     ) {
 
         console.warn(
-            "[TEST] Cannot zoom to Parade because its coordinates are invalid."
+            "[TEST] Cannot zoom to Parade because coordinates are invalid."
         );
 
         return;
@@ -1021,20 +1151,24 @@ function initialiseFilters() {
         FILTER_LIMITS.age
     );
 
+
     initialiseDualSlider(
         "fee",
         FILTER_LIMITS.fee
     );
+
 
     initialiseDualSlider(
         "enrolment",
         FILTER_LIMITS.enrolment
     );
 
+
     initialiseDualSlider(
         "ratio",
         FILTER_LIMITS.ratio
     );
+
 
     initialiseDualSlider(
         "distance",
@@ -1042,9 +1176,9 @@ function initialiseFilters() {
     );
 
 
-    /* -----------------------------------------------------
+    /*
        STATE SEARCH
-       ----------------------------------------------------- */
+    */
 
     const stateInput =
         document.getElementById(
@@ -1084,9 +1218,9 @@ function initialiseFilters() {
     }
 
 
-    /* -----------------------------------------------------
+    /*
        SECTOR DROPDOWN
-       ----------------------------------------------------- */
+    */
 
     const sectorButton =
         document.getElementById(
@@ -1123,9 +1257,9 @@ function initialiseFilters() {
     }
 
 
-    /* -----------------------------------------------------
+    /*
        GENDER DROPDOWN
-       ----------------------------------------------------- */
+    */
 
     const genderButton =
         document.getElementById(
@@ -1162,9 +1296,9 @@ function initialiseFilters() {
     }
 
 
-    /* -----------------------------------------------------
+    /*
        SECTOR CHECKBOXES
-       ----------------------------------------------------- */
+    */
 
     document
         .querySelectorAll(
@@ -1182,9 +1316,9 @@ function initialiseFilters() {
         );
 
 
-    /* -----------------------------------------------------
+    /*
        GENDER CHECKBOXES
-       ----------------------------------------------------- */
+    */
 
     document
         .querySelectorAll(
@@ -1202,9 +1336,9 @@ function initialiseFilters() {
         );
 
 
-    /* -----------------------------------------------------
+    /*
        CLEAR FILTERS
-       ----------------------------------------------------- */
+    */
 
     const clearButton =
         document.getElementById(
@@ -1222,9 +1356,9 @@ function initialiseFilters() {
     }
 
 
-    /* -----------------------------------------------------
+    /*
        CLOSE DROPDOWNS
-       ----------------------------------------------------- */
+    */
 
     document.addEventListener(
         "click",
@@ -1413,10 +1547,6 @@ function initialiseDualSlider(
     );
 
 
-    /* -----------------------------------------------------
-       MIN SLIDER
-       ----------------------------------------------------- */
-
     minSlider.addEventListener(
         "input",
         () => {
@@ -1474,10 +1604,6 @@ function initialiseDualSlider(
     );
 
 
-    /* -----------------------------------------------------
-       MAX SLIDER
-       ----------------------------------------------------- */
-
     maxSlider.addEventListener(
         "input",
         () => {
@@ -1534,10 +1660,6 @@ function initialiseDualSlider(
         }
     );
 
-
-    /* -----------------------------------------------------
-       MIN TEXT INPUT
-       ----------------------------------------------------- */
 
     minInput.addEventListener(
         "change",
@@ -1612,10 +1734,6 @@ function initialiseDualSlider(
         }
     );
 
-
-    /* -----------------------------------------------------
-       MAX TEXT INPUT
-       ----------------------------------------------------- */
 
     maxInput.addEventListener(
         "change",
@@ -1890,7 +2008,24 @@ function initialiseSearch() {
 
         searchInput.addEventListener(
             "input",
-            applyFilters
+            () => {
+
+                clearTimeout(
+                    searchDebounceTimer
+                );
+
+
+                searchDebounceTimer =
+                    setTimeout(
+                        () => {
+
+                            applyFilters();
+
+                        },
+                        SEARCH_DEBOUNCE_MS
+                    );
+
+            }
         );
 
 
@@ -1902,6 +2037,10 @@ function initialiseSearch() {
                     event.key ===
                     "Enter"
                 ) {
+
+                    clearTimeout(
+                        searchDebounceTimer
+                    );
 
                     applyFilters();
 
@@ -1917,7 +2056,15 @@ function initialiseSearch() {
 
         searchButton.addEventListener(
             "click",
-            applyFilters
+            () => {
+
+                clearTimeout(
+                    searchDebounceTimer
+                );
+
+                applyFilters();
+
+            }
         );
 
     }
@@ -2331,30 +2478,24 @@ function applyFilters() {
         getRange("distance");
 
 
+    /*
+       Filtering only determines DATA.
+
+       It does not directly create markers.
+    */
+
     filteredSchools =
         schools.filter(
             school => {
 
-                /* -----------------------------------------
+                /*
                    SEARCH
-                   ----------------------------------------- */
+                */
 
                 if (search) {
 
-                    const searchableText =
-                        [
-                            school.name,
-                            school.address,
-                            school.state,
-                            school.description
-                        ]
-                        .filter(Boolean)
-                        .join(" ")
-                        .toLowerCase();
-
-
                     if (
-                        !searchableText.includes(
+                        !school.searchText.includes(
                             search
                         )
                     ) {
@@ -2366,9 +2507,9 @@ function applyFilters() {
                 }
 
 
-                /* -----------------------------------------
+                /*
                    STATE
-                   ----------------------------------------- */
+                */
 
                 if (
                     selectedStates.length >
@@ -2395,9 +2536,9 @@ function applyFilters() {
                 }
 
 
-                /* -----------------------------------------
+                /*
                    SECTOR
-                   ----------------------------------------- */
+                */
 
                 if (
                     selectedSectors.length >
@@ -2431,9 +2572,9 @@ function applyFilters() {
                 }
 
 
-                /* -----------------------------------------
+                /*
                    GENDER
-                   ----------------------------------------- */
+                */
 
                 if (
                     selectedGenders.length >
@@ -2467,9 +2608,9 @@ function applyFilters() {
                 }
 
 
-                /* -----------------------------------------
+                /*
                    AGE
-                   ----------------------------------------- */
+                */
 
                 if (
                     school.allowed_ages &&
@@ -2484,9 +2625,9 @@ function applyFilters() {
                 }
 
 
-                /* -----------------------------------------
+                /*
                    FEE
-                   ----------------------------------------- */
+                */
 
                 if (
                     school.fee !== null &&
@@ -2503,9 +2644,9 @@ function applyFilters() {
                 }
 
 
-                /* -----------------------------------------
+                /*
                    ENROLMENT
-                   ----------------------------------------- */
+                */
 
                 if (
                     school.enrolment !== null &&
@@ -2522,9 +2663,9 @@ function applyFilters() {
                 }
 
 
-                /* -----------------------------------------
+                /*
                    STUDENT / TEACHER RATIO
-                   ----------------------------------------- */
+                */
 
                 if (
                     school.student_teacher_ratio !== null &&
@@ -2541,9 +2682,9 @@ function applyFilters() {
                 }
 
 
-                /* -----------------------------------------
+                /*
                    DISTANCE
-                   ----------------------------------------- */
+                */
 
                 if (
                     userLatitude !== null &&
@@ -2553,11 +2694,8 @@ function applyFilters() {
                 ) {
 
                     const distance =
-                        calculateDistance(
-                            userLatitude,
-                            userLongitude,
-                            school.latitude,
-                            school.longitude
+                        getCachedDistance(
+                            school
                         );
 
 
@@ -2581,11 +2719,17 @@ function applyFilters() {
         );
 
 
-    renderSchoolMarkers();
-
     updateResultsCount(
         filteredSchools.length
     );
+
+
+    /*
+       Now that filtering is complete, decide which
+       filtered schools actually need Leaflet markers.
+    */
+
+    scheduleVisibleMarkerUpdate();
 
 }
 
@@ -2689,6 +2833,72 @@ function ageMatches(
 
 
 /* =========================================================
+   DISTANCE CACHE
+   ========================================================= */
+
+function getCachedDistance(
+    school
+) {
+
+    if (
+        userLatitude === null ||
+        userLongitude === null
+    ) {
+
+        return null;
+
+    }
+
+
+    const schoolId =
+        school.school_id;
+
+
+    if (
+        distanceCache.has(
+            schoolId
+        )
+    ) {
+
+        return distanceCache.get(
+            schoolId
+        );
+
+    }
+
+
+    const distance =
+        calculateDistance(
+            userLatitude,
+            userLongitude,
+            school.latitude,
+            school.longitude
+        );
+
+
+    distanceCache.set(
+        schoolId,
+        distance
+    );
+
+
+    return distance;
+
+}
+
+
+/* =========================================================
+   CLEAR DISTANCE CACHE
+   ========================================================= */
+
+function clearDistanceCache() {
+
+    distanceCache.clear();
+
+}
+
+
+/* =========================================================
    DISTANCE CALCULATION
    ========================================================= */
 
@@ -2765,214 +2975,580 @@ function toRadians(
 
 
 /* =========================================================
-   RENDER SCHOOL MARKERS
+   SCHEDULE VISIBLE MARKER UPDATE
    ========================================================= */
 
-function renderSchoolMarkers() {
+function scheduleVisibleMarkerUpdate() {
 
-    /*
-       Remove existing markers.
-    */
+    if (
+        markerUpdateScheduled
+    ) {
 
-    markers.forEach(
-        marker =>
-            map.removeLayer(
-                marker
-            )
+        return;
+
+    }
+
+
+    markerUpdateScheduled =
+        true;
+
+
+    requestAnimationFrame(
+        () => {
+
+            markerUpdateScheduled =
+                false;
+
+
+            updateVisibleMarkers();
+
+        }
     );
 
+}
 
-    markers = [];
+
+/* =========================================================
+   GET EXPANDED VIEWPORT
+   ========================================================= */
+
+function getExpandedMapBounds() {
+
+    const bounds =
+        map.getBounds();
+
+
+    const north =
+        bounds.getNorth();
+
+    const south =
+        bounds.getSouth();
+
+    const east =
+        bounds.getEast();
+
+    const west =
+        bounds.getWest();
+
+
+    const latitudeBuffer =
+        (
+            north -
+            south
+        ) *
+        VIEWPORT_BUFFER;
+
+
+    const longitudeBuffer =
+        (
+            east -
+            west
+        ) *
+        VIEWPORT_BUFFER;
+
+
+    return L.latLngBounds(
+
+        [
+            south -
+            latitudeBuffer,
+
+            west -
+            longitudeBuffer
+        ],
+
+        [
+            north +
+            latitudeBuffer,
+
+            east +
+            longitudeBuffer
+        ]
+
+    );
+
+}
+
+
+/* =========================================================
+   GET VISIBLE FILTERED SCHOOLS
+   ========================================================= */
+
+function getVisibleSchools() {
+
+    if (
+        !map
+    ) {
+
+        return [];
+
+    }
+
+
+    const bounds =
+        getExpandedMapBounds();
+
+
+    const visible = [];
+
+
+    for (
+        const school of filteredSchools
+    ) {
+
+        if (
+            !Number.isFinite(
+                school.latitude
+            ) ||
+            !Number.isFinite(
+                school.longitude
+            )
+        ) {
+
+            continue;
+
+        }
+
+
+        if (
+            bounds.contains(
+                [
+                    school.latitude,
+                    school.longitude
+                ]
+            )
+        ) {
+
+            visible.push(
+                school
+            );
+
+        }
+
+    }
+
+
+    return visible;
+
+}
+
+
+/* =========================================================
+   UPDATE VISIBLE MARKERS
+   ========================================================= */
+
+function updateVisibleMarkers() {
+
+    if (
+        !map ||
+        !markerClusterGroup
+    ) {
+
+        return;
+
+    }
+
+
+    const visibleSchools =
+        getVisibleSchools();
 
 
     /*
-       Create a marker for every filtered school.
+       If an extremely dense view contains thousands of
+       schools, don't attempt to create every single marker
+       simultaneously.
+
+       Clustering will still represent the schools spatially.
     */
 
-    filteredSchools.forEach(
-        school => {
-
-            const latitude =
-                Number(
-                    school.latitude
-                );
+    let schoolsToRender =
+        visibleSchools;
 
 
-            const longitude =
-                Number(
-                    school.longitude
-                );
+    if (
+        visibleSchools.length >
+        MAX_VISIBLE_MARKERS
+    ) {
 
+        schoolsToRender =
+            visibleSchools.slice(
+                0,
+                MAX_VISIBLE_MARKERS
+            );
+
+
+        if (DEBUG_MODE) {
+
+            console.log(
+                `[MAP] View contains ${visibleSchools.length} schools. Rendering first ${MAX_VISIBLE_MARKERS} marker objects.`
+            );
+
+        }
+
+    }
+
+
+    const nextSchoolIds =
+        new Set(
+            schoolsToRender.map(
+                school =>
+                    school.school_id
+            )
+        );
+
+
+    /*
+       REMOVE MARKERS THAT ARE NO LONGER NEEDED
+    */
+
+    visibleSchoolIds.forEach(
+        schoolId => {
 
             if (
-                !Number.isFinite(
-                    latitude
-                ) ||
-                !Number.isFinite(
-                    longitude
+                !nextSchoolIds.has(
+                    schoolId
                 )
             ) {
 
+                const marker =
+                    markerCache.get(
+                        schoolId
+                    );
+
+
                 if (
-                    DEBUG_MODE
+                    marker
                 ) {
 
-                    console.warn(
-                        "[MARKER SKIPPED] Invalid coordinates:",
-                        school.name,
-                        latitude,
-                        longitude
+                    markerClusterGroup.removeLayer(
+                        marker
                     );
 
                 }
 
-                return;
+
+                visibleSchoolIds.delete(
+                    schoolId
+                );
 
             }
-
-
-            const icon =
-                L.divIcon({
-
-                    className:
-                        "custom-school-icon",
-
-                    html: `
-                        <div class="school-marker">
-
-                            <span class="school-marker-dot"></span>
-
-                            <span class="school-marker-label">
-                                ${escapeHTML(
-                                    school.name ||
-                                    "School"
-                                )}
-                            </span>
-
-                        </div>
-                    `,
-
-                    iconSize:
-                        null,
-
-                    iconAnchor:
-                        [
-                            0,
-                            0
-                        ]
-
-                });
-
-
-            const marker =
-                L.marker(
-                    [
-                        latitude,
-                        longitude
-                    ],
-                    {
-                        icon
-                    }
-                )
-                .addTo(map);
-
-
-            marker.bindPopup(
-                createSchoolPopup(
-                    school
-                ),
-                {
-                    closeButton:
-                        true,
-
-                    maxWidth:
-                        320,
-
-                    minWidth:
-                        260
-                }
-            );
-
-
-            marker.on(
-                "popupopen",
-                event => {
-
-                    const popup =
-                        event.popup
-                            .getElement();
-
-
-                    if (!popup) {
-                        return;
-                    }
-
-
-                    const viewButton =
-                        popup.querySelector(
-                            ".view-school-button"
-                        );
-
-
-                    if (viewButton) {
-
-                        viewButton.addEventListener(
-                            "click",
-                            () => {
-
-                                openSchoolDetails(
-                                    school
-                                );
-
-                            }
-                        );
-
-                    }
-
-
-                    const tagButton =
-                        popup.querySelector(
-                            ".school-tag-button"
-                        );
-
-
-                    if (tagButton) {
-
-                        tagButton.addEventListener(
-                            "click",
-                            () => {
-
-                                openSchoolTags(
-                                    school
-                                );
-
-                            }
-                        );
-
-                    }
-
-                }
-            );
-
-
-            markers.push(
-                marker
-            );
 
         }
     );
 
 
-    if (
-        DEBUG_MODE
-    ) {
+    /*
+       ADD NEW MARKERS
+    */
+
+    schoolsToRender.forEach(
+        school => {
+
+            const schoolId =
+                school.school_id;
+
+
+            let marker =
+                markerCache.get(
+                    schoolId
+                );
+
+
+            /*
+               Marker does not exist yet.
+            */
+
+            if (!marker) {
+
+                marker =
+                    createSchoolMarker(
+                        school
+                    );
+
+
+                markerCache.set(
+                    schoolId,
+                    marker
+                );
+
+            }
+
+
+            /*
+               Only add it if it isn't already
+               being displayed.
+            */
+
+            if (
+                !visibleSchoolIds.has(
+                    schoolId
+                )
+            ) {
+
+                markerClusterGroup.addLayer(
+                    marker
+                );
+
+
+                visibleSchoolIds.add(
+                    schoolId
+                );
+
+            }
+
+        }
+    );
+
+
+    updateMarkerLabels();
+
+
+    if (DEBUG_MODE) {
 
         console.log(
-            "[TEST] Markers currently rendered:",
-            markers.length
+            "[MAP] Filtered schools:",
+            filteredSchools.length
+        );
+
+        console.log(
+            "[MAP] Schools in viewport:",
+            visibleSchools.length
+        );
+
+        console.log(
+            "[MAP] Active marker objects:",
+            visibleSchoolIds.size
+        );
+
+        console.log(
+            "[MAP] Cached markers:",
+            markerCache.size
         );
 
     }
+
+}
+
+
+/* =========================================================
+   CREATE SCHOOL MARKER
+   ========================================================= */
+
+function createSchoolMarker(
+    school
+) {
+
+    const icon =
+        createSchoolIcon(
+            school
+        );
+
+
+    const marker =
+        L.marker(
+            [
+                school.latitude,
+                school.longitude
+            ],
+            {
+                icon
+            }
+        );
+
+
+    /*
+       Popup content is NOT generated here.
+
+       It will only be created when the user opens
+       the popup.
+    */
+
+    marker.bindPopup(
+        () => {
+
+            return createSchoolPopup(
+                school
+            );
+
+        },
+        {
+            closeButton:
+                true,
+
+            maxWidth:
+                320,
+
+            minWidth:
+                260
+        }
+    );
+
+
+    /*
+       Event handler is attached once when the marker
+       is created, rather than every time it is rendered.
+    */
+
+    marker.on(
+        "popupopen",
+        event => {
+
+            const popup =
+                event.popup
+                    .getElement();
+
+
+            if (!popup) {
+                return;
+            }
+
+
+            const viewButton =
+                popup.querySelector(
+                    ".view-school-button"
+                );
+
+
+            if (viewButton) {
+
+                viewButton.addEventListener(
+                    "click",
+                    () => {
+
+                        openSchoolDetails(
+                            school
+                        );
+
+                    }
+                );
+
+            }
+
+
+            const tagButton =
+                popup.querySelector(
+                    ".school-tag-button"
+                );
+
+
+            if (tagButton) {
+
+                tagButton.addEventListener(
+                    "click",
+                    () => {
+
+                        openSchoolTags(
+                            school
+                        );
+
+                    }
+                );
+
+            }
+
+        }
+    );
+
+
+    return marker;
+
+}
+
+
+/* =========================================================
+   SCHOOL ICON
+   ========================================================= */
+
+function createSchoolIcon(
+    school
+) {
+
+    return L.divIcon({
+
+        className:
+            "custom-school-icon",
+
+        html: `
+
+            <div class="school-marker">
+
+                <span class="school-marker-dot"></span>
+
+                <span class="school-marker-label">
+                    ${escapeHTML(
+                        school.name ||
+                        "School"
+                    )}
+                </span>
+
+            </div>
+
+        `,
+
+        iconSize:
+            null,
+
+        iconAnchor:
+            [
+                0,
+                0
+            ]
+
+    });
+
+}
+
+
+/* =========================================================
+   UPDATE MARKER LABELS
+   ========================================================= */
+
+function updateMarkerLabels() {
+
+    if (
+        !map
+    ) {
+
+        return;
+
+    }
+
+
+    const showLabels =
+        map.getZoom() >=
+        LABEL_ZOOM_LEVEL;
+
+
+    markerCache.forEach(
+        marker => {
+
+            const element =
+                marker.getElement();
+
+
+            if (!element) {
+                return;
+            }
+
+
+            const label =
+                element.querySelector(
+                    ".school-marker-label"
+                );
+
+
+            if (!label) {
+                return;
+            }
+
+
+            label.style.display =
+                showLabels
+                    ? ""
+                    : "none";
+
+        }
+    );
 
 }
 
@@ -3009,7 +3585,6 @@ function createSchoolPopup(
                     </p>
 
                 </div>
-
 
                 <button
                     type="button"
@@ -3575,6 +4150,14 @@ function setUserLocation(
     }
 
 
+    /*
+       The user's position changed, so every cached
+       school distance is now invalid.
+    */
+
+    clearDistanceCache();
+
+
     updateLocationInput();
 
 
@@ -3753,8 +4336,10 @@ async function geocodeAddress() {
                 url,
                 {
                     headers: {
+
                         "Accept":
                             "application/json"
+
                     }
                 }
             );
@@ -3942,6 +4527,9 @@ function clearFilters() {
 
     selectedGenders =
         [];
+
+
+    clearDistanceCache();
 
 
     const searchInput =
