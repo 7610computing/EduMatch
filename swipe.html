@@ -1,522 +1,445 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
 
-    <meta charset="UTF-8">
+```
+<meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-    <title>EduMatch - Saved Schools</title>
-
-
-    <!-- =========================
-         UNIVERSAL / THEME CSS
-         ========================= -->
-
-    <link
-        rel="stylesheet"
-        href="css/theme.css"
-    >
-
-    <link
-        rel="stylesheet"
-        href="css/navbar.css"
-    >
+<title>EduMatch - Saved Schools</title>
 
 
-    <!-- =========================
-         SUPABASE
-         ========================= -->
+<!-- Universal CSS -->
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link
+    rel="stylesheet"
+    href="css/theme.css"
+>
 
-
-    <style>
-
-        /* =========================
-           RESET
-           ========================= */
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<link
+    rel="stylesheet"
+    href="css/navbar.css"
+>
 
 
-        /* =========================
-           BODY
-           ========================= */
+<!-- Supabase -->
 
-        body {
-            font-family: Arial, sans-serif;
-
-            background-color: #f7f7f7;
-
-            color: #333;
-
-            min-height: 100vh;
-        }
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
-        /* =========================
-           SAVED PAGE
-           ========================= */
+<style>
+
+    /* =========================
+       RESET
+    ========================= */
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+
+    /* =========================
+       BODY
+    ========================= */
+
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f7f7f7;
+        color: #333;
+        min-height: 100vh;
+    }
+
+
+    /* =========================
+       SAVED PAGE
+    ========================= */
+
+    .saved-page {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 45px 20px 70px;
+    }
+
+
+    /* =========================
+       PAGE HEADING
+    ========================= */
+
+    .page-heading {
+        text-align: center;
+        margin-bottom: 35px;
+    }
+
+    .page-heading h1 {
+        font-size: 34px;
+        margin-bottom: 8px;
+    }
+
+    .page-heading p {
+        color: #777;
+        line-height: 1.5;
+    }
+
+
+    /* =========================
+       SAVED SCHOOL GRID
+    ========================= */
+
+    .saved-grid {
+        display: grid;
+        grid-template-columns: repeat(
+            auto-fit,
+            minmax(280px, 1fr)
+        );
+        gap: 25px;
+    }
+
+
+    /* =========================
+       SCHOOL CARD
+    ========================= */
+
+    .saved-school-card {
+        background-color: white;
+        border-radius: 18px;
+        overflow: hidden;
+
+        box-shadow:
+            0 8px 25px rgba(0, 0, 0, 0.10);
+
+        display: flex;
+        flex-direction: column;
+    }
+
+
+    /* =========================
+       SCHOOL CONTENT
+    ========================= */
+
+    .school-content {
+        padding: 20px;
+
+        display: flex;
+        flex-direction: column;
+
+        flex-grow: 1;
+    }
+
+    .school-content h2 {
+        font-size: 22px;
+        margin-bottom: 8px;
+    }
+
+    .school-location {
+        color: #777;
+        margin-bottom: 15px;
+    }
+
+    .school-description {
+        color: #555;
+        line-height: 1.5;
+        margin-bottom: 20px;
+
+        flex-grow: 1;
+    }
+
+
+    /* =========================
+       SCHOOL ACTIONS
+    ========================= */
+
+    .school-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .school-button {
+        border: none;
+        border-radius: 9px;
+
+        padding: 11px 15px;
+
+        font-size: 14px;
+        font-weight: bold;
+
+        cursor: pointer;
+
+        text-decoration: none;
+        text-align: center;
+    }
+
+    .website-button {
+        background-color: #FFB7A7;
+        color: #222;
+        flex: 1;
+    }
+
+    .website-button:hover {
+        opacity: 0.85;
+    }
+
+    .remove-button {
+        background-color: #eeeeee;
+        color: #444;
+    }
+
+    .remove-button:hover {
+        background-color: #dddddd;
+    }
+
+
+    /* =========================
+       MESSAGE BOX
+    ========================= */
+
+    .message-box {
+        grid-column: 1 / -1;
+
+        background-color: white;
+
+        padding: 50px 25px;
+
+        border-radius: 18px;
+
+        text-align: center;
+
+        box-shadow:
+            0 8px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .message-box h2 {
+        margin-bottom: 10px;
+    }
+
+    .message-box p {
+        color: #777;
+        margin-bottom: 20px;
+    }
+
+    .message-box a {
+        display: inline-block;
+
+        background-color: #FFB7A7;
+        color: #222;
+
+        padding: 12px 20px;
+
+        border-radius: 9px;
+
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 700px) {
 
         .saved-page {
-            width: 100%;
-
-            max-width: 1200px;
-
-            margin: 0 auto;
-
-            padding: 45px 20px 70px;
+            padding: 30px 15px 50px;
         }
-
-
-        /* =========================
-           PAGE HEADING
-           ========================= */
-
-        .page-heading {
-            text-align: center;
-
-            margin-bottom: 35px;
-        }
-
 
         .page-heading h1 {
-            font-size: 34px;
-
-            margin-bottom: 8px;
+            font-size: 28px;
         }
 
+    }
 
-        .page-heading p {
-            color: #777;
-
-            line-height: 1.5;
-        }
-
-
-        /* =========================
-           SAVED SCHOOL GRID
-           ========================= */
-
-        .saved-grid {
-            display: grid;
-
-            grid-template-columns:
-                repeat(
-                    auto-fit,
-                    minmax(280px, 1fr)
-                );
-
-            gap: 25px;
-        }
-
-
-        /* =========================
-           SCHOOL CARD
-           ========================= */
-
-        .saved-school-card {
-            background-color: white;
-
-            border-radius: 18px;
-
-            overflow: hidden;
-
-            box-shadow:
-                0 8px 25px
-                rgba(0, 0, 0, 0.10);
-
-            display: flex;
-
-            flex-direction: column;
-        }
-
-
-        /* =========================
-           SCHOOL CONTENT
-           ========================= */
-
-        .school-content {
-            padding: 20px;
-
-            display: flex;
-
-            flex-direction: column;
-
-            flex-grow: 1;
-        }
-
-
-        .school-content h2 {
-            font-size: 22px;
-
-            margin-bottom: 8px;
-        }
-
-
-        .school-location {
-            color: #777;
-
-            margin-bottom: 15px;
-        }
-
-
-        .school-description {
-            color: #555;
-
-            line-height: 1.5;
-
-            margin-bottom: 20px;
-
-            flex-grow: 1;
-        }
-
-
-        /* =========================
-           SCHOOL ACTIONS
-           ========================= */
-
-        .school-actions {
-            display: flex;
-
-            gap: 10px;
-
-            flex-wrap: wrap;
-        }
-
-
-        .school-button {
-            border: none;
-
-            border-radius: 9px;
-
-            padding: 11px 15px;
-
-            font-size: 14px;
-
-            font-weight: bold;
-
-            cursor: pointer;
-
-            text-decoration: none;
-
-            text-align: center;
-        }
-
-
-        .website-button {
-            background-color: #FFB7A7;
-
-            color: #222;
-
-            flex: 1;
-        }
-
-
-        .remove-button {
-            background-color: #eeeeee;
-
-            color: #444;
-        }
-
-
-        .remove-button:hover {
-            background-color: #dddddd;
-        }
-
-
-        /* =========================
-           MESSAGE BOX
-           ========================= */
-
-        .message-box {
-            grid-column: 1 / -1;
-
-            background-color: white;
-
-            padding: 50px 25px;
-
-            border-radius: 18px;
-
-            text-align: center;
-
-            box-shadow:
-                0 8px 25px
-                rgba(0, 0, 0, 0.08);
-        }
-
-
-        .message-box h2 {
-            margin-bottom: 10px;
-        }
-
-
-        .message-box p {
-            color: #777;
-
-            margin-bottom: 20px;
-        }
-
-
-        .message-box a {
-            display: inline-block;
-
-            background-color: #FFB7A7;
-
-            color: #222;
-
-            padding: 12px 20px;
-
-            border-radius: 9px;
-
-            text-decoration: none;
-
-            font-weight: bold;
-        }
-
-
-        /* =========================
-           MOBILE
-           ========================= */
-
-        @media (max-width: 700px) {
-
-            .saved-page {
-                padding:
-                    30px 15px
-                    50px;
-            }
-
-
-            .page-heading h1 {
-                font-size: 28px;
-            }
-
-        }
-
-    </style>
+</style>
+```
 
 </head>
 
-
 <body>
 
+```
+<!-- =========================
+     UNIVERSAL NAVBAR
+========================= -->
+
+<div data-universal="navbar"></div>
+
+
+<!-- =========================
+     MAIN PAGE
+========================= -->
+
+<main class="saved-page">
+
+    <section class="page-heading">
+
+        <h1>
+            Saved Schools
+        </h1>
+
+        <p>
+            These are the schools you swiped right on.
+        </p>
+
+    </section>
+
 
     <!-- =========================
-         UNIVERSAL NAVBAR
-         ========================= -->
+         SAVED SCHOOLS
+    ========================= -->
 
-    <div data-universal="navbar"></div>
+    <section
+        id="saved-schools"
+        class="saved-grid"
+    >
 
+        <div class="message-box">
 
-    <!-- =========================
-         MAIN PAGE
-         ========================= -->
-
-    <main class="saved-page">
-
-
-        <section class="page-heading">
-
-            <h1>
-                Saved Schools
-            </h1>
+            <h2>
+                Loading...
+            </h2>
 
             <p>
-                These are the schools you swiped right on.
+                Getting your saved schools.
             </p>
 
-        </section>
+        </div>
+
+    </section>
+
+</main>
 
 
-        <!-- =========================
-             SAVED SCHOOLS
-             ========================= -->
+<!-- =========================
+     UNIVERSAL LOADER
+========================= -->
 
-        <section
-            id="saved-schools"
-            class="saved-grid"
-        >
+<script src="js/universal.js"></script>
+
+
+<!-- =========================
+     SAVED SCHOOLS JAVASCRIPT
+========================= -->
+
+<script>
+
+    /* =========================
+       SUPABASE CONFIG
+    ========================= */
+
+    const SUPABASE_URL =
+        "YOUR_SUPABASE_URL";
+
+    const SUPABASE_ANON_KEY =
+        "YOUR_SUPABASE_ANON_KEY";
+
+
+    /* =========================
+       CREATE SUPABASE CLIENT
+    ========================= */
+
+    const supabaseClient =
+        window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY
+        );
+
+
+    /* =========================
+       CONTAINER
+    ========================= */
+
+    const savedSchoolsContainer =
+        document.getElementById(
+            "saved-schools"
+        );
+
+
+    /* =========================
+       ESCAPE HTML
+    ========================= */
+
+    function escapeHTML(value) {
+
+        if (
+            value === null ||
+            value === undefined
+        ) {
+            return "";
+        }
+
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+
+    /* =========================
+       SHOW MESSAGE
+    ========================= */
+
+    function showMessage(
+        title,
+        message,
+        buttonText = "",
+        buttonLink = ""
+    ) {
+
+        let buttonHTML = "";
+
+        if (buttonText && buttonLink) {
+
+            buttonHTML = `
+                <a href="${escapeHTML(buttonLink)}">
+                    ${escapeHTML(buttonText)}
+                </a>
+            `;
+
+        }
+
+        savedSchoolsContainer.innerHTML = `
 
             <div class="message-box">
 
                 <h2>
-                    Loading...
+                    ${escapeHTML(title)}
                 </h2>
 
                 <p>
-                    Getting your saved schools.
+                    ${escapeHTML(message)}
                 </p>
+
+                ${buttonHTML}
 
             </div>
 
-        </section>
+        `;
+    }
 
 
-    </main>
+    /* =========================
+       GET CURRENT USER
+    ========================= */
 
+    async function getCurrentUser() {
 
-    <!-- =========================
-         UNIVERSAL LOADER
-         ========================= -->
-
-    <script src="js/universal.js"></script>
-
-
-    <!-- =========================
-         SAVED SCHOOLS JAVASCRIPT
-         ========================= -->
-
-    <script>
-
-        /* =========================
-           SUPABASE
-           ========================= */
-
-        const SUPABASE_URL =
-            "YOUR_SUPABASE_URL";
-
-
-        const SUPABASE_ANON_KEY =
-            "YOUR_SUPABASE_ANON_KEY";
-
-
-        const supabaseClient =
-            supabase.createClient(
-                SUPABASE_URL,
-                SUPABASE_ANON_KEY
-            );
-
-
-        /* =========================
-           CONTAINER
-           ========================= */
-
-        const savedSchoolsContainer =
-            document.getElementById(
-                "saved-schools"
-            );
-
-
-        /* =========================
-           ESCAPE HTML
-           ========================= */
-
-        function escapeHTML(value) {
-
-            if (
-                value === null ||
-                value === undefined
-            ) {
-
-                return "";
-
-            }
-
-
-            return String(value)
-
-                .replaceAll(
-                    "&",
-                    "&amp;"
-                )
-
-                .replaceAll(
-                    "<",
-                    "&lt;"
-                )
-
-                .replaceAll(
-                    ">",
-                    "&gt;"
-                )
-
-                .replaceAll(
-                    '"',
-                    "&quot;"
-                )
-
-                .replaceAll(
-                    "'",
-                    "&#039;"
-                );
-
-        }
-
-
-        /* =========================
-           MESSAGE
-           ========================= */
-
-        function showMessage(
-            title,
-            message,
-            buttonText = "",
-            buttonLink = ""
-        ) {
-
-            savedSchoolsContainer.innerHTML =
-                `
-
-                <div class="message-box">
-
-                    <h2>
-                        ${escapeHTML(title)}
-                    </h2>
-
-                    <p>
-                        ${escapeHTML(message)}
-                    </p>
-
-
-                    ${
-                        buttonText &&
-                        buttonLink
-
-                            ?
-
-                            `
-
-                            <a href="${buttonLink}">
-                                ${escapeHTML(buttonText)}
-                            </a>
-
-                            `
-
-                            :
-
-                            ""
-                    }
-
-                </div>
-
-                `;
-
-        }
-
-
-        /* =========================
-           GET CURRENT USER
-           ========================= */
-
-        async function getCurrentUser() {
+        try {
 
             const {
                 data,
                 error
             } =
-                await supabaseClient
-                    .auth
-                    .getUser();
+                await supabaseClient.auth.getUser();
 
 
             if (error) {
@@ -535,436 +458,426 @@
 
         }
 
+        catch (error) {
+
+            console.error(
+                "Supabase error:",
+                error
+            );
+
+            return null;
+
+        }
+
+    }
+
+
+    /* =========================
+       LOAD SAVED SCHOOLS
+    ========================= */
+
+    async function loadSavedSchools() {
+
+        console.log(
+            "Loading saved schools..."
+        );
+
 
         /* =========================
-           LOAD SAVED SCHOOLS
-           ========================= */
+           CHECK USER
+        ========================= */
 
-        async function loadSavedSchools() {
-
-
-            const user =
-                await getCurrentUser();
+        const user =
+            await getCurrentUser();
 
 
-            /* =========================
-               NOT LOGGED IN
-               ========================= */
+        if (!user) {
 
-            if (!user) {
+            showMessage(
+
+                "Login Required",
+
+                "Please log in to view your saved schools.",
+
+                "Log In",
+
+                "login.html"
+
+            );
+
+            return;
+
+        }
 
 
-                showMessage(
+        console.log(
+            "Logged in user:",
+            user.id
+        );
 
-                    "Login Required",
 
-                    "Please log in to view your saved schools.",
+        /* =========================
+           DATABASE QUERY
+        ========================= */
 
-                    "Log In",
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
 
-                    "login.html"
+                .from("saved_schools")
 
+                .select(`
+
+                    id,
+                    school_id,
+                    created_at,
+
+                    schools (
+                        school_id,
+                        name,
+                        description,
+                        address,
+                        state,
+                        website
+                    )
+
+                `)
+
+                .eq(
+                    "user_id",
+                    user.id
+                )
+
+                .order(
+                    "created_at",
+                    {
+                        ascending: false
+                    }
                 );
 
 
-                return;
+        /* =========================
+           DATABASE ERROR
+        ========================= */
 
-            }
+        if (error) {
 
-
-            /* =========================
-               DATABASE QUERY
-               ========================= */
-
-            const {
-                data,
+            console.error(
+                "Saved schools error:",
                 error
-            } =
-                await supabaseClient
+            );
 
-                    .from(
-                        "saved_schools"
-                    )
 
-                    .select(
-                        `
+            showMessage(
 
-                        id,
+                "Could Not Load Schools",
 
-                        school_id,
+                "Database error: " +
+                error.message
 
-                        created_at,
+            );
 
-                        schools (
+            return;
 
-                            school_id,
+        }
 
-                            name,
 
-                            description,
+        console.log(
+            "Saved schools:",
+            data
+        );
 
-                            address,
 
-                            state,
+        /* =========================
+           NOTHING SAVED
+        ========================= */
 
-                            website
+        if (
+            !data ||
+            data.length === 0
+        ) {
 
-                        )
+            showMessage(
 
-                        `
-                    )
+                "No Saved Schools Yet",
 
-                    .eq(
-                        "user_id",
-                        user.id
-                    )
+                "Swipe right on schools to save them here.",
 
-                    .order(
-                        "created_at",
-                        {
-                            ascending: false
-                        }
+                "Start Swiping",
+
+                "swipe.html"
+
+            );
+
+            return;
+
+        }
+
+
+        /* =========================
+           CLEAR LOADING
+        ========================= */
+
+        savedSchoolsContainer.innerHTML = "";
+
+
+        /* =========================
+           CREATE CARDS
+        ========================= */
+
+        data.forEach(
+            function(savedItem) {
+
+                const school =
+                    savedItem.schools;
+
+
+                if (!school) {
+                    return;
+                }
+
+
+                const card =
+                    document.createElement(
+                        "article"
                     );
 
 
-            /* =========================
-               DATABASE ERROR
-               ========================= */
+                card.className =
+                    "saved-school-card";
 
-            if (error) {
 
+                const name =
+                    escapeHTML(
+                        school.name ||
+                        "Unnamed School"
+                    );
 
-                console.error(
-                    "Saved schools error:",
-                    error
-                );
 
+                const description =
+                    escapeHTML(
+                        school.description ||
+                        "No description available."
+                    );
 
-                showMessage(
 
-                    "Could Not Load Schools",
+                const address =
+                    escapeHTML(
+                        school.address ||
+                        ""
+                    );
 
-                    "There was a problem loading your saved schools."
 
-                );
+                const state =
+                    escapeHTML(
+                        school.state ||
+                        ""
+                    );
 
 
-                return;
+                const website =
+                    school.website ||
+                    "";
 
-            }
 
+                let location = address;
 
-            /* =========================
-               NOTHING SAVED
-               ========================= */
+                if (
+                    address &&
+                    state
+                ) {
 
-            if (
-                !data ||
-                data.length === 0
-            ) {
+                    location +=
+                        " • " +
+                        state;
 
+                }
 
-                showMessage(
+                else if (state) {
 
-                    "No Saved Schools Yet",
+                    location =
+                        state;
 
-                    "Swipe right on schools to save them here.",
+                }
 
-                    "Start Swiping",
 
-                    "swipe.html"
+                let websiteHTML = "";
 
-                );
 
+                if (website) {
 
-                return;
+                    websiteHTML = `
 
-            }
+                        <a
+                            href="${escapeHTML(website)}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="school-button website-button"
+                        >
+                            View Website
+                        </a>
 
+                    `;
 
-            /* =========================
-               CLEAR LOADING MESSAGE
-               ========================= */
+                }
 
-            savedSchoolsContainer.innerHTML =
-                "";
 
+                card.innerHTML = `
 
-            /* =========================
-               BUILD SCHOOL CARDS
-               ========================= */
+                    <div class="school-content">
 
-            data.forEach(
-                function(savedItem) {
+                        <h2>
+                            ${name}
+                        </h2>
 
+                        <p class="school-location">
+                            ${location}
+                        </p>
 
-                    const school =
-                        savedItem.schools;
+                        <p class="school-description">
+                            ${description}
+                        </p>
 
+                        <div class="school-actions">
 
-                    if (!school) {
+                            ${websiteHTML}
 
-                        return;
-
-                    }
-
-
-                    const card =
-                        document.createElement(
-                            "article"
-                        );
-
-
-                    card.className =
-                        "saved-school-card";
-
-
-                    const name =
-                        escapeHTML(
-                            school.name ||
-                            "Unnamed School"
-                        );
-
-
-                    const description =
-                        escapeHTML(
-                            school.description ||
-                            "No description available."
-                        );
-
-
-                    const address =
-                        escapeHTML(
-                            school.address ||
-                            ""
-                        );
-
-
-                    const state =
-                        escapeHTML(
-                            school.state ||
-                            ""
-                        );
-
-
-                    const website =
-                        school.website ||
-                        "";
-
-
-                    /* =========================
-                       CARD CONTENT
-                       ========================= */
-
-                    card.innerHTML =
-                        `
-
-                        <div class="school-content">
-
-
-                            <h2>
-                                ${name}
-                            </h2>
-
-
-                            <p class="school-location">
-
-                                ${address}
-
-                                ${
-                                    address &&
-                                    state
-
-                                        ?
-
-                                        " • "
-
-                                        :
-
-                                        ""
-                                }
-
-                                ${state}
-
-                            </p>
-
-
-                            <p class="school-description">
-                                ${description}
-                            </p>
-
-
-                            <div class="school-actions">
-
-
-                                ${
-                                    website
-
-                                        ?
-
-                                        `
-
-                                        <a
-                                            href="${escapeHTML(website)}"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            class="
-                                                school-button
-                                                website-button
-                                            "
-                                        >
-                                            View Website
-                                        </a>
-
-                                        `
-
-                                        :
-
-                                        ""
-                                }
-
-
-                                <button
-                                    type="button"
-                                    class="
-                                        school-button
-                                        remove-button
-                                    "
-                                    data-saved-id="${savedItem.id}"
-                                >
-                                    Remove
-                                </button>
-
-
-                            </div>
-
+                            <button
+                                type="button"
+                                class="school-button remove-button"
+                                data-saved-id="${escapeHTML(savedItem.id)}"
+                            >
+                                Remove
+                            </button>
 
                         </div>
 
-                        `;
+                    </div>
+
+                `;
 
 
-                    savedSchoolsContainer
-                        .appendChild(
-                            card
-                        );
+                savedSchoolsContainer.appendChild(
+                    card
+                );
+
+            }
+        );
+
+
+        /* =========================
+           REMOVE BUTTONS
+        ========================= */
+
+        document
+            .querySelectorAll(
+                ".remove-button"
+            )
+            .forEach(
+                function(button) {
+
+                    button.addEventListener(
+                        "click",
+                        async function() {
+
+                            const savedId =
+                                button.dataset.savedId;
+
+
+                            button.disabled = true;
+
+                            button.textContent =
+                                "Removing...";
+
+
+                            await removeSavedSchool(
+                                savedId
+                            );
+
+                        }
+                    );
 
                 }
             );
 
+    }
 
-            /* =========================
-               REMOVE BUTTON EVENTS
-               ========================= */
 
-            document
-                .querySelectorAll(
-                    ".remove-button"
+    /* =========================
+       REMOVE SAVED SCHOOL
+    ========================= */
+
+    async function removeSavedSchool(
+        savedId
+    ) {
+
+        const user =
+            await getCurrentUser();
+
+
+        if (!user) {
+            return;
+        }
+
+
+        const {
+            error
+        } =
+            await supabaseClient
+
+                .from("saved_schools")
+
+                .delete()
+
+                .eq(
+                    "id",
+                    savedId
                 )
-                .forEach(
-                    function(button) {
 
-
-                        button.addEventListener(
-                            "click",
-                            async function() {
-
-
-                                const savedId =
-                                    button.dataset.savedId;
-
-
-                                await removeSavedSchool(
-                                    savedId
-                                );
-
-
-                            }
-                        );
-
-
-                    }
+                .eq(
+                    "user_id",
+                    user.id
                 );
 
-        }
 
+        if (error) {
 
-        /* =========================
-           REMOVE SAVED SCHOOL
-           ========================= */
-
-        async function removeSavedSchool(
-            savedId
-        ) {
-
-
-            const user =
-                await getCurrentUser();
-
-
-            if (!user) {
-
-                return;
-
-            }
-
-
-            const {
+            console.error(
+                "Remove error:",
                 error
-            } =
-                await supabaseClient
-
-                    .from(
-                        "saved_schools"
-                    )
-
-                    .delete()
-
-                    .eq(
-                        "id",
-                        savedId
-                    )
-
-                    .eq(
-                        "user_id",
-                        user.id
-                    );
+            );
 
 
-            if (error) {
+            alert(
+                "Could not remove this school: " +
+                error.message
+            );
 
 
-                console.error(
-                    "Remove error:",
-                    error
-                );
-
-
-                alert(
-                    "Could not remove this school."
-                );
-
-
-                return;
-
-            }
-
-
-            /* REFRESH LIST */
-
-            loadSavedSchools();
+            return;
 
         }
 
 
         /* =========================
-           START
-           ========================= */
+           REFRESH
+        ========================= */
 
-        loadSavedSchools();
+        await loadSavedSchools();
 
-    </script>
+    }
 
+
+    /* =========================
+       START PAGE
+    ========================= */
+
+    loadSavedSchools();
+
+</script>
+```
 
 </body>
 
