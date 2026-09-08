@@ -18,37 +18,9 @@ const SUPABASE_ANON_KEY =
    DEBUG / TEST SETTINGS
    ========================================================= */
 
-/*
-   Set this to true while testing.
-
-   It will:
-   - print useful information to the browser console
-   - check that Supabase is returning schools
-   - check that Parade College exists
-   - check Parade's coordinates
-   - check whether Parade passes the filters
-   - report how many markers were created
-   - temporarily zoom to Parade if it exists
-*/
-
 const DEBUG_MODE = true;
 
-
-/*
-   Parade College's Victorian Government school number.
-
-   This is only used for testing.
-*/
-
 const TEST_SCHOOL_NO = "20";
-
-
-/*
-   Set this to true if you want the map to automatically
-   zoom to Parade College after the data loads.
-
-   Set to false once you are finished testing.
-*/
 
 const ZOOM_TO_TEST_SCHOOL = true;
 
@@ -56,13 +28,6 @@ const ZOOM_TO_TEST_SCHOOL = true;
 /* =========================================================
    GEOCODING
    ========================================================= */
-
-/*
-   This uses Nominatim for individual address searches.
-
-   It is deliberately NOT used for autocomplete.
-   The request only happens when the user submits an address.
-*/
 
 const GEOCODING_URL =
     "https://nominatim.openstreetmap.org/search";
@@ -100,11 +65,34 @@ const FILTER_LIMITS = {
 
     distance: {
         min: 0,
-        max: 100,
+        max: 1000,
         step: 1
     }
 
 };
+
+
+/* =========================================================
+   SUPABASE PAGINATION
+   ========================================================= */
+
+/*
+   Supabase REST requests return a maximum of 1,000 rows
+   by default.
+
+   Therefore the map loads Schools in batches.
+
+   Example:
+
+       Request 1: rows 0 - 999
+       Request 2: rows 1000 - 1999
+       Request 3: rows 2000 - 2999
+
+   This allows the map to load every school in the
+   database rather than stopping at exactly 1,000.
+*/
+
+const SUPABASE_PAGE_SIZE = 1000;
 
 
 /* =========================================================
@@ -233,12 +221,6 @@ function initialiseMap() {
     ).addTo(map);
 
 
-    /*
-       Start centred on Melbourne.
-
-       The map itself is not restricted to Australia.
-    */
-
     map.setView(
         [
             -37.8136,
@@ -266,7 +248,7 @@ async function loadSchools() {
     );
 
     console.log(
-        "[TEST] Loading schools from Supabase..."
+        "[TEST] Loading ALL schools from Supabase..."
     );
 
     console.log(
@@ -276,109 +258,17 @@ async function loadSchools() {
 
     try {
 
-        const url =
-            `${SUPABASE_URL}/rest/v1/Schools?select=*`;
-
-
-        console.log(
-            "[TEST] Supabase URL:",
-            url
-        );
-
-
-        const response =
-            await fetch(
-                url,
-                {
-                    method: "GET",
-
-                    headers: {
-                        "apikey":
-                            SUPABASE_ANON_KEY,
-
-                        "Authorization":
-                            `Bearer ${SUPABASE_ANON_KEY}`,
-
-                        "Content-Type":
-                            "application/json",
-
-                        "Accept":
-                            "application/json"
-                    }
-                }
-            );
-
-
-        console.log(
-            "[TEST] Supabase HTTP status:",
-            response.status
-        );
-
-
-        /*
-           Read the response as text first.
-
-           This makes errors much easier to diagnose.
-        */
-
-        const responseText =
-            await response.text();
-
-
-        console.log(
-            "[TEST] Supabase raw response:",
-            responseText
-        );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                `Supabase request failed: ${response.status} ${response.statusText}\n${responseText}`
-            );
-
-        }
-
-
-        let data;
-
-
-        try {
-
-            data =
-                JSON.parse(
-                    responseText
-                );
-
-        } catch (parseError) {
-
-            throw new Error(
-                "Supabase returned data that was not valid JSON."
-            );
-
-        }
-
-
-        if (!Array.isArray(data)) {
-
-            throw new Error(
-                "Supabase response was not an array of schools."
-            );
-
-        }
-
-
         schools =
-            data;
+            await fetchAllSchools();
 
 
         console.log(
-            "[TEST PASSED] Supabase request succeeded."
+            "[TEST PASSED] All school data loaded."
         );
 
 
         console.log(
-            "[TEST] Number of schools returned:",
+            "[TEST] Total schools returned:",
             schools.length
         );
 
@@ -406,7 +296,7 @@ async function loadSchools() {
 
         console.log(
             "[TEST] Normalised schools:",
-            schools
+            schools.length
         );
 
 
@@ -487,6 +377,156 @@ async function loadSchools() {
         updateResultsCount(0);
 
     }
+
+}
+
+
+/* =========================================================
+   FETCH ALL SCHOOLS
+   ========================================================= */
+
+async function fetchAllSchools() {
+
+    const allSchools = [];
+
+    let offset = 0;
+
+
+    while (true) {
+
+        const url =
+            `${SUPABASE_URL}/rest/v1/Schools?select=*&offset=${offset}&limit=${SUPABASE_PAGE_SIZE}`;
+
+
+        console.log(
+            `[TEST] Loading schools ${offset + 1} - ${offset + SUPABASE_PAGE_SIZE}...`
+        );
+
+
+        const response =
+            await fetch(
+                url,
+                {
+                    method: "GET",
+
+                    headers: {
+                        "apikey":
+                            SUPABASE_ANON_KEY,
+
+                        "Authorization":
+                            `Bearer ${SUPABASE_ANON_KEY}`,
+
+                        "Content-Type":
+                            "application/json",
+
+                        "Accept":
+                            "application/json"
+                    }
+                }
+            );
+
+
+        console.log(
+            "[TEST] Supabase HTTP status:",
+            response.status
+        );
+
+
+        /*
+           Read the response as text first so that
+           Supabase errors are easier to diagnose.
+        */
+
+        const responseText =
+            await response.text();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Supabase request failed: ${response.status} ${response.statusText}\n${responseText}`
+            );
+
+        }
+
+
+        let data;
+
+
+        try {
+
+            data =
+                JSON.parse(
+                    responseText
+                );
+
+        } catch (parseError) {
+
+            throw new Error(
+                "Supabase returned data that was not valid JSON."
+            );
+
+        }
+
+
+        if (!Array.isArray(data)) {
+
+            throw new Error(
+                "Supabase response was not an array of schools."
+            );
+
+        }
+
+
+        /*
+           Add this batch to the complete school list.
+        */
+
+        allSchools.push(
+            ...data
+        );
+
+
+        console.log(
+            `[TEST] Batch returned: ${data.length} schools.`
+        );
+
+        console.log(
+            `[TEST] Total schools loaded so far: ${allSchools.length}`
+        );
+
+
+        /*
+           If fewer than 1,000 rows were returned,
+           this is the final batch.
+        */
+
+        if (
+            data.length <
+            SUPABASE_PAGE_SIZE
+        ) {
+
+            break;
+
+        }
+
+
+        /*
+           Move to the next batch.
+        */
+
+        offset +=
+            SUPABASE_PAGE_SIZE;
+
+    }
+
+
+    console.log(
+        `[TEST] Finished loading schools. Total: ${allSchools.length}`
+    );
+
+
+    return allSchools;
 
 }
 
@@ -579,7 +619,6 @@ function runSchoolDataTests() {
 
     /*
        TEST 1
-       At least one school was returned.
     */
 
     if (
@@ -587,7 +626,7 @@ function runSchoolDataTests() {
     ) {
 
         console.log(
-            "[TEST PASSED] Supabase returned at least one school."
+            "[TEST PASSED] Supabase returned schools."
         );
 
     } else {
@@ -644,7 +683,7 @@ function runSchoolDataTests() {
 
     /*
        TEST 3
-       Parade has a valid latitude.
+       Parade latitude.
     */
 
     if (
@@ -670,7 +709,7 @@ function runSchoolDataTests() {
 
     /*
        TEST 4
-       Parade has a valid longitude.
+       Parade longitude.
     */
 
     if (
@@ -696,11 +735,7 @@ function runSchoolDataTests() {
 
     /*
        TEST 5
-       Check the expected Parade coordinates.
-
-       Victorian Government data:
-       Latitude  = -37.6902
-       Longitude = 145.067
+       Expected Parade coordinates.
     */
 
     const expectedLatitude =
@@ -756,7 +791,7 @@ function runSchoolDataTests() {
 
     /*
        TEST 6
-       Check that the school can pass the current filters.
+       Check filters.
     */
 
     const passesFilters =
@@ -819,11 +854,6 @@ function runMarkerTests() {
     );
 
 
-    /*
-       TEST 1
-       At least one filtered school exists.
-    */
-
     if (
         filteredSchools.length > 0
     ) {
@@ -843,11 +873,6 @@ function runMarkerTests() {
     }
 
 
-    /*
-       TEST 2
-       Markers were created.
-    */
-
     if (
         markers.length > 0
     ) {
@@ -865,11 +890,6 @@ function runMarkerTests() {
 
     }
 
-
-    /*
-       TEST 3
-       Check Parade's marker.
-    */
 
     const parade =
         schools.find(
@@ -996,30 +1016,25 @@ function zoomToTestSchool() {
 
 function initialiseFilters() {
 
-
     initialiseDualSlider(
         "age",
         FILTER_LIMITS.age
     );
-
 
     initialiseDualSlider(
         "fee",
         FILTER_LIMITS.fee
     );
 
-
     initialiseDualSlider(
         "enrolment",
         FILTER_LIMITS.enrolment
     );
 
-
     initialiseDualSlider(
         "ratio",
         FILTER_LIMITS.ratio
     );
-
 
     initialiseDualSlider(
         "distance",
@@ -1208,7 +1223,7 @@ function initialiseFilters() {
 
 
     /* -----------------------------------------------------
-       CLOSE DROPDOWNS WHEN CLICKING OUTSIDE
+       CLOSE DROPDOWNS
        ----------------------------------------------------- */
 
     document.addEventListener(
@@ -1232,8 +1247,6 @@ function initialiseFilters() {
                     ".checkbox-dropdown.gender-dropdown"
                 );
 
-
-            /* State */
 
             if (
                 stateContainer &&
@@ -1259,8 +1272,6 @@ function initialiseFilters() {
             }
 
 
-            /* Sector */
-
             if (
                 sectorContainer &&
                 !sectorContainer.contains(
@@ -1284,8 +1295,6 @@ function initialiseFilters() {
 
             }
 
-
-            /* Gender */
 
             if (
                 genderContainer &&
@@ -1330,18 +1339,15 @@ function initialiseDualSlider(
             `${name}-min-slider`
         );
 
-
     const maxSlider =
         document.getElementById(
             `${name}-max-slider`
         );
 
-
     const minInput =
         document.getElementById(
             `${name}-min`
         );
-
 
     const maxInput =
         document.getElementById(
@@ -1394,7 +1400,6 @@ function initialiseDualSlider(
             limits.step
         );
 
-
     maxInput.value =
         formatNumber(
             limits.max,
@@ -1420,7 +1425,6 @@ function initialiseDualSlider(
                 Number(
                     minSlider.value
                 );
-
 
             let maxValue =
                 Number(
@@ -1482,7 +1486,6 @@ function initialiseDualSlider(
                 Number(
                     minSlider.value
                 );
-
 
             let maxValue =
                 Number(
@@ -1704,12 +1707,10 @@ function updateSliderTrack(
             `${name}-min-slider`
         );
 
-
     const maxSlider =
         document.getElementById(
             `${name}-max-slider`
         );
-
 
     const track =
         document.getElementById(
@@ -1732,7 +1733,6 @@ function updateSliderTrack(
         Number(
             minSlider.value
         );
-
 
     const maxValue =
         Number(
@@ -1791,7 +1791,9 @@ function parseNumber(
 
 
     const number =
-        Number(cleaned);
+        Number(
+            cleaned
+        );
 
 
     return Number.isFinite(
@@ -1877,7 +1879,6 @@ function initialiseSearch() {
         document.getElementById(
             "school-search"
         );
-
 
     const searchButton =
         document.getElementById(
@@ -2044,7 +2045,6 @@ function filterStateOptions() {
         document.getElementById(
             "state-search"
         );
-
 
     const container =
         document.getElementById(
@@ -2334,7 +2334,6 @@ function applyFilters() {
     filteredSchools =
         schools.filter(
             school => {
-
 
                 /* -----------------------------------------
                    SEARCH
@@ -2804,11 +2803,6 @@ function renderSchoolMarkers() {
                     school.longitude
                 );
 
-
-            /*
-               Do not create a marker if the coordinates
-               are invalid.
-            */
 
             if (
                 !Number.isFinite(
@@ -3584,8 +3578,6 @@ function setUserLocation(
     updateLocationInput();
 
 
-    /* Move map */
-
     map.setView(
         [
             userLatitude,
@@ -3594,8 +3586,6 @@ function setUserLocation(
         13
     );
 
-
-    /* User marker */
 
     if (
         userLocationMarker
