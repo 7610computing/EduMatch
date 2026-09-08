@@ -8,20 +8,9 @@
     <title>EduMatch - Schools Map</title>
 
     <!-- Leaflet -->
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    >
-
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
-    >
-
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
-    >
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
 
     <!-- Map CSS -->
     <link rel="stylesheet" href="css/navbar.css">
@@ -30,871 +19,235 @@
 
 <body>
 
-    <!-- =========================
-         UNIVERSAL NAVBAR
-         ========================= -->
-
+    <!-- UNIVERSAL NAVBAR -->
     <div data-universal="navbar"></div>
-
 
     <main class="map-page">
 
-        <!-- =========================
-             SCHOOL SEARCH
-             ========================= -->
-
+        <!-- SCHOOL SEARCH -->
         <section class="search-section">
-
             <div class="search-box">
-
-                <span class="search-icon">
-                    ⌕
-                </span>
-
-                <input
-                    type="text"
-                    id="school-search"
-                    placeholder="Search for a school..."
-                    autocomplete="off"
-                >
-
+                <span class="search-icon">⌕</span>
+                <input type="text" id="school-search" placeholder="Search for a school..." autocomplete="off">
             </div>
-
-
-            <button
-                id="search-button"
-                class="search-button"
-                type="button"
-            >
-                Search
-            </button>
-
+            <button id="search-button" class="search-button" type="button">Search</button>
         </section>
 
-
-        <!-- =========================
-             USER LOCATION
-             ========================= -->
-
+        <!-- USER LOCATION -->
         <section class="location-section">
-
             <div class="location-input">
-
-                <span class="location-icon">
-                    ●
-                </span>
-
-                <input
-                    type="text"
-                    id="location-input"
-                    placeholder="Enter your address or location..."
-                    autocomplete="street-address"
-                >
-
+                <span class="location-icon">●</span>
+                <input type="text" id="location-input" placeholder="Enter your address or location..." autocomplete="street-address">
             </div>
-
-
-            <button
-                id="current-location-button"
-                class="current-location-button"
-                type="button"
-            >
-                Current Location
-            </button>
-
+            <button id="current-location-button" class="current-location-button" type="button">Current Location</button>
         </section>
 
-
-        <!-- =========================
-             FILTER PANEL
-             ========================= -->
-
+        <!-- FILTER PANEL -->
         <section class="filter-panel">
 
-            <!-- FILTER HEADER -->
-
             <div class="filter-header">
-
                 <div>
-
-                    <h2>
-                        Filters
-                    </h2>
-
-                    <p>
-                        Refine the schools shown on the map.
-                    </p>
-
+                    <h2>Filters</h2>
+                    <p>Refine the schools shown on the map.</p>
                 </div>
-
-
-                <button
-                    id="clear-filters"
-                    class="clear-filters"
-                    type="button"
-                >
-                    Clear filters
-                </button>
-
+                <button id="clear-filters" class="clear-filters" type="button">Clear filters</button>
             </div>
 
-
-            <!-- =========================
-                 SELECT FILTERS
-                 ========================= -->
-
+            <!-- SELECT FILTERS -->
             <div class="select-filters">
 
-
-                <!-- =====================
-                     STATE / REGION
-                     ===================== -->
-
+                <!-- STATE / REGION -->
                 <div class="filter-field">
-
-                    <label for="state-search">
-                        State / Province / Region
-                    </label>
-
-
+                    <label for="state-search">State / Province / Region</label>
                     <div class="search-select">
-
-                        <input
-                            type="text"
-                            id="state-search"
-                            placeholder="Search states / regions worldwide..."
-                            autocomplete="off"
-                        >
-
-
-                        <div
-                            id="state-options"
-                            class="search-options"
-                        ></div>
-
+                        <input type="text" id="state-search" placeholder="Search states / regions worldwide..." autocomplete="off">
+                        <div id="state-options" class="search-options"></div>
                     </div>
-
-
-                    <div
-                        id="selected-states"
-                        class="selected-items"
-                    ></div>
-
+                    <div id="selected-states" class="selected-items"></div>
                 </div>
 
-
-                <!-- =====================
-                     SECTOR
-                     ===================== -->
-
+                <!-- SECTOR -->
                 <div class="filter-field">
-
-                    <label>
-                        Sector
-                    </label>
-
-
-                    <div
-                        id="sector-dropdown"
-                        class="checkbox-dropdown sector-dropdown"
-                    >
-
-                        <button
-                            id="sector-dropdown-button"
-                            class="dropdown-button"
-                            type="button"
-                        >
-
-                            <span class="dropdown-text">
-                                All sectors
-                            </span>
-
-                            <span class="dropdown-arrow">
-                                ▾
-                            </span>
-
+                    <label>Sector</label>
+                    <div id="sector-dropdown" class="checkbox-dropdown sector-dropdown">
+                        <button id="sector-dropdown-button" class="dropdown-button" type="button">
+                            <span class="dropdown-text">All sectors</span>
+                            <span class="dropdown-arrow">▾</span>
                         </button>
-
-
-                        <div
-                            id="sector-options"
-                            class="checkbox-options"
-                        >
-
-                            <label>
-
-                                <input
-                                    type="checkbox"
-                                    value="Public"
-                                    data-filter="sector"
-                                >
-
-                                <span>
-                                    Public
-                                </span>
-
-                            </label>
-
-
-                            <label>
-
-                                <input
-                                    type="checkbox"
-                                    value="Private"
-                                    data-filter="sector"
-                                >
-
-                                <span>
-                                    Private
-                                </span>
-
-                            </label>
-
-
-                            <label>
-
-                                <input
-                                    type="checkbox"
-                                    value="Catholic"
-                                    data-filter="sector"
-                                >
-
-                                <span>
-                                    Catholic
-                                </span>
-
-                            </label>
-
+                        <div id="sector-options" class="checkbox-options">
+                            <label><input type="checkbox" value="Public" data-filter="sector"><span>Public</span></label>
+                            <label><input type="checkbox" value="Private" data-filter="sector"><span>Private</span></label>
+                            <label><input type="checkbox" value="Catholic" data-filter="sector"><span>Catholic</span></label>
                         </div>
-
                     </div>
-
                 </div>
 
-
-                <!-- =====================
-                     GENDER
-                     ===================== -->
-
+                <!-- GENDER -->
                 <div class="filter-field">
-
-                    <label>
-                        Gender
-                    </label>
-
-
-                    <div
-                        id="gender-dropdown"
-                        class="checkbox-dropdown gender-dropdown"
-                    >
-
-                        <button
-                            id="gender-dropdown-button"
-                            class="dropdown-button"
-                            type="button"
-                        >
-
-                            <span class="dropdown-text">
-                                All genders
-                            </span>
-
-                            <span class="dropdown-arrow">
-                                ▾
-                            </span>
-
+                    <label>Gender</label>
+                    <div id="gender-dropdown" class="checkbox-dropdown gender-dropdown">
+                        <button id="gender-dropdown-button" class="dropdown-button" type="button">
+                            <span class="dropdown-text">All genders</span>
+                            <span class="dropdown-arrow">▾</span>
                         </button>
-
-
-                        <div
-                            id="gender-options"
-                            class="checkbox-options"
-                        >
-
-                            <label>
-
-                                <input
-                                    type="checkbox"
-                                    value="Male"
-                                    data-filter="gender"
-                                >
-
-                                <span>
-                                    Male
-                                </span>
-
-                            </label>
-
-
-                            <label>
-
-                                <input
-                                    type="checkbox"
-                                    value="Female"
-                                    data-filter="gender"
-                                >
-
-                                <span>
-                                    Female
-                                </span>
-
-                            </label>
-
-
-                            <label>
-
-                                <input
-                                    type="checkbox"
-                                    value="Other"
-                                    data-filter="gender"
-                                >
-
-                                <span>
-                                    Other
-                                </span>
-
-                            </label>
-
+                        <div id="gender-options" class="checkbox-options">
+                            <label><input type="checkbox" value="Male" data-filter="gender"><span>Male</span></label>
+                            <label><input type="checkbox" value="Female" data-filter="gender"><span>Female</span></label>
+                            <label><input type="checkbox" value="Other" data-filter="gender"><span>Other</span></label>
                         </div>
-
                     </div>
-
                 </div>
 
             </div>
 
-
-            <!-- =========================
-                 RANGE FILTERS
-                 ========================= -->
-
+            <!-- RANGE FILTERS -->
             <div class="range-filters">
 
-
-                <!-- =====================
-                     AGE
-                     ===================== -->
-
+                <!-- AGE -->
                 <div class="range-filter">
-
-                    <h3>
-                        Age
-                    </h3>
-
-
+                    <h3>Age</h3>
                     <div class="range-inputs">
-
                         <div>
-
-                            <label for="age-min">
-                                Min
-                            </label>
-
-                            <input
-                                type="number"
-                                id="age-min"
-                                min="3"
-                                max="25"
-                                step="1"
-                                placeholder="Any"
-                            >
-
+                            <label for="age-min">Min</label>
+                            <input type="number" id="age-min" min="3" max="25" step="1" placeholder="Any">
                         </div>
-
-
                         <div>
-
-                            <label for="age-max">
-                                Max
-                            </label>
-
-                            <input
-                                type="number"
-                                id="age-max"
-                                min="3"
-                                max="25"
-                                step="1"
-                                placeholder="Any"
-                            >
-
+                            <label for="age-max">Max</label>
+                            <input type="number" id="age-max" min="3" max="25" step="1" placeholder="Any">
                         </div>
-
                     </div>
-
-
                     <div class="dual-slider">
-
-                        <div
-                            id="age-track"
-                            class="slider-track"
-                        ></div>
-
-
-                        <input
-                            type="range"
-                            id="age-min-slider"
-                            min="3"
-                            max="25"
-                            value="3"
-                            step="1"
-                        >
-
-
-                        <input
-                            type="range"
-                            id="age-max-slider"
-                            min="3"
-                            max="25"
-                            value="25"
-                            step="1"
-                        >
-
+                        <div id="age-track" class="slider-track"></div>
+                        <input type="range" id="age-min-slider" min="3" max="25" value="3" step="1">
+                        <input type="range" id="age-max-slider" min="3" max="25" value="25" step="1">
                     </div>
-
                 </div>
 
-
-                <!-- =====================
-                     FEES
-                     ===================== -->
-
+                <!-- FEES -->
                 <div class="range-filter">
-
-                    <h3>
-                        Fees
-                    </h3>
-
-
+                    <h3>Fees</h3>
                     <div class="range-inputs">
-
                         <div>
-
-                            <label for="fee-min">
-                                Min
-                            </label>
-
-                            <input
-                                type="number"
-                                id="fee-min"
-                                min="0"
-                                max="100000"
-                                step="500"
-                                placeholder="Any"
-                            >
-
+                            <label for="fee-min">Min</label>
+                            <input type="number" id="fee-min" min="0" max="100000" step="500" placeholder="Any">
                         </div>
-
-
                         <div>
-
-                            <label for="fee-max">
-                                Max
-                            </label>
-
-                            <input
-                                type="number"
-                                id="fee-max"
-                                min="0"
-                                max="100000"
-                                step="500"
-                                placeholder="Any"
-                            >
-
+                            <label for="fee-max">Max</label>
+                            <input type="number" id="fee-max" min="0" max="100000" step="500" placeholder="Any">
                         </div>
-
                     </div>
-
-
                     <div class="dual-slider">
-
-                        <div
-                            id="fee-track"
-                            class="slider-track"
-                        ></div>
-
-
-                        <input
-                            type="range"
-                            id="fee-min-slider"
-                            min="0"
-                            max="100000"
-                            value="0"
-                            step="500"
-                        >
-
-
-                        <input
-                            type="range"
-                            id="fee-max-slider"
-                            min="0"
-                            max="100000"
-                            value="100000"
-                            step="500"
-                        >
-
+                        <div id="fee-track" class="slider-track"></div>
+                        <input type="range" id="fee-min-slider" min="0" max="100000" value="0" step="500">
+                        <input type="range" id="fee-max-slider" min="0" max="100000" value="100000" step="500">
                     </div>
-
                 </div>
 
-
-                <!-- =====================
-                     ENROLMENT
-                     ===================== -->
-
+                <!-- ENROLMENT -->
                 <div class="range-filter">
-
-                    <h3>
-                        Enrolment
-                    </h3>
-
-
+                    <h3>Enrolment</h3>
                     <div class="range-inputs">
-
                         <div>
-
-                            <label for="enrolment-min">
-                                Min
-                            </label>
-
-                            <input
-                                type="number"
-                                id="enrolment-min"
-                                min="0"
-                                max="5000"
-                                step="50"
-                                placeholder="Any"
-                            >
-
+                            <label for="enrolment-min">Min</label>
+                            <input type="number" id="enrolment-min" min="0" max="5000" step="50" placeholder="Any">
                         </div>
-
-
                         <div>
-
-                            <label for="enrolment-max">
-                                Max
-                            </label>
-
-                            <input
-                                type="number"
-                                id="enrolment-max"
-                                min="0"
-                                max="5000"
-                                step="50"
-                                placeholder="Any"
-                            >
-
+                            <label for="enrolment-max">Max</label>
+                            <input type="number" id="enrolment-max" min="0" max="5000" step="50" placeholder="Any">
                         </div>
-
                     </div>
-
-
                     <div class="dual-slider">
-
-                        <div
-                            id="enrolment-track"
-                            class="slider-track"
-                        ></div>
-
-
-                        <input
-                            type="range"
-                            id="enrolment-min-slider"
-                            min="0"
-                            max="5000"
-                            value="0"
-                            step="50"
-                        >
-
-
-                        <input
-                            type="range"
-                            id="enrolment-max-slider"
-                            min="0"
-                            max="5000"
-                            value="5000"
-                            step="50"
-                        >
-
+                        <div id="enrolment-track" class="slider-track"></div>
+                        <input type="range" id="enrolment-min-slider" min="0" max="5000" value="0" step="50">
+                        <input type="range" id="enrolment-max-slider" min="0" max="5000" value="5000" step="50">
                     </div>
-
                 </div>
 
-
-                <!-- =====================
-                     STUDENT / TEACHER RATIO
-                     ===================== -->
-
+                <!-- STUDENT / TEACHER RATIO -->
                 <div class="range-filter">
-
-                    <h3>
-                        Student–Teacher Ratio
-                    </h3>
-
-
+                    <h3>Student–Teacher Ratio</h3>
                     <div class="range-inputs">
-
                         <div>
-
-                            <label for="ratio-min">
-                                Min
-                            </label>
-
-                            <input
-                                type="number"
-                                id="ratio-min"
-                                min="1"
-                                max="50"
-                                step="0.1"
-                                placeholder="Any"
-                            >
-
+                            <label for="ratio-min">Min</label>
+                            <input type="number" id="ratio-min" min="1" max="50" step="0.1" placeholder="Any">
                         </div>
-
-
                         <div>
-
-                            <label for="ratio-max">
-                                Max
-                            </label>
-
-                            <input
-                                type="number"
-                                id="ratio-max"
-                                min="1"
-                                max="50"
-                                step="0.1"
-                                placeholder="Any"
-                            >
-
+                            <label for="ratio-max">Max</label>
+                            <input type="number" id="ratio-max" min="1" max="50" step="0.1" placeholder="Any">
                         </div>
-
                     </div>
-
-
                     <div class="dual-slider">
-
-                        <div
-                            id="ratio-track"
-                            class="slider-track"
-                        ></div>
-
-
-                        <input
-                            type="range"
-                            id="ratio-min-slider"
-                            min="1"
-                            max="50"
-                            value="1"
-                            step="0.1"
-                        >
-
-
-                        <input
-                            type="range"
-                            id="ratio-max-slider"
-                            min="1"
-                            max="50"
-                            value="50"
-                            step="0.1"
-                        >
-
+                        <div id="ratio-track" class="slider-track"></div>
+                        <input type="range" id="ratio-min-slider" min="1" max="50" value="1" step="0.1">
+                        <input type="range" id="ratio-max-slider" min="1" max="50" value="50" step="0.1">
                     </div>
-
                 </div>
 
-
-                <!-- =====================
-                     DISTANCE
-                     ===================== -->
-
+                <!-- DISTANCE -->
+                <!--
+                    FIX: min/max attributes here were 0-100, but FILTER_LIMITS.distance
+                    in map.js is 0-1000. The sliders get overridden by JS on load so
+                    they were fine, but this number input wasn't, so typing anything
+                    above 100 into the box got silently clamped back down. Now matches.
+                -->
                 <div class="range-filter">
-
-                    <h3>
-                        Distance
-                    </h3>
-
-
+                    <h3>Distance</h3>
                     <div class="range-inputs">
-
                         <div>
-
-                            <label for="distance-min">
-                                Min (km)
-                            </label>
-
-                            <input
-                                type="number"
-                                id="distance-min"
-                                min="0"
-                                max="100"
-                                step="1"
-                                placeholder="Any"
-                            >
-
+                            <label for="distance-min">Min (km)</label>
+                            <input type="number" id="distance-min" min="0" max="1000" step="1" placeholder="Any">
                         </div>
-
-
                         <div>
-
-                            <label for="distance-max">
-                                Max (km)
-                            </label>
-
-                            <input
-                                type="number"
-                                id="distance-max"
-                                min="0"
-                                max="100"
-                                step="1"
-                                placeholder="Any"
-                            >
-
+                            <label for="distance-max">Max (km)</label>
+                            <input type="number" id="distance-max" min="0" max="1000" step="1" placeholder="Any">
                         </div>
-
                     </div>
-
-
                     <div class="dual-slider">
-
-                        <div
-                            id="distance-track"
-                            class="slider-track"
-                        ></div>
-
-
-                        <input
-                            type="range"
-                            id="distance-min-slider"
-                            min="0"
-                            max="100"
-                            value="0"
-                            step="1"
-                        >
-
-
-                        <input
-                            type="range"
-                            id="distance-max-slider"
-                            min="0"
-                            max="100"
-                            value="100"
-                            step="1"
-                        >
-
+                        <div id="distance-track" class="slider-track"></div>
+                        <input type="range" id="distance-min-slider" min="0" max="1000" value="0" step="1">
+                        <input type="range" id="distance-max-slider" min="0" max="1000" value="1000" step="1">
                     </div>
-
                 </div>
 
             </div>
 
         </section>
 
-
-        <!-- =========================
-             RESULTS
-             ========================= -->
-
+        <!-- RESULTS -->
         <div class="results-bar">
-
-            <span id="results-count">
-                Loading schools...
-            </span>
-
+            <span id="results-count">Loading schools...</span>
         </div>
 
-
-        <!-- =========================
-             MAP WORKSPACE
-             ========================= -->
-
+        <!-- MAP WORKSPACE -->
         <section class="map-workspace">
 
-            <div
-                id="school-map"
-                class="school-map"
-            ></div>
+            <div id="school-map" class="school-map"></div>
 
-
-            <!-- =====================
-                 SCHOOL DETAILS PANEL
-                 ===================== -->
-
-            <aside
-                id="school-details"
-                class="school-details"
-            >
-
-                <button
-                    id="close-details"
-                    class="close-details"
-                    type="button"
-                    aria-label="Close school details"
-                >
-                    ×
-                </button>
-
-
-                <div
-                    id="school-details-content"
-                    class="school-details-content"
-                >
-
+            <aside id="school-details" class="school-details">
+                <button id="close-details" class="close-details" type="button" aria-label="Close school details">×</button>
+                <div id="school-details-content" class="school-details-content">
                     <div class="details-empty">
-
-                        <div class="details-icon">
-                            +
-                        </div>
-
-
-                        <h2>
-                            Select a school
-                        </h2>
-
-
-                        <p>
-                            Select a school on the map
-                            to view more information.
-                        </p>
-
+                        <div class="details-icon">+</div>
+                        <h2>Select a school</h2>
+                        <p>Select a school on the map to view more information.</p>
                     </div>
-
                 </div>
-
             </aside>
 
         </section>
 
     </main>
 
+    <!-- LEAFLET -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- =========================
-         LEAFLET
-         ========================= -->
+    <!-- MARKER CLUSTER -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
-    <script
-        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-    </script>
-
-
-    <!-- =========================
-         MARKER CLUSTER
-         ========================= -->
-
-    <script
-        src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js">
-    </script>
-
-
-    <!-- =========================
-         UNIVERSAL COMPONENTS
-         ========================= -->
-
+    <!-- UNIVERSAL COMPONENTS -->
     <script src="js/universal.js"></script>
 
-
-    <!-- =========================
-         MAP JAVASCRIPT
-         ========================= -->
-
+    <!-- MAP JAVASCRIPT -->
     <script src="js/map.js"></script>
 
 </body>
