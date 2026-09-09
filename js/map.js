@@ -56,7 +56,7 @@ const VIEWPORT_BUFFER = 0.25;
 /*
    School-name labels are hidden below this zoom level.
 */
-const LABEL_ZOOM_LEVEL = 15;
+const LABEL_ZOOM_LEVEL = 8;
 
 /*
    Search debounce time, so typing doesn't re-run filtering
@@ -186,8 +186,8 @@ function initialiseMap() {
         spiderfyOnMaxZoom: true,
         showCoverageOnHover: false,
         zoomToBoundsOnClick: true,
-        disableClusteringAtZoom: 14,
-        maxClusterRadius: 60
+        disableClusteringAtZoom: 12,
+        maxClusterRadius: 35
     });
 
     markerClusterGroup.addTo(map);
