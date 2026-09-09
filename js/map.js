@@ -1557,7 +1557,7 @@ function openSchoolDetails(school) {
             ${createDetail("Gender", school.gender)}
             ${createDetail("Age Range", school.allowed_ages)}
             ${createDetail("Fees", school.fee !== null ? `$${Number(school.fee).toLocaleString()}` : null)}
-            ${createDetail("Enrolment", school.enrolment !== null ? Number(school.enrolment).toLocaleString() : null)}
+            ${createDetail("Enrolment", school.enrolment !== null ? Math.round(school.enrolment).toLocaleString() : null)}
             ${createDetail("Student–Teacher Ratio", school.student_teacher_ratio !== null ? String(school.student_teacher_ratio) : null)}
             ${createDetail("Uniform", school.uniform)}
             ${createDetail("Enrolment Information", school.enrolment_info)}
