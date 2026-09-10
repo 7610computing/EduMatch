@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings - EduMatch</title>
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+
+<body>
+
+    <!-- UNIVERSAL NAVBAR -->
+    <div data-universal="navbar"></div>
+
+    <main class="login-container">
+        <section class="login-box">
+            <h2>Account Settings</h2>
+            <p class="login-description">Manage your personal information and preferences.</p>
+
+            <form id="settings-form">
+                <div class="form-group">
+                    <label for="settings-fullname">Full Name</label>
+                    <input type="text" id="settings-fullname" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="settings-email">Email (Read-only)</label>
+                    <input type="email" id="settings-email" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label for="settings-account-type">Account Type</label>
+                    <select id="settings-account-type" required>
+                        <option value="student">Student</option>
+                        <option value="parent">Parent</option>
+                    </select>
+                </div>
+
+                <button type="submit" id="settings-button">Save Changes</button>
+                <p id="settings-message"></p>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>EduMatch</p>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/universal.js"></script>
+    <script src="js/settings.js"></script>
+</body>
+
+</html>
