@@ -26,7 +26,7 @@ jobs:
       - name: Run fee import
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_KEY }}
           MAX_SCHOOLS: ${{ github.event.inputs.max_schools }}
         run: node js/import-fees.mjs
 
