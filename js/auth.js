@@ -15,6 +15,24 @@ const supabaseClient = window.supabase.createClient(
 
 
 // =========================
+// VIEW TOGGLE HELPER
+// =========================
+
+function handleAuthenticationSuccess() {
+    const authView = document.getElementById("auth-view");
+    const homeView = document.getElementById("home-view");
+
+    if (authView && homeView) {
+        authView.style.display = "none";
+        homeView.style.display = "block";
+    } else {
+        // Fallback to reload if views aren't both present on the page
+        window.location.href = "index.html";
+    }
+}
+
+
+// =========================
 // LOGIN
 // =========================
 
@@ -104,10 +122,7 @@ if (loginForm) {
 
 
             setTimeout(function () {
-
-                window.location.href =
-                    "index.html";
-
+                handleAuthenticationSuccess();
             }, 500);
 
         }
@@ -308,14 +323,11 @@ if (signupForm) {
 
 
             // =========================
-            // REDIRECT
+            // SWITCH VIEWS / REDIRECT
             // =========================
 
             setTimeout(function () {
-
-                window.location.href =
-                    "index.html";
-
+                handleAuthenticationSuccess();
             }, 1000);
 
         }
