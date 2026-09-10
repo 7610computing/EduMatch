@@ -16,7 +16,7 @@
     <div data-universal="navbar"></div>
 
     <!-- =========================================
-         LOGGED-OUT VIEW: SIGN UP GATEWAY
+         VIEW 1: SIGN UP / AUTH GATE (Shown when logged out)
          ========================================= -->
     <main id="auth-view" class="login-container" style="display: none;">
         <section class="login-box">
@@ -65,32 +65,32 @@
     </main>
 
     <!-- =========================================
-         LOGGED-IN VIEW: HOMEPAGE CONTENT
+         VIEW 2: REWORKED HOMEPAGE (Shown when logged in)
          ========================================= -->
     <main id="home-view" class="EduMatch" style="display: none;">
         <section class="hero">
-            <h1>Find the right school for you.</h1>
-            <p>EduMatch helps students and parents discover schools based on what matters most to them.</p>
+            <h1>Welcome back to EduMatch</h1>
+            <p>Your personalized command center for discovering and comparing schools effortlessly.</p>
             <div class="hero-buttons">
                 <a href="swipe.html" class="primary-button">Start Swiping</a>
-                <a href="about.html" class="secondary-button">Learn More</a>
+                <a href="map.html" class="secondary-button">Explore Map</a>
             </div>
         </section>
 
         <section class="options-panel">
-            <h2>Explore EduMatch</h2>
+            <h2>Your Dashboard</h2>
             <div class="options">
+                <a href="swipe.html" class="option">
+                    <h3>Find Matches</h3>
+                    <p>Swipe through schools tailored to your goals.</p>
+                </a>
                 <a href="saved.html" class="option">
                     <h3>Saved Schools</h3>
-                    <p>View your shortlisted options.</p>
+                    <p>Review your shortlisted institutions and favorites.</p>
                 </a>
                 <a href="map.html" class="option">
-                    <h3>Map</h3>
-                    <p>Find schools that match your preferences.</p>
-                </a>
-                <a href="swipe.html" class="option">
-                    <h3>Swipe</h3>
-                    <p>Swipe through schools and discover your options.</p>
+                    <h3>School Map</h3>
+                    <p>Locate campuses and filter by distance or amenities.</p>
                 </a>
             </div>
         </section>
@@ -104,6 +104,25 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/universal.js"></script>
     <script src="js/auth.js"></script>
+
+    <!-- SINGLE-PAGE VIEW CONTROLLER -->
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            const authView = document.getElementById("auth-view");
+            const homeView = document.getElementById("home-view");
+
+            // Check session status instantly on load
+            const { data: { session } } = await supabaseClient.auth.getSession();
+
+            if (session) {
+                if (authView) authView.style.display = "none";
+                if (homeView) homeView.style.display = "block";
+            } else {
+                if (authView) authView.style.display = "flex";
+                if (homeView) homeView.style.display = "none";
+            }
+        });
+    </script>
 </body>
 
 </html>
