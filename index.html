@@ -4,138 +4,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>EduMatch</title>
-
-     <!-- Index CSS -->
     <link rel="stylesheet" href="css/navbar.css">
     <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/auth.css">
 </head>
 
 <body>
 
-    <!-- =========================
-         UNIVERSAL NAVBAR
-         ========================= -->
-
+    <!-- UNIVERSAL NAVBAR -->
     <div data-universal="navbar"></div>
 
-    <!-- =========================
-         MAIN CONTENT
-         ========================= -->
+    <!-- =========================================
+         LOGGED-OUT VIEW: SIGN UP GATEWAY
+         ========================================= -->
+    <main id="auth-view" class="login-container" style="display: none;">
+        <section class="login-box">
+            <h1>EduMatch</h1>
+            <h2>Create an Account</h2>
+            <p class="login-description">Join to find the school that's right for you.</p>
 
-    <main class="EduMatch">
+            <form id="signup-form">
+                <div class="form-group">
+                    <label for="fullname">Full Name</label>
+                    <input type="text" id="fullname" placeholder="Enter your full name" required>
+                </div>
 
-        <!-- HERO -->
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" placeholder="Enter your email" required>
+                </div>
 
-        <section class="hero">
+                <div class="form-group">
+                    <label for="account-type">Account Type</label>
+                    <select id="account-type" required>
+                        <option value="" disabled selected>Select account type</option>
+                        <option value="student">Student</option>
+                        <option value="parent">Parent</option>
+                    </select>
+                </div>
 
-            <h1>
-                Find the right school for you.
-            </h1>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" placeholder="Create a password" minlength="6" required>
+                </div>
 
-            <p>
-                EduMatch helps students and parents discover
-                schools based on what matters most to them.
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" placeholder="Confirm your password" minlength="6" required>
+                </div>
+
+                <button type="submit" id="signup-button">Sign Up</button>
+                <p id="signup-message"></p>
+            </form>
+
+            <p class="signup-text">
+                Already have an account? <a href="login.html">Log in</a>
             </p>
-
-            <div class="hero-buttons">
-
-                <a href="login.html" class="primary-button">
-                    Get Started
-                </a>
-
-                <a href="about.html" class="secondary-button">
-                    Learn More
-                </a>
-
-            </div>
-
         </section>
-
-
-        <!-- =========================
-             OPTIONS
-             ========================= -->
-
-        <section class="options-panel">
-
-            <h2>
-                Explore EduMatch
-            </h2>
-
-            <div class="options">
-
-                <a href="#" class="option">
-
-                    <h3>
-                        Compare
-                    </h3>
-
-                    <p>
-                        Compare schools and see what suits you best.
-                    </p>
-
-                </a>
-
-
-                <a href="map.html" class="option">
-
-                    <h3>
-                        Map
-                    </h3>
-
-                    <p>
-                        Find schools that match your preferences.
-                    </p>
-
-                </a>
-
-
-                <a href="#" class="option">
-
-                    <h3>
-                        Swipe
-                    </h3>
-
-                    <p>
-                        Swipe through schools and discover your options.
-                    </p>
-
-                </a>
-
-            </div>
-
-        </section>
-
     </main>
 
+    <!-- =========================================
+         LOGGED-IN VIEW: HOMEPAGE CONTENT
+         ========================================= -->
+    <main id="home-view" class="EduMatch" style="display: none;">
+        <section class="hero">
+            <h1>Find the right school for you.</h1>
+            <p>EduMatch helps students and parents discover schools based on what matters most to them.</p>
+            <div class="hero-buttons">
+                <a href="swipe.html" class="primary-button">Start Swiping</a>
+                <a href="about.html" class="secondary-button">Learn More</a>
+            </div>
+        </section>
 
-    <!-- =========================
-         FOOTER
-         ========================= -->
+        <section class="options-panel">
+            <h2>Explore EduMatch</h2>
+            <div class="options">
+                <a href="saved.html" class="option">
+                    <h3>Saved Schools</h3>
+                    <p>View your shortlisted options.</p>
+                </a>
+                <a href="map.html" class="option">
+                    <h3>Map</h3>
+                    <p>Find schools that match your preferences.</p>
+                </a>
+                <a href="swipe.html" class="option">
+                    <h3>Swipe</h3>
+                    <p>Swipe through schools and discover your options.</p>
+                </a>
+            </div>
+        </section>
+    </main>
 
     <footer>
-
-        <p>
-            EduMatch
-        </p>
-
+        <p>EduMatch</p>
     </footer>
-    
-    <!-- =========================
-         UNIVERSAL COMPONENTS
-         ========================= -->
 
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/universal.js"></script>
-
-
+    <script src="js/auth.js"></script>
 </body>
 
 </html>
-<!-- Place this at the top of your <body> -->
-    <div data-universal="navbar"></div>
-
-    <!-- Place this at the bottom, right before </body> -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/universal.js"></script>
