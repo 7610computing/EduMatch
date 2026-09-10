@@ -25,6 +25,12 @@ document.addEventListener("DOMContentLoaded", () => {
     let loadedCount = 0;
     const totalElements = universalElements.length;
 
+    // Detect GitHub Pages repo subpath dynamically
+    const pathSegments = window.location.pathname.split("/").filter(Boolean);
+    const repoPrefix = window.location.hostname.includes("github.io") && pathSegments.length > 0 
+        ? `/${pathSegments[0]}/` 
+        : "/";
+
     if (totalElements === 0) {
         checkAuthAndSetupNav();
         return;
@@ -34,7 +40,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const universalName = element.dataset.universal;
 
-        fetch(`universals/${universalName}.html`)
+        // Try fetching from universals folder first, with GitHub Pages path prefix
+        fetch(repoPrefix + `universals/${universalName}.html`)
+            .then(response => {
+                if (!response.ok) {
+                    // Fallback to root directory if not found in universals/
+                    return fetch(repoPrefix + `${universalName}.html`);
+                }
+                return response;
+            })
             .then(response => {
 
                 if (!response.ok) {
@@ -52,8 +66,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 loadedCount++;
 
                 /*
-                   Once the navbar has been inserted, initialise
-                   the authentication UI.
+                    Once the navbar has been inserted, initialise
+                    the authentication UI.
                 */
                 if (
                     loadedCount === totalElements ||
