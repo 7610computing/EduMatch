@@ -1,79 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
+document.addEventListener("DOMContentLoaded", async function () {
+    const navbarPlaceholder = document.querySelector("[data-universal='navbar']");
+    if (!navbarPlaceholder) return;
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduMatch</title>
-    <link rel="stylesheet" href="css/navbar.css">
-    <link rel="stylesheet" href="css/index.css">
-    <link rel="stylesheet" href="css/auth.css">
-</head>
+    try {
+        // Detects if running on GitHub Pages under a subpath (e.g., /EduMatch/)
+        const pathSegments = window.location.pathname.split("/").filter(Boolean);
+        const repoPrefix = window.location.hostname.includes("github.io") && pathSegments.length > 0 
+            ? `/${pathSegments[0]}/` 
+            : "/";
 
-<body>
+        const response = await fetch(repoPrefix + "navbar.html");
+        if (!response.ok) throw new Error("Failed to load navbar");
 
-    <!-- UNIVERSAL NAVBAR -->
-    <div data-universal="navbar"></div>
+        const navbarHtml = await response.text();
+        navbarPlaceholder.innerHTML = navbarHtml;
 
-    <!-- HOMEPAGE CONTENT -->
-    <main id="home-view" class="EduMatch" style="display: none;">
-        <section class="hero">
-            <h1>Welcome back to EduMatch</h1>
-            <p>Your personalized command center for discovering and comparing schools effortlessly.</p>
-            <div class="hero-buttons">
-                <a href="swipe.html" class="primary-button">Start Swiping</a>
-                <a href="map.html" class="secondary-button">Explore Map</a>
-            </div>
-        </section>
-
-        <section class="options-panel">
-            <h2>Your Dashboard</h2>
-            <div class="options">
-                <a href="swipe.html" class="option">
-                    <h3>Find Matches</h3>
-                    <p>Swipe through schools tailored to your goals.</p>
-                </a>
-                <a href="saved.html" class="option">
-                    <h3>Saved Schools</h3>
-                    <p>Review your shortlisted institutions and favorites.</p>
-                </a>
-                <a href="map.html" class="option">
-                    <h3>School Map</h3>
-                    <p>Locate campuses and filter by distance or amenities.</p>
-                </a>
-                <a href="settings.html" class="option">
-                    <h3>Account Settings</h3>
-                    <p>Update your personal info and account type.</p>
-                </a>
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <p>EduMatch</p>
-    </footer>
-
-    <!-- SCRIPTS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase.js"></script>
-    <script src="js/universal.js"></script>
-
-    <!-- AUTH GATE CONTROLLER -->
-    <script>
-        document.addEventListener("DOMContentLoaded", async function () {
-            const homeView = document.getElementById("home-view");
-
-            // Check active session using your supabase.js helper
-            const session = await getCurrentSession();
-
-            if (session) {
-                if (homeView) homeView.style.display = "block";
-            } else {
-                // Automatically redirect to login if user is not logged in
-                window.location.href = "login.html";
+        // Highlight active navbar link based on current page filename
+        const currentPage = window.location.pathname.split("/").pop() || "index.html";
+        const navLinks = navbarPlaceholder.querySelectorAll("a");
+        navLinks.forEach(link => {
+            if (link.getAttribute("href") === currentPage) {
+                link.classList.add("active");
             }
         });
-    </script>
-</body>
 
-</html>
+    } catch (error) {
+        console.error("Error loading universal navbar:", error);
+    }
+});
