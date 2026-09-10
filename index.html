@@ -12,62 +12,13 @@
 
 <body>
 
-    <!-- UNIVERSAL NAVBAR -->
-    <div data-universal="navbar"></div>
-
     <!-- =========================================
-         VIEW 1: SIGN UP / AUTH GATE (Shown when logged out)
-         ========================================= -->
-    <main id="auth-view" class="login-container" style="display: none;">
-        <section class="login-box">
-            <h1>EduMatch</h1>
-            <h2>Create an Account</h2>
-            <p class="login-description">Join to find the school that's right for you.</p>
-
-            <form id="signup-form">
-                <div class="form-group">
-                    <label for="fullname">Full Name</label>
-                    <input type="text" id="fullname" placeholder="Enter your full name" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="signup-email">Email</label>
-                    <input type="email" id="signup-email" placeholder="Enter your email" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="account-type">Account Type</label>
-                    <select id="account-type" required>
-                        <option value="" disabled selected>Select account type</option>
-                        <option value="student">Student</option>
-                        <option value="parent">Parent</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="signup-password">Password</label>
-                    <input type="password" id="signup-password" placeholder="Create a password" minlength="6" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="confirm-password">Confirm Password</label>
-                    <input type="password" id="confirm-password" placeholder="Confirm your password" minlength="6" required>
-                </div>
-
-                <button type="submit" id="signup-button">Sign Up</button>
-                <p id="signup-message"></p>
-            </form>
-
-            <p class="signup-text">
-                Already have an account? <a href="login.html">Log in</a>
-            </p>
-        </section>
-    </main>
-
-    <!-- =========================================
-         VIEW 2: REWORKED HOMEPAGE (Shown when logged in)
+         HOMEPAGE CONTENT (Protected by Login Wall)
          ========================================= -->
     <main id="home-view" class="EduMatch" style="display: none;">
+        <!-- UNIVERSAL NAVBAR (Only visible when logged in) -->
+        <div data-universal="navbar"></div>
+
         <section class="hero">
             <h1>Welcome back to EduMatch</h1>
             <p>Your personalized command center for discovering and comparing schools effortlessly.</p>
@@ -92,6 +43,10 @@
                     <h3>School Map</h3>
                     <p>Locate campuses and filter by distance or amenities.</p>
                 </a>
+                <a href="settings.html" class="option">
+                    <h3>Account Settings</h3>
+                    <p>Update your personal info and account type.</p>
+                </a>
             </div>
         </section>
     </main>
@@ -102,24 +57,22 @@
 
     <!-- SCRIPTS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
     <script src="js/universal.js"></script>
-    <script src="js/auth.js"></script>
 
-    <!-- SINGLE-PAGE VIEW CONTROLLER -->
+    <!-- AUTH GATE CONTROLLER -->
     <script>
         document.addEventListener("DOMContentLoaded", async function () {
-            const authView = document.getElementById("auth-view");
             const homeView = document.getElementById("home-view");
 
-            // Check session status instantly on load
-            const { data: { session } } = await supabaseClient.auth.getSession();
+            // Check active session using your supabase.js helper
+            const session = await getCurrentSession();
 
             if (session) {
-                if (authView) authView.style.display = "none";
                 if (homeView) homeView.style.display = "block";
             } else {
-                if (authView) authView.style.display = "flex";
-                if (homeView) homeView.style.display = "none";
+                // Automatically redirect to login if user is not logged in
+                window.location.href = "login.html";
             }
         });
     </script>
