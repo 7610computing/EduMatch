@@ -23,7 +23,9 @@
             margin: 0;
             padding: 0;
         }
-
+<!-- Place this at the top of your <body> -->
+    <div data-universal="navbar"></div>
+        
         body {
             font-family: Arial, sans-serif;
             background-color: #f7f7f7;
@@ -913,14 +915,13 @@
 
     </script>
 
-
+    <!-- Place this at the bottom, right before </body> -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/universal.js"></script>
 </body>
 
 </html>
 
-<!-- Place this at the top of your <body> -->
-    <div data-universal="navbar"></div>
 
-    <!-- Place this at the bottom, right before </body> -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/universal.js"></script>
+
+
