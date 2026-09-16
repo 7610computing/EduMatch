@@ -197,7 +197,7 @@ function initialiseMap() {
 
     /*
        Only update marker visibility once the map has finished
-       moving. Deliberately not using "move".
+       moving.
     */
     map.on("moveend", () => {
         scheduleVisibleMarkerUpdate();
@@ -236,7 +236,7 @@ async function loadSchools() {
         }
 
         /*
-           Normalise the data once so we don't repeatedly convert
+           Normalises the data once so we don't repeatedly convert
            strings to numbers every time a filter runs.
         */
         schools = schools.map(normaliseSchool);
@@ -488,6 +488,7 @@ function zoomToTestSchool() {
     // (search, filters, everything) from wiring up correctly. Guarding
     // here means a map-load failure just gets logged, not silently
     // takes the whole page down with it.
+   
     if (!map) {
         console.warn("[TEST] Cannot zoom to Parade because the map failed to initialise.");
         return;
@@ -657,6 +658,7 @@ function initialiseDualSlider(name, limits) {
     // is doing, so typing "500" into the distance box got silently
     // rejected/clamped. Setting them here from the single source of
     // truth means the HTML values can never drift out of sync again.
+   
     minInput.min = limits.min;
     minInput.max = limits.max;
     minInput.step = limits.step;
@@ -1994,6 +1996,7 @@ function updateResultsCount(count) {
 
 // FIX: new - dedicated message for a failed load, distinct from a
 // genuine "0 schools found" result. See loadSchools()'s catch block.
+
 function showLoadError() {
 
     const result = document.getElementById("results-count");
