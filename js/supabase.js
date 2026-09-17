@@ -12,7 +12,7 @@ const SUPABASE_URL =
 
 
 const SUPABASE_ANON_KEY =
-    "YOUR_SUPABASE_ANON_KEY";
+    "sb_publishable_toapbpc7C63yz1cCfg2jFQ_THIzGsJj";
 
 
 /* =========================
